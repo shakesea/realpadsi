@@ -1,0 +1,9 @@
+{
+  "build": {
+    "builder": "nixpacks",
+    "buildCommand": "composer install && php artisan key:generate --force"
+  },
+  "deploy": {
+    "startCommand": "php artisan serve --host 0.0.0.0 --port $PORT"
+  }
+}
