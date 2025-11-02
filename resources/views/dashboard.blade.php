@@ -16,7 +16,7 @@
     <aside class="sidebar">
         <div class="logo-wrap">
             <img src="{{ asset('img/nutapos_logo.png') }}" class="logo-icon">
-            <span class="logo">nutapos</span>
+            <span class="logo">halo</span>
         </div>
             <ul class="menu">
                 <li class="active">Dashboard</li>
