@@ -194,12 +194,12 @@
 
 <div class="login-container">
     <div class="login-left">
-        <img src="{{ asset('img/NUTAPOS_Login.png') }}" alt="Login Image">
+        <img src="{{ asset('img/nutapos_login.png') }}" alt="Login Image">
     </div>
 
     <div class="login-right">
         <div class="logo-wrap">
-            <img src="{{ asset('img/NUTAPOS_Logo.png') }}" class="logo-icon">
+            <img src="{{ asset('img/nutapos_logo.png') }}" class="logo-icon">
             <span class="logo-text">nutapos</span>
         </div>
 
