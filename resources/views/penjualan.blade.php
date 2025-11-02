@@ -18,10 +18,10 @@
             </div>
                 <ul class="menu">
                     <li><a href="/dashboard">Dashboard</a></li>
-                    <li class="active"><a href="/pegawai">Pegawai</a></li>
+                    <li><a href="/pegawai">Pegawai</a></li>
                     <li><a href="/kasir">Kasir</a></li>
                     <li><a href="/stok">Stok</a></li>
-                    <li><a href="/penjualan">Riwayat Penjualan</a></li>
+                    <li class="active"><a href="/penjualan">Riwayat Penjualan</a></li>
                     <li><a href="/member">Member</a></li>
                     <li><a href="/">Tutup Outlet</a></li>
                     <li><a href="/">Pengaturan</a></li>

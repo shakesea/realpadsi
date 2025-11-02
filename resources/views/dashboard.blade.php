@@ -16,18 +16,17 @@
     <aside class="sidebar">
         <div class="logo-wrap">
             <img src="{{ asset('img/nutapos_logo.png') }}" class="logo-icon">
-            <span class="logo">halo</span>
+            <span class="logo">nutapos</span>
         </div>
             <ul class="menu">
-                <li class="active">Dashboard</li>
-                <li>Pegawai</li>
-                    <a href="{{ url('/login') }}">Pegawai</a>
-                <li>Kasir</li>
-                <li>Stok</li>
-                <li>Riwayat Penjualan</li>
-                <li>Member</li>
-                <li>Tutup Outlet</li>
-                <li>Pengaturan</li>
+                <li class="active"><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/pegawai">Pegawai</a></li>
+                <li><a href="/kasir">Kasir</a></li>
+                <li><a href="/stok">Stok</a></li>
+                <li><a href="/penjualan">Riwayat Penjualan</a></li>
+                <li><a href="/member">Member</a></li>
+                <li><a href="/">Tutup Outlet</a></li>
+                <li><a href="/">Pengaturan</a></li>
             </ul>
     </aside>
 
