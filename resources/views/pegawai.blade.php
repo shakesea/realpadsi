@@ -52,7 +52,7 @@
         </div>
 
         <!-- Tombol Buat Baru -->
-        <a href="#" class="pegawai-add">+ Buat Baru</a>
+        <a href="{{ route('pegawai.create') }}" class="pegawai-add">+ Buat Baru</a>
     </div>
 </div>
 @endsection
