@@ -7,23 +7,27 @@
     <div class="form-card">
         <h1 class="form-title">Edit Stok</h1>
 
-        <form action="{{ route('stok.update', $stokItem['id']) }}" method="POST">
+        {{-- Pastikan parameter id dikirim --}}
+        <form action="{{ route('stok.update', $stokItem->ID_Barang) }}" method="POST">
             @csrf
             @method('PUT')
 
+            {{-- Nama Item --}}
             <div class="form-group">
                 <label for="nama">Nama Item</label>
-                <input type="text" id="nama" name="nama" value="{{ $stokItem['nama'] }}" required>
+                <input type="text" id="nama" name="nama" value="{{ $stokItem->Nama }}" required>
             </div>
 
+            {{-- Jumlah Item --}}
             <div class="form-group">
-                <label for="jumlah">Jumlah</label>
-                <input type="number" id="jumlah" name="jumlah" value="{{ $stokItem['jumlah'] }}" required>
+                <label for="jumlah">Jumlah Item</label>
+                <input type="number" id="jumlah" name="jumlah" value="{{ $stokItem->Jumlah_Item }}" required>
             </div>
 
+            {{-- Kategori (mengganti posisi Satuan sebelumnya) --}}
             <div class="form-group">
-                <label for="satuan">Satuan</label>
-                <input type="text" id="satuan" name="satuan" value="{{ $stokItem['satuan'] }}" required>
+                <label for="kategori">Kategori</label>
+                <input type="text" id="kategori" name="kategori" value="{{ $stokItem->Kategori }}" required>
             </div>
 
             <div class="form-footer">

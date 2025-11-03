@@ -15,31 +15,24 @@
                 <tr>
                     <th>Nama Item</th>
                     <th>Jumlah</th>
-                    <th>Satuan</th>
+                    <th>Kategori</th>
                     <th>Tindakan</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($stokData as $item)
                 <tr>
-                    <td>{{ $item['nama'] }}</td>
-                    <td>{{ $item['jumlah'] }}</td>
-                    <td>{{ $item['satuan'] }}</td>
+                    <td>{{ $item->Nama }}</td>
+                    <td>{{ $item->Jumlah_Item }}</td>
+                    <td>{{ $item->Kategori }}</td>
                     <td class="aksi-btns">
-                        {{-- Tombol Edit --}}
-                        <a href="{{ route('stok.edit', $item['id']) }}" class="btn-edit">
-                            <i class="fa fa-pen"></i> Edit
-                        </a>
+                        <a href="{{ route('stok.edit', $item->ID_Barang) }}" class="btn-edit">Edit</a>
 
-                        {{-- Tombol Hapus --}}
-                        <form action="{{ route('stok.destroy', $item['id']) }}" method="POST" 
-                              onsubmit="return confirm('Hapus {{ $item['nama'] }}?')" 
-                              style="display:inline;">
+                        <form action="{{ route('stok.destroy', $item->ID_Barang) }}" method="POST"
+                            onsubmit="return confirm('Hapus {{ $item->Nama }}?')" style="display:inline;">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn-delete">
-                                <i class="fa fa-trash"></i> Hapus
-                            </button>
+                            <button type="submit" class="btn-delete">Hapus</button>
                         </form>
                     </td>
                 </tr>
