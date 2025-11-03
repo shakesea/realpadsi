@@ -364,3 +364,34 @@
   text-decoration: none;
   font-weight: 600;
 }
+
+/* Form Setelah Tombol Bayar */
+
+.pay-btn {
+  flex: 1;
+  min-width: 100px;
+  background: #f1f1f1;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.pay-btn:hover {
+  background: #ddd;
+}
+
+.btn-yellow {
+  background: #ffcc00;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-yellow:hover {
+  background: #e6b800;
+}
