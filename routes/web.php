@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\KasirController;
+use App\Http\Controllers\StokController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -19,6 +20,14 @@ Route::post('/kasir', [KasirController::class, 'store'])->name('kasir.store');
 Route::put('/kasir/{id}', [KasirController::class, 'update'])->name('kasir.update');
 Route::delete('/kasir/{id}', [KasirController::class, 'destroy'])->name('kasir.destroy');
 
+Route::prefix('stok')->group(function () {
+    Route::get('/', [StokController::class, 'index'])->name('stok.index');
+    Route::get('/tambah', [StokController::class, 'create'])->name('stok.create');
+    Route::post('/', [StokController::class, 'store'])->name('stok.store');
+    Route::get('/edit/{id}', [StokController::class, 'edit'])->name('stok.edit');
+    Route::put('/{id}', [StokController::class, 'update'])->name('stok.update');
+    Route::delete('/{id}', [StokController::class, 'destroy'])->name('stok.destroy');
+});
 
 
 Route::get('/', function () {
@@ -33,10 +42,6 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
 
-
-Route::get('/stok', function () {
-    return view('stok');
-});
 
 Route::get('/penjualan', function () {
     return view('penjualan');

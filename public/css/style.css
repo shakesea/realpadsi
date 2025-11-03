@@ -676,3 +676,140 @@ body {
     transform: translateY(-2px);
 }
 
+/* ======================================================
+   STOK PAGE STYLE (Revised for Nutapos-like layout)
+====================================================== */
+.stok-container {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  margin: 30px;
+  padding: 25px 30px;
+  display: flex;
+  flex-direction: column;
+  min-height: 80vh;
+}
+
+.stok-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.stok-date {
+  font-weight: 600;
+  font-size: 15px;
+  color: #444;
+}
+
+.btn-add {
+  background: #37C84F;        
+  color: #fff;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: none;
+  text-decoration: none;       
+  display: inline-block;       
+  transition: 0.2s;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-add:hover {
+  background: #2fa645;         
+}
+
+.stok-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.stok-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.stok-table thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #ddd;
+}
+
+.stok-table th {
+  padding: 12px 15px;
+  font-weight: 700;
+  color: #333;
+  font-size: 15px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.stok-table td {
+  padding: 12px 15px;
+  font-size: 15px;
+  color: #222;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+.stok-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Alignment per kolom */
+.stok-table td:nth-child(2),
+.stok-table td:nth-child(3),
+.stok-table th:nth-child(2),
+.stok-table th:nth-child(3),
+.stok-table td:nth-child(4),
+.stok-table th:nth-child(4) {
+  text-align: center;
+}
+
+/* Tombol aksi */
+.aksi-btns {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-edit, .btn-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn-edit {
+  background: #0080ff;
+  color: #fff;
+}
+.btn-edit:hover {
+  background: #2fa646;
+}
+
+.btn-delete {
+  background: #dc3545;
+  color: #fff;
+}
+.btn-delete:hover {
+  background: #c22c3b;
+}
+
+/* Icon di tombol */
+.btn-edit i,
+.btn-delete i {
+  font-size: 13px;
+}
+
+/* Table hover effect */
+.stok-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
