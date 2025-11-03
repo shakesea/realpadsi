@@ -1,56 +1,40 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
-class AuthController extends Controller
+use Illuminate\Http\Request;
+use App\Models\Manager;
+use Illuminate\Support\Facades\Session;
+
+class AuthController
 {
-    public function showLoginForm()
+    public function showLogin()
     {
-        return view('login');
+        return view('login'); // pastikan ada file resources/views/login.blade.php
     }
 
     public function login(Request $request)
     {
-        // Validasi manual dulu
         $request->validate([
             'username' => 'required',
             'password' => 'required',
         ]);
 
-        $username = $request->username;
-        $password = $request->password;
+        $manager = Manager::where('Username', $request->username)
+            ->where('Password', $request->password)
+            ->first();
 
-        // DEBUG: Cek nilai
-        \Log::info("Login attempt - Username: $username, Password: $password");
-
-        // Credentials hardcoded untuk testing
-        $defaultUsername = 'manager01';
-        $defaultPassword = 'admin123';
-
-        if ($username === $defaultUsername && $password === $defaultPassword) {
-            // Login sukses
-            session(['user' => [
-                'id' => 1,
-                'username' => 'manager01',
-                'name' => 'Manager'
-            ]]);
-            $request->session()->regenerate();
-            
-            return redirect()->intended('/dashboard');
+        if ($manager) {
+            Session::put('manager', $manager);
+            return redirect('/dashboard'); // ganti sesuai route dashboard kamu
+        } else {
+            return back()->with('error', 'Username atau password salah!');
         }
-
-        // Login gagal - return dengan error
-        return back()->withErrors([
-            'error' => 'Username atau password tidak sesuai.',
-        ])->withInput();
     }
 
-    public function logout(Request $request)
+    public function logout()
     {
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        Session::forget('manager');
         return redirect('/login');
     }
 }

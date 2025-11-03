@@ -5,9 +5,9 @@ use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\KasirController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/pegawai', [PegawaiController::class, 'index'])->name('pegawai.index');
 Route::delete('/pegawai/{id}', [PegawaiController::class, 'destroy'])->name('pegawai.destroy');
