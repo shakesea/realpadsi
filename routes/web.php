@@ -29,6 +29,8 @@ Route::prefix('stok')->group(function () {
     Route::delete('/{id}', [StokController::class, 'destroy'])->name('stok.destroy');
 });
 
+Route::get('/kasir', [KasirController::class, 'index']);
+
 
 Route::get('/', function () {
     return redirect('/login');
