@@ -1,56 +1,40 @@
 <?php
 
-namespace App\Http\Controllers;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PegawaiController;
+use Illuminate\Support\Facades\Route;
 
-class AuthController extends Controller
-{
-    public function showLoginForm()
-    {
-        return view('login');
-    }
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/pegawai', [PegawaiController::class, 'index'])->name('pegawai.index');
+Route::delete('/pegawai/{id}', [PegawaiController::class, 'destroy'])->name('pegawai.destroy');
 
-    public function login(Request $request)
-    {
-        // Validasi manual dulu
-        $request->validate([
-            'username' => 'required',
-            'password' => 'required',
-        ]);
+Route::get('/', function () {
+    return redirect('/login');
+});
 
-        $username = $request->username;
-        $password = $request->password;
+Route::get('/login', function () {
+    return view('login');
+});
 
-        // DEBUG: Cek nilai
-        \Log::info("Login attempt - Username: $username, Password: $password");
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->name('dashboard');
 
-        // Credentials hardcoded untuk testing
-        $defaultUsername = 'manager01';
-        $defaultPassword = 'admin123';
 
-        if ($username === $defaultUsername && $password === $defaultPassword) {
-            // Login sukses
-            session(['user' => [
-                'id' => 1,
-                'username' => 'manager01',
-                'name' => 'Manager'
-            ]]);
-            $request->session()->regenerate();
-            
-            return redirect()->intended('/dashboard');
-        }
+Route::get('/kasir', function () {
+    return view('kasir');
+});
 
-        // Login gagal - return dengan error
-        return back()->withErrors([
-            'error' => 'Username atau password tidak sesuai.',
-        ])->withInput();
-    }
+Route::get('/stok', function () {
+    return view('stok');
+});
 
-    public function logout(Request $request)
-    {
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return redirect('/login');
-    }
-}
+Route::get('/penjualan', function () {
+    return view('penjualan');
+});
+
+Route::get('/member', function () {
+    return view('member');
+});
