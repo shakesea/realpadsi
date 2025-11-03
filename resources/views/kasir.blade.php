@@ -60,28 +60,50 @@
 <div id="addModal" class="modal-overlay" style="display:none">
   <div class="modal-card">
     <h2 class="modal-title">Tambah Produk Baru</h2>
-    <div class="modal-body">
-      <div class="form-left">
-        <label for="foto-upload" class="foto-box" id="add-preview-box">
-          <span id="add-preview-text">Pilih Foto</span>
-          <img id="add-preview-img" style="display:none;width:100%;border-radius:10px;">
-        </label>
-        <input type="file" id="foto-upload" accept="image/*" style="display:none"
-               onchange="preview('add-preview-img','add-preview-text',event)">
+
+    <form action="{{ route('menu.store') }}" method="POST" enctype="multipart/form-data">
+      @csrf
+      <div class="modal-body">
+        <div class="form-left">
+          <label for="foto-upload" class="foto-box" id="add-preview-box">
+            <span id="add-preview-text">Pilih Foto</span>
+            <img id="add-preview-img" style="display:none;width:100%;border-radius:10px;">
+          </label>
+          <input type="file" name="Foto" id="foto-upload" accept="image/*" style="display:none"
+                 onchange="preview('add-preview-img','add-preview-text',event)">
+        </div>
+
+        <div class="form-right">
+          <div class="form-group">
+            <label>Nama</label>
+            <input type="text" name="Nama" required>
+          </div>
+
+          <div class="form-group">
+            <label>Harga (Rp)</label>
+            <input type="number" name="Harga" required>
+          </div>
+
+          <div class="form-group">
+            <label>Kategori</label>
+            <input type="text" name="Kategori" required>
+          </div>
+
+          <div class="form-group">
+            <label>Deskripsi</label>
+            <textarea name="Deskripsi" rows="3"></textarea>
+          </div>
+        </div>
       </div>
-      <div class="form-right">
-        <div class="form-group"><label>Nama</label><input type="text"></div>
-        <div class="form-group"><label>Harga (Rp)</label><input type="number"></div>
-        <div class="form-group"><label>Kategori</label><input type="text"></div>
-        <div class="form-group"><label>Deskripsi</label><textarea rows="3"></textarea></div>
+
+      <div class="modal-footer">
+        <a href="#" class="modal-cancel" onclick="closeModal('addModal')">Kembali</a>
+        <button type="submit" class="btn-green">Tambah</button>
       </div>
-    </div>
-    <div class="modal-footer">
-      <a href="#" class="modal-cancel" onclick="closeModal('addModal')">Kembali</a>
-      <button class="btn-green">Tambah</button>
-    </div>
+    </form>
   </div>
 </div>
+
 
 <!-- Modal Edit Produk -->
 <div id="editModal" class="modal-overlay" style="display:none">

@@ -34,7 +34,8 @@ Route::prefix('stok')->group(function () {
 
 Route::get('/penjualan', [LaporanController::class, 'index'])->name('penjualan.index');
 
-Route::get('/kasir', [KasirController::class, 'index']);
+Route::get('/kasir', [KasirController::class, 'index'])->name('kasir.index');
+Route::post('/kasir/store', [KasirController::class, 'store'])->name('menu.store');
 
 
 Route::get('/', function () {

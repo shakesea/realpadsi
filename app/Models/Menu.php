@@ -8,9 +8,16 @@ class Menu extends Model
 {
     protected $table = 'Menu';
     protected $primaryKey = 'ID_Menu';
-    public $timestamps = true;
+    public $incrementing = false;
+    public $timestamps = false;
 
     protected $fillable = [
-        'ID_Stok','Nama','Harga','Foto','Kategori'
+        'ID_Menu',
+        'Nama',
+        'Harga',
+        'Kategori',
+        'Foto',
+        'Created_At',
+        'Updated_At'
     ];
 }
