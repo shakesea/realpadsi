@@ -1,0 +1,71 @@
+dashboard.css
+
+/* ========== GENERAL LAYOUT ========== */
+.section-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+/* ========== FILTER BAR ========== */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.filter-btn {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* ========== CARDS ========== */
+.cards {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.card-large {
+  grid-row: span 2;
+}
+
+/* Card */
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #dadada;
+}
+
+.card p {
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 5px;
+}
+
+.card h3 {
+  font-size: 22px;
+  color: #000000;
+  margin: 0;
+}
+
+/* ========== CHART AREA ========== */
+.subtitle {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.chart-box {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}

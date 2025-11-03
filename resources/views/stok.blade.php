@@ -1,32 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=h, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <title>Member</title>
-</head>
-<body>
-    <div class="container">
+@extends('layouts.main')
 
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="logo-wrap">
-                <img src="{{ asset('img/nutapos_logo.png') }}" class="logo-icon">
-                <span class="logo">nutapos</span>
-            </div>
-                <ul class="menu">
-                    <li><a href="/public/dashboard">Dashboard</a></li>
-                    <li><a href="/public/pegawai">Pegawai</a></li>
-                    <li><a href="/public/kasir">Kasir</a></li>
-                    <li class="active"><a href="/public/stok">Stok</a></li>
-                    <li><a href="/public/penjualan">Riwayat Penjualan</a></li>
-                    <li><a href="/public/member">Member</a></li>
-                    <li><a href="/">Tutup Outlet</a></li>
-                    <li><a href="/">Pengaturan</a></li>
-                </ul>
-        </aside>
-    </div class="container">
-</body>
-</html>
+@section('title', 'NutaPOS - Kasir')
+
+@section('content')
+    <h1 class="title">Stok</h1>
+    <p>Ini halaman stok kamu.</p>
+@endsection

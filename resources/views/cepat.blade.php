@@ -6,7 +6,7 @@
     <title>Halaman Cepat</title>
 </head>
 <body>
-    <a href="/public/login">Login</a>
-    <a href="/public/dashboard">d</a>
+    <a href="/login">Login</a>
+    <a href="/dashboard">Dashboard</a>
 </body>
 </html>

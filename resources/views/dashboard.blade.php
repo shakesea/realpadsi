@@ -1,41 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nutapos Dashboard</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
+@extends('layouts.main')
+
+@section('title', 'NutaPOS - Dashboard')
+
+@section('content')
 
 <div class="container">
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="logo-wrap">
-            <img src="{{ asset('img/nutapos_logo.png') }}" class="logo-icon">
-            <span class="logo">nutapos</span>
-        </div>
-            <ul class="menu">
-                <li class="active"><a href="/dashboard">Dashboard</a></li>
-                <li><a href="/public/pegawai">Pegawai</a></li>
-                <li><a href="/public/kasir">Kasir</a></li>
-                <li><a href="/public/stok">Stok</a></li>
-                <li><a href="/public/penjualan">Riwayat Penjualan</a></li>
-                <li><a href="/public/member">Member</a></li>
-                <li><a href="/">Tutup Outlet</a></li>
-                <li><a href="/">Pengaturan</a></li>
-            </ul>
-    </aside>
-
     <!-- Main Content -->
-    <main class="main">
-        <h2 class="title">Ringkasan Penjualan</h2>
+    <div class="dashboard">
+        <h2 class="section-title">Ringkasan Penjualan</h2>
 
+        <!-- Filter bar -->
+        <div class="filter-bar">
+            <button class="filter-btn">🏪 Semua Outlet</button>
+            <button class="filter-btn">📅 16 Apr 2025 - 20 Mei 2025</button>
+        </div>
+
+        <!-- Cards -->
         <div class="cards">
-            <div class="card">
+            <div class="card card-large">
                 <p>Total Penjualan</p>
                 <h3>Rp 10.000.000</h3>
             </div>
@@ -57,17 +40,18 @@
             </div>
         </div>
 
+        <!-- Chart -->
         <h2 class="subtitle">Grafik Penjualan</h2>
         <div class="chart-box">
             <canvas id="salesChart"></canvas>
         </div>
-    </main>
-
+    </div>
 </div>
 
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const ctx = document.getElementById('salesChart');
-
 new Chart(ctx, {
     type: 'line',
     data: {
@@ -80,5 +64,6 @@ new Chart(ctx, {
 });
 </script>
 
-</body>
-</html>
+
+@endsection
+

@@ -20,6 +20,7 @@ body {
 /* ========== LAYOUT CONTAINER ========== */
 .container {
     display: flex;
+    border: 10px solid;
 }
 
 /* ========== SIDEBAR ========== */
@@ -324,4 +325,263 @@ body {
 
 .input-error:focus {
     box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1) !important;
+}
+
+/* =====================================================
+   ✨ SIDEBAR IMPROVEMENT STYLE (nutapos)
+   ===================================================== */
+
+.sidebar {
+    width: 240px;
+    min-height: 100vh;
+    background: #ffffff;
+    padding: 25px 20px;
+    border-right: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+/* Logo header */
+.logo-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-bottom: 40px;
+}
+
+.logo-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+}
+
+.logo {
+    font-size: 30px;
+    font-weight: 900;
+    color: #33aa33;
+}
+
+/* Menu Container */
+.menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* Menu Item */
+.menu li {
+    border-radius: 30px;
+    transition: all 0.3s ease;
+}
+
+/* Link Style */
+.menu li a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    color: #222;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 12px 18px;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+}
+
+/* Icon di samping teks */
+.menu li a .icon {
+    font-size: 18px;
+    width: 22px;
+    text-align: center;
+    color: #444;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.menu li a:hover {
+    color: #000000;
+    transform: translateX(3px);
+}
+
+.menu li a:hover .icon {
+    color: #0d6d0d;
+    transform: scale(1.1);
+}
+
+.menu li.active a .icon {
+    color: #0d6d0d;
+}
+
+/* Smooth transition untuk sidebar */
+.menu li,
+.menu li a,
+.menu li a .icon {
+    transition: all 0.25s ease-in-out;
+}
+
+/* Separator antar menu */
+.menu li:not(:last-child) {
+    margin-bottom: 6px;
+}
+
+/* Hover “klik” lembut */
+.menu li a:active {
+    transform: scale(0.98);
+}
+
+/* Responsif (untuk tampilan kecil) */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        padding: 10px 15px;
+        border-right: none;
+        border-bottom: 1px solid #eee;
+    }
+
+    .menu {
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .menu li a {
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+
+    .menu li a .icon {
+        font-size: 16px;
+    }
+
+    .logo-wrap {
+        display: none; /* Sembunyikan logo di mode mobile */
+    }
+}
+
+/* ========== TOP AREA ========== */
+.main { /* ini background utama*/
+    flex: 1;
+    padding: 30px;
+    border: 2px solid;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: transparent;
+  height: 60px;
+}
+
+.left-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.menu-icon {
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #4ade80; 
+  border-radius: 50%;
+}
+
+.status-text {
+  color: #22c55e;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.right-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.icon {
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #8b5cf6; 
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.name {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.role {
+  font-size: 12px;
+  color: gray;
+}
+
+.dropdown {
+    align-items: center;
+}
+
+.dropdown button {
+  font-size: 25px;
+  color: #000000;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.dropdown a {
+    display: block;
+    color: black;
+    text-decoration: none;
+    padding: 10px 15px;
+}
+
+.dropdown .content {
+    display: none;
+    background-color: #b6b6b6;
+    position: absolute;
+    min-width: 100px;
+}
+
+.dropdown:active .content {
+    display: block;
 }
