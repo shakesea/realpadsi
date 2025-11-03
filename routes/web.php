@@ -5,6 +5,8 @@ use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\StokController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\LaporanController;
+
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -30,6 +32,8 @@ Route::prefix('stok')->group(function () {
     Route::delete('/{id}', [StokController::class, 'destroy'])->name('stok.destroy');
 });
 
+Route::get('/penjualan', [LaporanController::class, 'index'])->name('penjualan.index');
+
 Route::get('/kasir', [KasirController::class, 'index']);
 
 
@@ -46,9 +50,9 @@ Route::get('/dashboard', function () {
 })->name('dashboard');
 
 
-Route::get('/penjualan', function () {
-    return view('penjualan');
-});
+// Route::get('/penjualan', function () {
+//     return view('penjualan');
+// });
 
 Route::get('/member', function () {
     return view('member');
