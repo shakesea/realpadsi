@@ -25,4 +25,31 @@ class PegawaiController extends Controller
     {
         return back()->with('ok', 'Data dihapus (demo)');
     }
+    public function create()
+    {
+        // Menampilkan halaman form tambah pegawai
+        return view('tambahpegawai');
+    }
+
+    public function store(Request $request)
+    {
+        // Validasi input dari form
+        $validated = $request->validate([
+            'nama' => 'required|string|max:255',
+            'email' => 'required|email',
+            'telp' => 'required|string|max:20',
+            'tanggal_lahir' => 'required|date',
+            'alamat' => 'required|string|max:500',
+        ]);
+
+        // (sementara) tampilkan data untuk memastikan sudah masuk
+        // dd($validated); // <-- aktifkan ini dulu untuk testing, nanti bisa hapus
+
+        // Contoh kalau nanti sudah pakai database:
+        // Pegawai::create($validated);
+
+        // Redirect kembali ke daftar pegawai dengan pesan sukses
+        return redirect()->route('pegawai.index')->with('success', 'Pegawai berhasil ditambahkan!');
+    }
+
 }
