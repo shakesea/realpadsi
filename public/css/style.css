@@ -813,3 +813,169 @@ body {
 .stok-table tbody tr:hover {
   background-color: #f9f9f9;
 }
+/* === MEMBER PAGE STYLE === */
+.member-container {
+  padding: 30px;
+}
+
+.member-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 0.3fr)); /* grid lebih padat */
+  gap: 8px; /* jarak antar kartu lebih rapat */
+  justify-content: start; /* rapat ke kiri, bukan di tengah */
+  align-items: start;
+}
+
+.member-card {
+  width: 180px; /* sedikit lebih kecil */
+  height: 210px;
+  border-radius: 12px;
+  background-color: #7AC46E;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px;
+  transition: transform 0.2s ease;
+  margin: 0; /* hilangkan margin bawaan */
+}
+
+.member-card:hover {
+  transform: scale(1.03);
+}
+
+.green-card {
+  background-color: #7AC46E;
+  color: #fff;
+}
+
+.member-info h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.member-info p {
+  margin: 3px 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.member-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.member-footer p {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.member-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+}
+
+.add-card {
+  background-color: #f9fff9;
+  border: 2px dashed #5ea85c;
+  color: #5ea85c;
+  font-size: 40px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 180px;
+  height: 210px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.add-card:hover {
+  background-color: #ebf9eb;
+  transform: scale(1.03);
+}
+
+/* === MODAL MEMBER === */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 10px;
+  padding: 25px;
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  animation: popup 0.3s ease;
+}
+
+@keyframes popup {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-content h2 {
+  text-align: center;
+  color: #3f7e38;
+  margin-bottom: 15px;
+}
+
+.modal-content input {
+  margin: 8px auto;         
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  width: 95%;               
+  max-width: 330px;         
+  display: block;           
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.btn-cancel {
+  background: none;
+  border: none;
+  color: #3f7e38;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-green {
+  background: #3f7e38;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-red {
+  background: #c94444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.delete-title {
+  color: #c94444;
+}

@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\StokController;
+use App\Http\Controllers\MemberController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -51,4 +52,13 @@ Route::get('/penjualan', function () {
 
 Route::get('/member', function () {
     return view('member');
+});
+
+Route::prefix('member')->group(function () {
+    Route::get('/', [MemberController::class, 'index'])->name('member.index');
+    Route::get('/tambah', [MemberController::class, 'create'])->name('member.create');
+    Route::post('/', [MemberController::class, 'store'])->name('member.store');
+    Route::get('/{id}/edit', [MemberController::class, 'edit'])->name('member.edit');
+    Route::put('/{id}', [MemberController::class, 'update'])->name('member.update');
+    Route::delete('/{id}', [MemberController::class, 'destroy'])->name('member.destroy');
 });
