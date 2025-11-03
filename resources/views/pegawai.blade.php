@@ -38,7 +38,7 @@
                     </button>
 
                     <!-- Tombol delete -->
-                    <form method="POST" action="{{ route('pegawai.destroy', $p->ID_Pegawai) }}" onsubmit="return confirm('Hapus {{ $p->Username }}?')">
+                    <form method="POST" action="{{ route('pegawai.destroy', $p->ID) }}" onsubmit="return confirm('Hapus {{ $p->Username }}?')">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="pegawai-btn delete" title="Hapus">

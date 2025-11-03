@@ -4,16 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Pegawai extends Model
+class Finance extends Model
 {
-    protected $table = 'Pegawai';
-    protected $primaryKey = 'ID_Pegawai';
+    protected $table = 'Finance';
+    protected $primaryKey = 'ID_Finance';
     public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = false;
 
     protected $fillable = [
-        'ID_Pegawai',
+        'ID_Finance',
         'ID_Role',
         'Username',
         'Password',
