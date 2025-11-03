@@ -7,6 +7,6 @@
 </head>
 <body>
     <a href="/public/login">Login</a>
-    <a href="/public/dashboard">Dashboard</a>
+    <a href="/public/dashboard">d</a>
 </body>
 </html>
