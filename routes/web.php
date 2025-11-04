@@ -22,6 +22,8 @@ Route::post('/pegawai/tambah', [PegawaiController::class, 'store'])->name('pegaw
 Route::get('/kasir', [KasirController::class, 'index'])->name('kasir.index');
 Route::post('/menu', [KasirController::class, 'store'])->name('menu.store');
 Route::post('/transaksi', [TransaksiPenjualanController::class, 'store'])->name('transaksi.store');
+Route::put('/menu/{id}', [KasirController::class, 'update'])->name('menu.update');
+Route::delete('/menu/{id}', [KasirController::class, 'destroy'])->name('menu.destroy');
 
 Route::prefix('stok')->group(function () {
     Route::get('/', [StokController::class, 'index'])->name('stok.index');

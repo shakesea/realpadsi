@@ -20,4 +20,9 @@ class Menu extends Model
         'Created_At',
         'Updated_At'
     ];
+
+    public function bahanPenyusun()
+    {
+        return $this->hasMany(BahanPenyusun::class, 'ID_Menu', 'ID_Menu');
+    }
 }
