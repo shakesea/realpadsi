@@ -6,21 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class Member extends Model
 {
-    protected $table = 'Member'; // nama tabel persis dari phpMyAdmin
-    protected $primaryKey = 'ID_Member'; // kolom primary key
-    public $timestamps = false; // karena tabel kamu pakai Created_At manual, bukan created_at otomatis
+    protected $table = 'Member';          // sesuai tabel di phpMyAdmin
+    protected $primaryKey = 'ID_Member';  // primary key kamu
+    public $incrementing = false;         // ID_Member bukan auto increment
+    public $timestamps = false;           // tidak pakai created_at & updated_at bawaan
+    protected $keyType = 'string';        // karena ID_Member adalah varchar
 
     protected $fillable = [
-    'ID_Member',
-    'ID_Manager',
-    'ID_Pegawai',
-    'Nama',
-    'No_Telepon',
-    'Email',
-    'Alamat',
-    'Poin',
-    'Created_At',
-    'Deleted_At',
-];
-
+        'ID_Member',
+        'ID_Manager',
+        'ID_Pegawai',
+        'Nama',
+        'No_Telepon',
+        'Email',
+        'Alamat',
+        'Poin',
+        'Created_At',
+        'Deleted_At',
+    ];
 }
