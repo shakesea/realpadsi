@@ -28,19 +28,23 @@
     <table class="laporan-table">
         <thead>
             <tr>
-                <th>Pelanggan</th>
+                <th>Nama</th>
                 <th>Total</th>
                 <th>Kode Transaksi</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($laporan as $item)
+            @forelse($laporan as $item)
             <tr>
-                <td><strong>{{ $item['pelanggan'] }}</strong><br><small>{{ $item['waktu'] }}</small></td>
+                <td><strong>{{ $item['nama'] }}</strong><br><small>{{ $item['waktu'] }}</small></td>
                 <td>Rp {{ number_format($item['total'], 0, ',', '.') }}</td>
                 <td>{{ $item['kode'] }}</td>
             </tr>
-            @endforeach
+            @empty
+            <tr>
+                <td colspan="3" style="text-align:center; color:#777;">Tidak ada transaksi pada periode ini</td>
+            </tr>
+            @endforelse
         </tbody>
     </table>
 </div>

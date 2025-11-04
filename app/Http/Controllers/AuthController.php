@@ -6,11 +6,11 @@ use Illuminate\Http\Request;
 use App\Models\Manager;
 use Illuminate\Support\Facades\Session;
 
-class AuthController
+class AuthController extends Controller
 {
     public function showLogin()
     {
-        return view('login'); // pastikan ada file resources/views/login.blade.php
+        return view('login');
     }
 
     public function login(Request $request)
@@ -25,16 +25,29 @@ class AuthController
             ->first();
 
         if ($manager) {
-            Session::put('manager', $manager);
-            return redirect('/dashboard'); // ganti sesuai route dashboard kamu
-        } else {
-            return back()->with('error', 'Username atau password salah!');
+            // Simpan data login ke session
+            Session::put('manager', [
+                'ID_Manager' => $manager->ID_Manager,
+                'Username'   => $manager->Username,
+            ]);
+
+            return redirect('/dashboard')->with('success', 'Selamat datang kembali, ' . ucfirst(explode('.', $manager->Username)[0]) . '!');
         }
+
+        return back()->with('error', 'Username atau password salah!');
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
-        Session::forget('manager');
+        if (Session::has('manager')) {
+            $username = Session::get('manager.Username');
+            Session::forget('manager');
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect('/login')->with('success', 'Akun ' . $username . ' berhasil logout.');
+        }
+
         return redirect('/login');
     }
 }

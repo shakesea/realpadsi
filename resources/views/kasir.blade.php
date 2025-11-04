@@ -324,16 +324,40 @@ function openModal(id) {
 function processPayment() {
   const totalText = document.querySelector('.harga-total').textContent.replace(/[^\d]/g, '');
   const total = parseInt(totalText);
-
   const customPay = document.getElementById('customPay').value;
   const payAmount = parseInt(customPay) || 0;
 
-  if (payAmount >= total) {
-    alert("✅ Pembayaran Berhasil!");
-    closeModal('paymentModal');
-    // TODO: lanjutkan ke proses backend simpan transaksi
+  if (payAmount >= total && cart.length > 0) {
+    // Kirim ke backend Laravel
+    fetch('{{ route("transaksi.store") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+      },
+      body: JSON.stringify({
+        items: cart.map(c => ({ id: c.id || null, qty: 1 })),
+        total: total,
+        metode: 'Tunai'
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') {
+        alert("✅ Pembayaran Berhasil!\nID Transaksi: " + data.id_transaksi);
+        cart = [];
+        renderCart();
+        closeModal('paymentModal');
+      } else {
+        alert("❌ Terjadi kesalahan: " + data.message);
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("❌ Gagal menyimpan transaksi!");
+    });
   } else {
-    alert("❌ Pembayaran Gagal, nominal kurang!");
+    alert("❌ Pembayaran gagal, nominal kurang atau keranjang kosong!");
   }
 }
 
