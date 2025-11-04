@@ -93,6 +93,23 @@
             <label>Deskripsi</label>
             <textarea name="Deskripsi" rows="3"></textarea>
           </div>
+
+          <!-- BAGIAN BARU: Bahan Penyusun -->
+          <div class="form-group">
+            <label>Bahan Penyusun</label>
+            <div id="bahan-container">
+              <div class="bahan-row" style="display:flex;gap:10px;margin-bottom:8px;">
+                <select name="bahan[]" class="bahan-select" required style="flex:1;">
+                  <option value="">-- Pilih Bahan --</option>
+                  @foreach ($stok as $item)
+                    <option value="{{ $item->ID_Barang }}">{{ $item->Nama }} ({{ $item->Jumlah_Item }})</option>
+                  @endforeach
+                </select>
+                <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" style="width:100px;">
+              </div>
+            </div>
+            <button type="button" onclick="addBahanRow()" class="btn-yellow" style="margin-top:5px;">+ Tambah Bahan</button>
+          </div>
         </div>
       </div>
 
@@ -103,7 +120,6 @@
     </form>
   </div>
 </div>
-
 
 <!-- Modal Edit Produk -->
 <div id="editModal" class="modal-overlay" style="display:none">
