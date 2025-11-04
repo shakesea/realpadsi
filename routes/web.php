@@ -62,7 +62,7 @@ Route::get('/member', function () {
 });
 
 Route::prefix('member')->group(function () {
-    Route::get('/', [MemberController::class, 'index'])->name('member.index');
-    Route::post('/', [MemberController::class, 'store'])->name('member.store');
-    Route::delete('/member/{id}', [MemberController::class, 'destroy'])->name('member.destroy');
+    Route::get('/', [App\Http\Controllers\MemberController::class, 'index'])->name('member.index');
+    Route::post('/', [App\Http\Controllers\MemberController::class, 'store'])->name('member.store');
+    Route::delete('/{id}', [App\Http\Controllers\MemberController::class, 'destroy'])->name('member.destroy');
 });
