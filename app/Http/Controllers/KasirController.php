@@ -26,25 +26,61 @@ class KasirController extends Controller
             'Harga' => 'required|numeric',
             'Kategori' => 'required|string|max:100',
             'Foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'bahan' => 'nullable|array',
+            'jumlah_digunakan' => 'nullable|array',
         ]);
 
-        $fotoData = $request->hasFile('Foto') ? file_get_contents($request->file('Foto')->getRealPath()) : null;
+        DB::beginTransaction();
+        try {
+            // --- Simpan foto ---
+            $fotoData = $request->hasFile('Foto')
+                ? file_get_contents($request->file('Foto')->getRealPath())
+                : null;
 
-        $lastMenu = Menu::orderBy('ID_Menu', 'desc')->first();
-        $lastNum = $lastMenu ? intval(substr($lastMenu->ID_Menu, 4)) : 0;
-        $newId = 'MENU' . str_pad($lastNum + 1, 3, '0', STR_PAD_LEFT);
+            // --- Generate ID MENU ---
+            $lastMenu = Menu::orderBy('ID_Menu', 'desc')->first();
+            $lastNum = $lastMenu ? intval(substr($lastMenu->ID_Menu, 4)) : 0;
+            $newId = 'MENU' . str_pad($lastNum + 1, 3, '0', STR_PAD_LEFT);
 
-        Menu::create([
-            'ID_Menu' => $newId,
-            'Nama' => $request->Nama,
-            'Harga' => $request->Harga,
-            'Kategori' => $request->Kategori,
-            'Foto' => $fotoData,
-            'Created_At' => now(),
-            'Updated_At' => now(),
-        ]);
+            // --- Simpan ke tabel Menu ---
+            Menu::create([
+                'ID_Menu' => $newId,
+                'Nama' => $request->Nama,
+                'Harga' => $request->Harga,
+                'Kategori' => $request->Kategori,
+                'Foto' => $fotoData,
+                'Created_At' => now(),
+                'Updated_At' => now(),
+            ]);
 
-        return redirect()->back()->with('success', '✅ Produk baru berhasil ditambahkan!');
+            // --- Simpan ke tabel Bahan_Penyusun ---
+            if ($request->has('bahan') && is_array($request->bahan)) {
+                $lastBP = BahanPenyusun::orderBy('ID_Penyusun', 'desc')->first();
+                $lastNumBP = $lastBP ? intval(substr($lastBP->ID_Penyusun, 2)) : 0;
+
+                foreach ($request->bahan as $i => $idBarang) {
+                    if (!$idBarang) continue;
+
+                    $idPenyusun = 'BP' . str_pad(++$lastNumBP, 3, '0', STR_PAD_LEFT);
+
+                    BahanPenyusun::create([
+                        'ID_Penyusun' => $idPenyusun,
+                        'ID_Menu' => $newId,
+                        'ID_Barang' => $idBarang,
+                        'Jumlah_Digunakan' => $request->jumlah_digunakan[$i] ?? 1,
+                        'Kategori' => $request->Kategori,
+                        'Created_At' => now(),
+                        'Updated_At' => now(),
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return redirect()->back()->with('success', '✅ Produk & bahan penyusun berhasil ditambahkan!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', '❌ Gagal menambah produk: ' . $e->getMessage());
+        }
     }
 
     // 3️⃣ EDIT PRODUK
