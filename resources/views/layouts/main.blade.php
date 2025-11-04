@@ -113,10 +113,21 @@
     <div class="right-section">
         <button class="icon">📄</button>
         <div class="profile" id="profileToggle">
-            <div class="avatar">P</div>
+            @php
+                $username = Session::get('user.username', 'User');
+                $userType = Session::get('user.type', 'Guest');
+                
+                // Ambil inisial dari username (huruf pertama)
+                $initial = strtoupper(substr($username, 0, 1));
+                
+                // Format nama untuk display (capitalize dan hapus setelah titik jika ada)
+                $displayName = ucfirst(explode('.', $username)[0]);
+            @endphp
+            
+            <div class="avatar">{{ $initial }}</div>
             <div class="profile-info">
-                <span class="name">{{ Session::get('manager.Username') ?? 'Manager' }}</span>
-                <span class="role">Manager</span>
+                <span class="name">{{ $displayName }}</span>
+                <span class="role">{{ $userType }}</span>
             </div>
 
             <div class="profile-dropdown" id="profileDropdown">

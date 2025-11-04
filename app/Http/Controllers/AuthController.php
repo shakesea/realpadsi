@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Manager;
+use App\Models\Pegawai;
 use Illuminate\Support\Facades\Session;
 
 class AuthController extends Controller
@@ -20,18 +21,38 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
+        // Cek apakah user adalah Manager
         $manager = Manager::where('Username', $request->username)
             ->where('Password', $request->password)
             ->first();
 
         if ($manager) {
-            // Simpan data login ke session
-            Session::put('manager', [
-                'ID_Manager' => $manager->ID_Manager,
-                'Username'   => $manager->Username,
+            // Simpan data Manager ke session
+            Session::put('user', [
+                'id' => $manager->ID_Manager,
+                'username' => $manager->Username,
+                'role' => 'manager',
+                'type' => 'Manager'
             ]);
 
             return redirect('/dashboard')->with('success', 'Selamat datang kembali, ' . ucfirst(explode('.', $manager->Username)[0]) . '!');
+        }
+
+        // Jika bukan Manager, cek apakah user adalah Pegawai
+        $pegawai = Pegawai::where('Username', $request->username)
+            ->where('Password', $request->password)
+            ->first();
+
+        if ($pegawai) {
+            // Simpan data Pegawai ke session
+            Session::put('user', [
+                'id' => $pegawai->ID_Pegawai,
+                'username' => $pegawai->Username,
+                'role' => $pegawai->ID_Role, // Bisa digunakan untuk cek role pegawai
+                'type' => 'Pegawai'
+            ]);
+
+            return redirect('/dashboard')->with('success', 'Selamat datang kembali, ' . ucfirst(explode('.', $pegawai->Username)[0]) . '!');
         }
 
         return back()->with('error', 'Username atau password salah!');
@@ -39,9 +60,9 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        if (Session::has('manager')) {
-            $username = Session::get('manager.Username');
-            Session::forget('manager');
+        if (Session::has('user')) {
+            $username = Session::get('user.username');
+            Session::forget('user');
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
