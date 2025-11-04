@@ -3,134 +3,84 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
+use App\Models\Member;
+use Carbon\Carbon;
 
 class MemberController extends Controller
 {
     /**
-     * Seed dummy data jika belum ada di session.
+     * Tampilkan semua member
      */
-    private function seedIfEmpty(Request $request)
+    public function index()
     {
-        if (! $request->session()->has('members')) {
-            $request->session()->put('members', [
-                [
-                    'id' => 1,
-                    'nama' => 'John Doe',
-                    'tanggal' => '2024-10-20',
-                    'email' => 'john@example.com',
-                    'poin' => 200,
-                    'alamat' => 'Jl. Mawar No. 10',
-                    'hp' => '08123456789',
-                ],
-                [
-                    'id' => 2,
-                    'nama' => 'Jane Smith',
-                    'tanggal' => '2024-11-02',
-                    'email' => 'jane@example.com',
-                    'poin' => 150,
-                    'alamat' => 'Jl. Melati No. 20',
-                    'hp' => '08987654321',
-                ],
-            ]);
-        }
-    }
+        $members = Member::orderBy('Created_At', 'desc')->get();
 
-    /**
-     * Tampilkan daftar member (halaman utama)
-     */
-    public function index(Request $request)
-    {
-        $this->seedIfEmpty($request);
-        $members = $request->session()->get('members', []);
+        // Mapping data agar sesuai dengan field di view (nama kecil)
+        $members = $members->map(function ($m) {
+            return [
+                'id'      => $m->ID_Member,
+                'nama'    => $m->Nama,
+                'email'   => $m->Email,
+                'tanggal' => $m->Created_At,
+                'poin'    => $m->Poin,
+            ];
+        });
+
         return view('member', compact('members'));
     }
 
     /**
-     * Form tambah member
-     */
-    public function create()
-    {
-        return view('member-create');
-    }
-
-    /**
-     * Simpan member baru (dummy mode)
+     * Simpan member baru
      */
     public function store(Request $request)
-    {
-        $data = $request->validate([
-            'nama'    => 'required|string|max:255',
-            'email'   => 'required|email',
-            'tanggal' => 'required|date',
-            'poin'    => 'nullable|integer|min:0',
-            'hp'      => 'nullable|string|max:20',
-            'alamat'  => 'nullable|string|max:255',
+{
+    $request->validate([
+        'nama' => 'required|string|max:255',
+        'email' => 'required|email',
+        'no_telp' => 'required|string|max:20',
+        'alamat' => 'nullable|string|max:255',
+    ]);
+
+    try {
+        $id = 'MBR' . str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT);
+
+        Member::create([
+            'ID_Member'  => $id,
+            'ID_Manager' => 'MGR001', // sementara default, bisa kamu ubah sesuai user login
+            'ID_Pegawai' => null,
+            'Nama'       => $request->nama,
+            'No_Telepon' => $request->no_telp,
+            'Email'      => $request->email,
+            'Alamat'     => $request->alamat,
+            'Poin'       => 0,
+            'Created_At' => now(),
+            'Deleted_At' => null,
         ]);
-
-        $members = $request->session()->get('members', []);
-        $data['id'] = collect($members)->max('id') + 1 ?? 1;
-        $data['poin'] = $data['poin'] ?? 0;
-
-        // 🟢 Tambahkan field waktu dibuat otomatis
-        $data['member_sejak'] = now()->format('d/m/Y');
-
-        $members[] = $data;
-        $request->session()->put('members', $members);
 
         return redirect()->route('member.index')->with('ok', 'Member baru berhasil ditambahkan.');
-    }
-    /**
-     * Tampilkan form edit
-     */
-    public function edit(Request $request, $id)
-    {
-        $members = $request->session()->get('members', []);
-        $member = collect($members)->firstWhere('id', (int) $id);
-        abort_unless($member, 404);
 
-        return view('member-edit', compact('member'));
+    } catch (\Exception $e) {
+        return back()->with('error', 'Gagal menambah member: ' . $e->getMessage());
     }
+}
 
     /**
-     * Update data member
+     * Hapus member
      */
-    public function update(Request $request, $id)
-    {
-        $data = $request->validate([
-            'nama' => 'required|string|max:255',
-            'email' => 'required|email',
-            'tanggal' => 'required|date',
-            'poin' => 'nullable|integer|min:0',
-            'hp' => 'nullable|string|max:20',
-            'alamat' => 'nullable|string|max:255',
-        ]);
-        $data['poin'] = $data['poin'] ?? 0;
+public function destroy($id)
+{
+    try {
+        $member = \Member::where('ID_Member', $id)->first();
 
-        $members = $request->session()->get('members', []);
-        foreach ($members as &$m) {
-            if ($m['id'] == (int)$id) {
-                $m = array_merge($m, $data);
-                break;
-            }
+        if (! $member) {
+            return redirect()->route('member.index')->with('error', 'Member tidak ditemukan.');
         }
-        $request->session()->put('members', $members);
 
-        return redirect()->route('member.index')->with('ok', 'Data member diperbarui (Dummy Mode)');
+        $member->delete();
+
+        return redirect()->route('member.index')->with('ok', 'Member berhasil dihapus.');
+    } catch (\Exception $e) {
+        return redirect()->route('member.index')->with('error', 'Gagal menghapus member: ' . $e->getMessage());
     }
-
-    /**
-     * Hapus member dari session
-     */
-    public function destroy(Request $request, $id)
-    {
-        $members = collect($request->session()->get('members', []))
-            ->reject(fn($m) => $m['id'] == (int)$id)
-            ->values()
-            ->all();
-
-        $request->session()->put('members', $members);
-
-        return redirect()->route('member.index')->with('ok', 'Member berhasil dihapus (Dummy Mode)');
-    }
+}
 }

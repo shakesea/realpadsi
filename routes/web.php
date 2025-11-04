@@ -38,6 +38,8 @@ Route::get('/kasir', [KasirController::class, 'index'])->name('kasir.index');
 Route::post('/kasir/store', [KasirController::class, 'store'])->name('menu.store');
 
 
+
+
 Route::get('/', function () {
     return redirect('/login');
 });
@@ -61,9 +63,6 @@ Route::get('/member', function () {
 
 Route::prefix('member')->group(function () {
     Route::get('/', [MemberController::class, 'index'])->name('member.index');
-    Route::get('/tambah', [MemberController::class, 'create'])->name('member.create');
     Route::post('/', [MemberController::class, 'store'])->name('member.store');
-    Route::get('/{id}/edit', [MemberController::class, 'edit'])->name('member.edit');
-    Route::put('/{id}', [MemberController::class, 'update'])->name('member.update');
-    Route::delete('/{id}', [MemberController::class, 'destroy'])->name('member.destroy');
+    Route::delete('/member/{id}', [MemberController::class, 'destroy'])->name('member.destroy');
 });
