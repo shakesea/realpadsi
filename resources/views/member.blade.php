@@ -1,5 +1,5 @@
 @extends('layouts.main')
-@section('title','NutaPOS - Member')
+@section('title', 'NutaPOS - Member')
 
 @section('content')
 <div class="member-container">
@@ -29,16 +29,18 @@
 <div id="addMemberModal" class="modal">
   <div class="modal-content">
     <h2>Tambah Member</h2>
-    <form id="addMemberForm" onsubmit="return addMember()">
-      <input type="text" placeholder="Nama Pelanggan" required>
-      <input type="text" placeholder="Nomor HP" required>
-      <input type="email" placeholder="Email" required>
-      <input type="text" placeholder="Alamat">
-      <div class="modal-buttons">
+    <form method="POST" action="{{ route('member.store') }}">
+    @csrf
+        <input type="text" name="nama" placeholder="Nama Pelanggan" required>
+        <input type="text" name="no_telp" placeholder="Nomor HP" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="text" name="alamat" placeholder="Alamat">
+        <div class="modal-buttons">
         <button type="button" class="btn-cancel" onclick="closeModal()">Kembali</button>
         <button type="submit" class="btn-green">Buat Baru</button>
-      </div>
+    </div>
     </form>
+
   </div>
 </div>
 
@@ -46,15 +48,10 @@
 <div id="deleteMemberModal" class="modal">
   <div class="modal-content">
     <h2 class="delete-title">Hapus Member</h2>
-    <form id="deleteMemberForm" onsubmit="return deleteMember()">
-      <input type="text" id="deleteName" readonly>
-      <input type="text" id="deletePhone" readonly>
-      <input type="email" id="deleteEmail" readonly>
-      <input type="text" id="deleteAddress" readonly>
-
-      <p><strong>Member Sejak:</strong> <span id="memberSince"></span></p>
-      <p><strong>Tanggal Sekarang:</strong> <span id="currentDate"></span></p>
-
+    <form id="deleteMemberForm" method="POST">
+      @csrf
+      @method('DELETE')
+      <p><strong>Apakah Anda yakin ingin menghapus member ini?</strong></p>
       <div class="modal-buttons">
         <button type="button" class="btn-cancel" onclick="closeModal()">Kembali</button>
         <button type="submit" class="btn-red">Hapus</button>
@@ -69,36 +66,14 @@ function openAddModal() {
 }
 
 function openDeleteModal(id, name, email) {
-  const now = new Date();
-  const today = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
-  const memberSince = '10/5/2025'; 
-
   document.getElementById('deleteMemberModal').style.display = 'flex';
-  document.getElementById('deleteName').value = name;
-  document.getElementById('deletePhone').value = '08675672351822'; 
-  document.getElementById('deleteEmail').value = email;
-  document.getElementById('deleteAddress').value = 'Jl. Porwonegoro No.40';
-
-  document.getElementById('memberSince').innerText = memberSince;
-  document.getElementById('currentDate').innerText = today;
+  const form = document.getElementById('deleteMemberForm');
+  form.action = `/member/${id}`;
 }
 
 function closeModal() {
   document.getElementById('addMemberModal').style.display = 'none';
   document.getElementById('deleteMemberModal').style.display = 'none';
-}
-
-// Dummy actions
-function addMember() {
-  alert('Member baru berhasil dibuat! (Dummy Mode)');
-  closeModal();
-  return false;
-}
-
-function deleteMember() {
-  alert('Member berhasil dihapus! (Dummy Mode)');
-  closeModal();
-  return false;
 }
 </script>
 @endsection
