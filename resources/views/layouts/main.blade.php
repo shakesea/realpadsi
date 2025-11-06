@@ -76,33 +76,54 @@
     </div>
 
     <ul class="menu">
-        <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
-            <a href="/dashboard"><i class="icon fas fa-th-large"></i>Dashboard</a>
-        </li>
+{{-- DEBUG --}}
+<p style="color:red;">Role aktif: {{ session('user.role') }}</p>
+<p style="color:blue;">[SIDEBAR V1]</p>
 
-        <li class="{{ request()->is('pegawai') ? 'active' : '' }}">
-            <a href="/pegawai"><i class="icon fas fa-id-badge"></i>Pegawai</a>
-        </li>
+    {{-- Dashboard: semua bisa --}}
+    <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
+        <a href="/dashboard"><i class="icon fas fa-th-large"></i>Dashboard</a>
+    </li>
 
-        <li class="{{ request()->is('kasir') ? 'active' : '' }}">
-            <a href="/kasir"><i class="icon fas fa-lock"></i>Kasir</a>
-        </li>
+    {{-- Pegawai: hanya untuk manager --}}
+    @if(session('user.role') === 'manager')
+    <li class="{{ request()->is('pegawai') ? 'active' : '' }}">
+        <a href="/pegawai"><i class="icon fas fa-id-badge"></i>Pegawai</a>
+    </li>
+    @endif
 
-        <li class="{{ request()->is('stok') ? 'active' : '' }}">
-            <a href="/stok"><i class="icon fas fa-boxes"></i>Stok</a>
-        </li>
+    {{-- Kasir: semua kecuali finance --}}
+    @if(session('user.role') !== 'finance')
+    <li class="{{ request()->is('kasir') ? 'active' : '' }}">
+        <a href="/kasir"><i class="icon fas fa-lock"></i>Kasir</a>
+    </li>
+    @endif
 
-        <li class="{{ request()->is('penjualan') ? 'active' : '' }}">
-            <a href="/penjualan"><i class="icon fas fa-receipt"></i>Riwayat Penjualan</a>
-        </li>
+    {{-- Stok: semua kecuali finance --}}
+    @if(session('user.role') !== 'finance')
+    <li class="{{ request()->is('stok') ? 'active' : '' }}">
+        <a href="/stok"><i class="icon fas fa-boxes"></i>Stok</a>
+    </li>
+    @endif
 
-        <li class="{{ request()->is('member') ? 'active' : '' }}">
-            <a href="/member"><i class="icon fas fa-user"></i>Member</a>
-        </li>
+    {{-- Riwayat Penjualan: semua kecuali pegawai --}}
+    @if(session('user.role') !== 'pegawai')
+    <li class="{{ request()->is('penjualan') ? 'active' : '' }}">
+        <a href="/penjualan"><i class="icon fas fa-receipt"></i>Riwayat Penjualan</a>
+    </li>
+    @endif
 
-        <li><a href="/"><i class="icon fas fa-store"></i>Tutup Outlet</a></li>
-        <li><a href="/"><i class="icon fas fa-cog"></i>Pengaturan</a></li>
-    </ul>
+    {{-- Member: semua kecuali finance --}}
+    @if(session('user.role') !== 'finance')
+    <li class="{{ request()->is('member') ? 'active' : '' }}">
+        <a href="/member"><i class="icon fas fa-user"></i>Member</a>
+    </li>
+    @endif
+
+    {{-- Tutup Outlet & Pengaturan: semua bisa --}}
+    <li><a href="/"><i class="icon fas fa-store"></i>Tutup Outlet</a></li>
+    <li><a href="/"><i class="icon fas fa-cog"></i>Pengaturan</a></li>
+</ul>
 </aside>
 
 <!-- Main content -->

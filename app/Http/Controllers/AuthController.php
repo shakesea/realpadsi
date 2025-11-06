@@ -51,7 +51,7 @@ class AuthController extends Controller
             Session::put('user', [
                 'id' => $pegawai->ID_Pegawai,
                 'username' => $pegawai->Username,
-                'role' => $pegawai->ID_Role, // Bisa digunakan untuk cek role pegawai
+                'role' => 'pegawai', // Bisa digunakan untuk cek role pegawai
                 'type' => 'pegawai'
             ]);
 
@@ -67,7 +67,7 @@ class AuthController extends Controller
             Session::put('user', [
                 'id' => $finance->ID_Finance,
                 'username' => $finance->Username,
-                'role' => $finance->ID_Role,
+                'role' => 'finance',
                 'type' => 'finance'
             ]);
 
