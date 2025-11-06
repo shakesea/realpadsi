@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Manager;
 use App\Models\Pegawai;
+use App\Models\Finance;
+
 use Illuminate\Support\Facades\Session;
 
 class AuthController extends Controller
@@ -32,8 +34,9 @@ class AuthController extends Controller
                 'id' => $manager->ID_Manager,
                 'username' => $manager->Username,
                 'role' => 'manager',
-                'type' => 'Manager'
+                'type' => 'manager'
             ]);
+            
 
             return redirect('/dashboard')->with('success', 'Selamat datang kembali, ' . ucfirst(explode('.', $manager->Username)[0]) . '!');
         }
@@ -49,10 +52,26 @@ class AuthController extends Controller
                 'id' => $pegawai->ID_Pegawai,
                 'username' => $pegawai->Username,
                 'role' => $pegawai->ID_Role, // Bisa digunakan untuk cek role pegawai
-                'type' => 'Pegawai'
+                'type' => 'pegawai'
             ]);
 
             return redirect('/dashboard')->with('success', 'Selamat datang kembali, ' . ucfirst(explode('.', $pegawai->Username)[0]) . '!');
+        }
+
+        $finance = Finance::where('Username', $request->username)
+            ->where('Password', $request->password)
+            ->first();
+
+        if ($finance) {
+            // Simpan data Finance ke session
+            Session::put('user', [
+                'id' => $finance->ID_Finance,
+                'username' => $finance->Username,
+                'role' => $finance->ID_Role,
+                'type' => 'finance'
+            ]);
+
+            return redirect('/dashboard')->with('success', 'Selamat datang kembali, ' . ucfirst(explode('.', $finance->Username)[0]) . '!');
         }
 
         return back()->with('error', 'Username atau password salah!');

@@ -79,21 +79,27 @@
         <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
             <a href="/dashboard"><i class="icon fas fa-th-large"></i>Dashboard</a>
         </li>
+
         <li class="{{ request()->is('pegawai') ? 'active' : '' }}">
             <a href="/pegawai"><i class="icon fas fa-id-badge"></i>Pegawai</a>
         </li>
+
         <li class="{{ request()->is('kasir') ? 'active' : '' }}">
             <a href="/kasir"><i class="icon fas fa-lock"></i>Kasir</a>
         </li>
+
         <li class="{{ request()->is('stok') ? 'active' : '' }}">
             <a href="/stok"><i class="icon fas fa-boxes"></i>Stok</a>
         </li>
+
         <li class="{{ request()->is('penjualan') ? 'active' : '' }}">
             <a href="/penjualan"><i class="icon fas fa-receipt"></i>Riwayat Penjualan</a>
         </li>
+
         <li class="{{ request()->is('member') ? 'active' : '' }}">
             <a href="/member"><i class="icon fas fa-user"></i>Member</a>
         </li>
+
         <li><a href="/"><i class="icon fas fa-store"></i>Tutup Outlet</a></li>
         <li><a href="/"><i class="icon fas fa-cog"></i>Pengaturan</a></li>
     </ul>

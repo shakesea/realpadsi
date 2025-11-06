@@ -4,7 +4,7 @@
 @section('content')
 <div class="laporan-container">
     <div class="laporan-header">
-        <form class="laporan-filter" method="GET" action="{{ route('penjualan.index') }}">
+        <form class="laporan-filter" method="" action="{{ route('penjualan.index') }}">
             <label><strong>Periode:</strong></label>
             <input type="date" name="start" value="{{ request('start', \Carbon\Carbon::parse($start)->format('Y-m-d')) }}">
             <span> - </span>
