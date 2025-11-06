@@ -77,8 +77,6 @@
 
     <ul class="menu">
 {{-- DEBUG --}}
-<p style="color:red;">Role aktif: {{ session('user.role') }}</p>
-<p style="color:blue;">[SIDEBAR V1]</p>
 
     {{-- Dashboard: semua bisa --}}
     <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
