@@ -3,7 +3,6 @@
 
 @section('content')
 
-<div class="menu-container">
   <div class="menu-layout">
 
     <!-- Sidebar pelanggan kiri -->

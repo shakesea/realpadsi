@@ -55,6 +55,8 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    overflow-y: scroll;
+    height: 500px;
 }
 .pegawai-item {
     display: flex;
@@ -62,6 +64,8 @@
     align-items: center;
     padding: 10px 5px;
     border-bottom: 1px solid #ddd;
+    max-height: 400px; /* ⬅️ tambahkan ini */
+
 }
 .pegawai-left {
     display: flex;
@@ -109,4 +113,8 @@
 }
 .pegawai-add:hover {
     text-decoration: underline;
+}
+
+.pilih-pelayan {
+        
 }

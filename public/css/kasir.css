@@ -16,6 +16,7 @@
   grid-template-columns: 270px 1fr;
   gap: 20px;
   height: 100vh ;
+  border: 10px solid;
 }
 
 /* Kolom kiri */
@@ -30,7 +31,7 @@
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
   overflow: hidden;
   height: auto;
-}
+  }
 
 .pelanggan-title {
     font-size: 16px;
@@ -187,6 +188,8 @@
   display: grid;
   grid-template-columns: 250px 1fr;
   gap: 20px;
+  width: auto;
+  margin-left: 250px;
 }
 
 .menu-search {

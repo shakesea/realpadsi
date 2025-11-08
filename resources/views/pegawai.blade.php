@@ -6,19 +6,22 @@
 
 <div class="pegawai-container">
     <div class="pegawai-card">
-        <h1 class="pegawai-title">Pilih Pelayan</h1>
+        <div class="pilih-pelayan">
+            <h1 class="pegawai-title">Pilih Pelayan</h1>
 
-        <!-- Form pencarian -->
-        <form method="GET" action="{{ route('pegawai.index') }}" class="pegawai-search">
-            <svg xmlns="http://www.w3.org/2000/svg" class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                      d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1116.65 6.65a7.5 7.5 0 010 10.6z" />
-            </svg>
-            <input type="text" name="q" value="{{ $q ?? '' }}" placeholder="Cari Pelayan...">
-        </form>
+            <!-- Form pencarian -->
+            <form method="GET" action="{{ route('pegawai.index') }}" class="pegawai-search">
+                <svg xmlns="http://www.w3.org/2000/svg" class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1116.65 6.65a7.5 7.5 0 010 10.6z" />
+                </svg>
+                <input type="text" name="q" value="{{ $q ?? '' }}" placeholder="Cari Pelayan...">
+            </form>
 
-        <p class="pegawai-sub">Tanpa Pelayan</p>
+            <p class="pegawai-sub">Tanpa Pelayan</p>
+        </div>    
 
+        <!-- Form Pegawai -->
         <div class="pegawai-list">
             @forelse ($pegawai as $p)
             <div class="pegawai-item">
