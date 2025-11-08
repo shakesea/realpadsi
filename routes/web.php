@@ -15,7 +15,7 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::get('/pegawai', [PegawaiController::class, 'index'])->name('pegawai.index');
+Route::get('/pegawai', [PegawaiController::class, 'index'])->name('pegawai.ndex');
 Route::delete('/pegawai/{id}', [PegawaiController::class, 'destroy'])->name('pegawai.destroy');
 Route::get('/pegawai/tambah', [PegawaiController::class, 'create'])->name('pegawai.create');
 Route::post('/pegawai/tambah', [PegawaiController::class, 'store'])->name('pegawai.store');
@@ -123,15 +123,12 @@ Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
         Route::get('/stok', [StokController::class, 'index'])->name('stok.index');
         Route::get('/stok/edit/{id}', [StokController::class, 'edit'])->name('stok.edit');
         Route::put('/stok/{id}', [StokController::class, 'update'])->name('stok.update');
-
-        Route::get('/penjualan', [LaporanController::class, 'index'])->name('penjualan.index');
     });
 
     // ==================================================
     // ROLE: FINANCE
     // ==================================================
     Route::middleware('role:finance')->group(function () {
-        Route::get('/dashboard', fn() => view('dashboard'))->name('finance.dashboard');
-        Route::get('/penjualan', [LaporanController::class, 'index'])->name('finance.penjualan');
+        Route::get('/penjualan', [LaporanController::class, 'index'])->name('penjualan.index');
     });
 });
