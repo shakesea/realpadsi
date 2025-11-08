@@ -5,7 +5,8 @@
 
 .pegawai-container {
     padding: 30px;
-    width: 100%;
+    width: auto;
+    margin-left: 250px;
 }
 
 .pegawai-card {
