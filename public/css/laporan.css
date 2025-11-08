@@ -1,0 +1,101 @@
+/* ======================================================
+   LAPORAN PENJUALAN
+====================================================== */
+.laporan-container {
+  padding: 25px;
+  font-family: 'Source Sans 3', sans-serif;
+  width: auto;
+  margin-left: 250px;
+}
+
+.laporan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.laporan-controls select {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 3px 6px;
+}
+
+.laporan-controls a {
+  color: #000;
+  text-decoration: none;
+  margin-left: 8px;
+  transition: 0.2s;
+}
+
+.laporan-controls a:hover {
+  text-decoration: underline;
+}
+
+.laporan-controls .pdf-link {
+  color: #1a73e8;
+  font-weight: 600;
+}
+
+.laporan-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.laporan-table th,
+.laporan-table td {
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+
+.laporan-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.laporan-table tr:hover {
+  background-color: #f3f6f3;
+}
+.laporan-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.laporan-filter input[type="date"] {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.btn-filter {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-filter:hover {
+  background: #3d8b40;
+}
+
+.table-list{
+    overflow-y: auto;
+    height: 650px;
+}

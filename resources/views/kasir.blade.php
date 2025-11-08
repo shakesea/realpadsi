@@ -2,136 +2,134 @@
 @section('title', 'NutaPOS - Kasir')
 
 @section('content')
+<div class="menu-layout">
 
-  <div class="menu-layout">
+  <!-- Sidebar pelanggan kiri -->
+  <div class="menu-left">
+    <h3 class="pelanggan-title">Pelanggan</h3>
+    <div class="pelanggan-list"></div>
+    <div class="total-section">
+      <div>Total</div>
+      <div class="harga-total">Rp 0</div>
+      <button class="btn-green" style="width:40%" onclick="openModal('paymentModal')">Bayar</button>
+    </div>
+  </div>
 
-    <!-- Sidebar pelanggan kiri -->
-    <div class="menu-left">
-      <h3 class="pelanggan-title">Pelanggan</h3>
-      <div class="pelanggan-list"></div>
-      <div class="total-section">
-        <div>Total</div>
-        <div class="harga-total">Rp 0</div>
-        <button class="btn-green" style="width:40%" onclick="openModal('paymentModal')">Bayar</button>
-      </div>
+  <!-- Konten kanan -->
+  <div class="menu-right">
+    <div class="menu-search">
+      <input type="text" placeholder="Cari Produk" id="searchProduk" onkeyup="filterProduk()">
+      <button class="dropdown-btn">⌄</button>
     </div>
 
-    <!-- Konten kanan -->
-    <div class="menu-right">
-      <div class="menu-search">
-        <input type="text" placeholder="Cari Produk" id="searchProduk" onkeyup="filterProduk()">
-        <button class="dropdown-btn">⌄</button>
+    <!-- Filter kategori -->
+    <div class="menu-filter">
+      <button class="filter-btn active">Coffee (15)</button>
+      <button class="filter-btn">Makanan (23)</button>
+      <button class="filter-btn">Snack (3)</button>
+      <button class="filter-btn">Dessert (2)</button>
+      <button class="filter-btn">Alacarte (20)</button>
+    </div>
+
+    <!-- Grid produk -->
+    <div class="produk-grid">
+      @foreach ($menus as $menu)
+      <div class="produk-card"
+            data-id="{{ $menu->ID_Menu }}"
+            data-nama="{{ $menu->Nama }}"
+            data-harga="{{ $menu->Harga }}"
+            data-kategori="{{ $menu->Kategori }}">
+        <img src="{{ $menu->Foto ? 'data:image/jpeg;base64,'.base64_encode($menu->Foto) : asset('img/sample-product.png') }}" 
+              alt="{{ $menu->Nama }}">
+        <div class="produk-name">{{ $menu->Nama }}</div>
+        <div class="produk-price">Rp {{ number_format($menu->Harga, 0, ',', '.') }}</div>
       </div>
+      @endforeach
 
-      <!-- Filter kategori -->
-      <div class="menu-filter">
-        <button class="filter-btn active">Coffee (15)</button>
-        <button class="filter-btn">Makanan (23)</button>
-        <button class="filter-btn">Snack (3)</button>
-        <button class="filter-btn">Dessert (2)</button>
-        <button class="filter-btn">Alacarte (20)</button>
-      </div>
-
-      <!-- Grid produk -->
-      <div class="produk-grid">
-        @foreach ($menus as $menu)
-        <div class="produk-card"
-             data-id="{{ $menu->ID_Menu }}"
-             data-nama="{{ $menu->Nama }}"
-             data-harga="{{ $menu->Harga }}"
-             data-kategori="{{ $menu->Kategori }}">
-          <img src="{{ $menu->Foto ? 'data:image/jpeg;base64,'.base64_encode($menu->Foto) : asset('img/sample-product.png') }}" 
-               alt="{{ $menu->Nama }}">
-          <div class="produk-name">{{ $menu->Nama }}</div>
-          <div class="produk-price">Rp {{ number_format($menu->Harga, 0, ',', '.') }}</div>
-        </div>
-        @endforeach
-
-        <!-- Tombol Tambah Produk -->
-        <div class="produk-card add-card" onclick="openModal('addModal')">
-          <span>+</span>
-        </div>
+      <!-- Tombol Tambah Produk -->
+      <div class="produk-card add-card" onclick="openModal('addModal')">
+        <span>+</span>
       </div>
     </div>
   </div>
+</div>
 </div>
 
 <!-- Modal Tambah Produk -->
 <div id="addModal" class="modal-overlay" style="display:none">
-  <div class="modal-card">
-    <h2 class="modal-title">Tambah Produk Baru</h2>
-    <form action="{{ route('menu.store') }}" method="POST" enctype="multipart/form-data">
-      @csrf
-      <div class="modal-body">
-        <div class="form-left">
-          <label for="foto-upload" class="foto-box" id="add-preview-box">
-            <span id="add-preview-text">Pilih Foto</span>
-            <img id="add-preview-img" style="display:none;width:100%;border-radius:10px;">
-          </label>
-          <input type="file" name="Foto" id="foto-upload" accept="image/*" style="display:none"
-                 onchange="preview('add-preview-img','add-preview-text',event)">
-        </div>
+<div class="modal-card">
+  <h2 class="modal-title">Tambah Produk Baru</h2>
+  <form action="{{ route('menu.store') }}" method="POST" enctype="multipart/form-data">
+    @csrf
+    <div class="modal-body">
+      <div class="form-left">
+        <label for="foto-upload" class="foto-box" id="add-preview-box">
+          <span id="add-preview-text">Pilih Foto</span>
+          <img id="add-preview-img" style="display:none;width:100%;border-radius:10px;">
+        </label>
+        <input type="file" name="Foto" id="foto-upload" accept="image/*" style="display:none"
+                onchange="preview('add-preview-img','add-preview-text',event)">
+      </div>
 
-        <div class="form-right">
-          <div class="form-group"><label>Nama</label><input type="text" name="Nama" required></div>
-          <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" required></div>
-          <div class="form-group"><label>Kategori</label><input type="text" name="Kategori" required></div>
-          <div class="form-group"><label>Deskripsi</label><textarea name="Deskripsi" rows="3"></textarea></div>
+      <div class="form-right">
+        <div class="form-group"><label>Nama</label><input type="text" name="Nama" required></div>
+        <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" required></div>
+        <div class="form-group"><label>Kategori</label><input type="text" name="Kategori" required></div>
+        <div class="form-group"><label>Deskripsi</label><textarea name="Deskripsi" rows="3"></textarea></div>
 
-          <!-- Tambahan: Bahan penyusun -->
-          <div class="form-group">
-            <label>Bahan Penyusun</label>
-            <div id="bahan-container">
-              <div class="bahan-row" style="display:flex;gap:10px;margin-bottom:8px;">
-                <select name="bahan[]" class="bahan-select" required style="flex:1;">
-                  <option value="">-- Pilih Bahan --</option>
-                  @foreach ($stok as $item)
-                    <option value="{{ $item->ID_Barang }}">{{ $item->Nama }} ({{ $item->Jumlah_Item }})</option>
-                  @endforeach
-                </select>
-                <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" style="width:100px;">
-              </div>
+        <!-- Tambahan: Bahan penyusun -->
+        <div class="form-group">
+          <label>Bahan Penyusun</label>
+          <div id="bahan-container">
+            <div class="bahan-row" style="display:flex;gap:10px;margin-bottom:8px;">
+              <select name="bahan[]" class="bahan-select" required style="flex:1;">
+                <option value="">-- Pilih Bahan --</option>
+                @foreach ($stok as $item)
+                  <option value="{{ $item->ID_Barang }}">{{ $item->Nama }} ({{ $item->Jumlah_Item }})</option>
+                @endforeach
+              </select>
+              <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" style="width:100px;">
             </div>
-            <button type="button" onclick="addBahanRow()" class="btn-yellow" style="margin-top:5px;">+ Tambah Bahan</button>
           </div>
+          <button type="button" onclick="addBahanRow()" class="btn-yellow" style="margin-top:5px;">+ Tambah Bahan</button>
         </div>
       </div>
+    </div>
 
-      <div class="modal-footer">
-        <a href="#" class="modal-cancel" onclick="closeModal('addModal')">Kembali</a>
-        <button type="submit" class="btn-green">Tambah</button>
-      </div>
-    </form>
-  </div>
+    <div class="modal-footer">
+      <a href="#" class="modal-cancel" onclick="closeModal('addModal')">Kembali</a>
+      <button type="submit" class="btn-green">Tambah</button>
+    </div>
+  </form>
+</div>
 </div>
 
 <!-- Modal Edit Produk -->
 <div id="editModal" class="modal-overlay" style="display:none;">
-  <div class="modal-card">
-    <h2 class="modal-title">Edit Produk</h2>
-    <form id="editForm" method="POST" enctype="multipart/form-data">
-      @csrf
-      @method('PUT')
-      <div class="modal-body">
-        <div class="form-left">
-          <label for="edit-foto" class="foto-box">
-            <img id="edit-foto-img" src="{{ asset('img/sample-product.png') }}" style="width:100%;border-radius:10px;">
-          </label>
-          <input type="file" name="Foto" id="edit-foto" accept="image/*" style="display:none"
-                 onchange="preview('edit-foto-img', null, event)">
-        </div>
-        <div class="form-right">
-          <div class="form-group"><label>Nama</label><input type="text" name="Nama" id="editNama" required></div>
-          <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" id="editHarga" required></div>
-          <div class="form-group"><label>Kategori</label><input type="text" name="Kategori" id="editKategori" required></div>
-        </div>
+<div class="modal-card">
+  <h2 class="modal-title">Edit Produk</h2>
+  <form id="editForm" method="POST" enctype="multipart/form-data">
+    @csrf
+    @method('PUT')
+    <div class="modal-body">
+      <div class="form-left">
+        <label for="edit-foto" class="foto-box">
+          <img id="edit-foto-img" src="{{ asset('img/sample-product.png') }}" style="width:100%;border-radius:10px;">
+        </label>
+        <input type="file" name="Foto" id="edit-foto" accept="image/*" style="display:none"
+                onchange="preview('edit-foto-img', null, event)">
       </div>
-      <div class="modal-footer">
-        <a href="#" class="modal-cancel" onclick="closeModal('editModal')">Kembali</a>
-        <button type="submit" class="btn-green">Simpan</button>
+      <div class="form-right">
+        <div class="form-group"><label>Nama</label><input type="text" name="Nama" id="editNama" required></div>
+        <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" id="editHarga" required></div>
+        <div class="form-group"><label>Kategori</label><input type="text" name="Kategori" id="editKategori" required></div>
       </div>
-    </form>
-  </div>
+    </div>
+    <div class="modal-footer">
+      <a href="#" class="modal-cancel" onclick="closeModal('editModal')">Kembali</a>
+      <button type="submit" class="btn-green">Simpan</button>
+    </div>
+  </form>
 </div>
 
 <!-- Context Dropdown untuk Edit & Hapus -->

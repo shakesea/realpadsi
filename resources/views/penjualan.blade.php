@@ -25,27 +25,29 @@
         </div>
     </div>
 
-    <table class="laporan-table">
-        <thead>
-            <tr>
-                <th>Nama</th>
-                <th>Total</th>
-                <th>Kode Transaksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($laporan as $item)
-            <tr>
-                <td><strong>{{ $item['nama'] }}</strong><br><small>{{ $item['waktu'] }}</small></td>
-                <td>Rp {{ number_format($item['total'], 0, ',', '.') }}</td>
-                <td>{{ $item['kode'] }}</td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="3" style="text-align:center; color:#777;">Tidak ada transaksi pada periode ini</td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
+    <div class="table-list">
+        <table class="laporan-table">
+            <thead>
+                <tr>
+                    <th>Nama</th>
+                    <th>Total</th>
+                    <th>Kode Transaksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($laporan as $item)
+                <tr>
+                    <td><strong>{{ $item['nama'] }}</strong><br><small>{{ $item['waktu'] }}</small></td>
+                    <td>Rp {{ number_format($item['total'], 0, ',', '.') }}</td>
+                    <td>{{ $item['kode'] }}</td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="3" style="text-align:center; color:#777;">Tidak ada transaksi pada periode ini</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
 @endsection
