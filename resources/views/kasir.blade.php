@@ -209,6 +209,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  
+
   function closeModal(id) {
     document.getElementById(id).style.display = 'none';
   }
@@ -388,6 +390,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Buat fungsi open/close modal global
   window.openModal = openModal;
   window.closeModal = closeModal;
+  window.removeFromCart = removeFromCart;
+
 });
 </script>
 
