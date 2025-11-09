@@ -2,134 +2,137 @@
 @section('title', 'NutaPOS - Kasir')
 
 @section('content')
-<div class="menu-layout">
 
-  <!-- Sidebar pelanggan kiri -->
-  <div class="menu-left">
-    <h3 class="pelanggan-title">Pelanggan</h3>
-    <div class="pelanggan-list"></div>
-    <div class="total-section">
-      <div>Total</div>
-      <div class="harga-total">Rp 0</div>
-      <button class="btn-green" style="width:40%" onclick="openModal('paymentModal')">Bayar</button>
-    </div>
-  </div>
+<div class="menu-container">
+  <div class="menu-layout">
 
-  <!-- Konten kanan -->
-  <div class="menu-right">
-    <div class="menu-search">
-      <input type="text" placeholder="Cari Produk" id="searchProduk" onkeyup="filterProduk()">
-      <button class="dropdown-btn">⌄</button>
-    </div>
-
-    <!-- Filter kategori -->
-    <div class="menu-filter">
-      <button class="filter-btn active">Coffee (15)</button>
-      <button class="filter-btn">Makanan (23)</button>
-      <button class="filter-btn">Snack (3)</button>
-      <button class="filter-btn">Dessert (2)</button>
-      <button class="filter-btn">Alacarte (20)</button>
-    </div>
-
-    <!-- Grid produk -->
-    <div class="produk-grid">
-      @foreach ($menus as $menu)
-      <div class="produk-card"
-            data-id="{{ $menu->ID_Menu }}"
-            data-nama="{{ $menu->Nama }}"
-            data-harga="{{ $menu->Harga }}"
-            data-kategori="{{ $menu->Kategori }}">
-        <img src="{{ $menu->Foto ? 'data:image/jpeg;base64,'.base64_encode($menu->Foto) : asset('img/sample-product.png') }}" 
-              alt="{{ $menu->Nama }}">
-        <div class="produk-name">{{ $menu->Nama }}</div>
-        <div class="produk-price">Rp {{ number_format($menu->Harga, 0, ',', '.') }}</div>
-      </div>
-      @endforeach
-
-      <!-- Tombol Tambah Produk -->
-      <div class="produk-card add-card" onclick="openModal('addModal')">
-        <span>+</span>
+    <!-- Sidebar pelanggan kiri -->
+    <div class="menu-left">
+      <h3 class="pelanggan-title">Pelanggan</h3>
+      <div class="pelanggan-list"></div>
+      <div class="total-section">
+        <div>Total</div>
+        <div class="harga-total">Rp 0</div>
+        <button class="btn-green" style="width:40%" onclick="openModal('paymentModal')">Bayar</button>
       </div>
     </div>
+
+    <!-- Konten kanan -->
+    <div class="menu-right">
+      <div class="menu-search">
+        <input type="text" placeholder="Cari Produk" id="searchProduk" onkeyup="filterProduk()">
+        <button class="dropdown-btn">⌄</button>
+      </div>
+
+      <!-- Filter kategori -->
+      <div class="menu-filter">
+        <button class="filter-btn active">Coffee (15)</button>
+        <button class="filter-btn">Makanan (23)</button>
+        <button class="filter-btn">Snack (3)</button>
+        <button class="filter-btn">Dessert (2)</button>
+        <button class="filter-btn">Alacarte (20)</button>
+      </div>
+
+      <!-- Grid produk -->
+      <div class="produk-grid">
+        @foreach ($menus as $menu)
+        <div class="produk-card"
+             data-id="{{ $menu->ID_Menu }}"
+             data-nama="{{ $menu->Nama }}"
+             data-harga="{{ $menu->Harga }}"
+             data-kategori="{{ $menu->Kategori }}">
+          <img src="{{ $menu->Foto ? 'data:image/jpeg;base64,'.base64_encode($menu->Foto) : asset('img/sample-product.png') }}" 
+               alt="{{ $menu->Nama }}">
+          <div class="produk-name">{{ $menu->Nama }}</div>
+          <div class="produk-price">Rp {{ number_format($menu->Harga, 0, ',', '.') }}</div>
+        </div>
+        @endforeach
+
+        <!-- Tombol Tambah Produk -->
+        <div class="produk-card add-card" onclick="openModal('addModal')">
+          <span>+</span>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
 </div>
 
 <!-- Modal Tambah Produk -->
 <div id="addModal" class="modal-overlay" style="display:none">
-<div class="modal-card">
-  <h2 class="modal-title">Tambah Produk Baru</h2>
-  <form action="{{ route('menu.store') }}" method="POST" enctype="multipart/form-data">
-    @csrf
-    <div class="modal-body">
-      <div class="form-left">
-        <label for="foto-upload" class="foto-box" id="add-preview-box">
-          <span id="add-preview-text">Pilih Foto</span>
-          <img id="add-preview-img" style="display:none;width:100%;border-radius:10px;">
-        </label>
-        <input type="file" name="Foto" id="foto-upload" accept="image/*" style="display:none"
-                onchange="preview('add-preview-img','add-preview-text',event)">
-      </div>
+  <div class="modal-card">
+    <h2 class="modal-title">Tambah Produk Baru</h2>
+    <form action="{{ route('menu.store') }}" method="POST" enctype="multipart/form-data">
+      @csrf
+      <div class="modal-body">
+        <div class="form-left">
+          <label for="foto-upload" class="foto-box" id="add-preview-box">
+            <span id="add-preview-text">Pilih Foto</span>
+            <img id="add-preview-img" style="display:none;width:100%;border-radius:10px;">
+          </label>
+          <input type="file" name="Foto" id="foto-upload" accept="image/*" style="display:none"
+                 onchange="preview('add-preview-img','add-preview-text',event)">
+        </div>
 
-      <div class="form-right">
-        <div class="form-group"><label>Nama</label><input type="text" name="Nama" required></div>
-        <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" required></div>
-        <div class="form-group"><label>Kategori</label><input type="text" name="Kategori" required></div>
-        <div class="form-group"><label>Deskripsi</label><textarea name="Deskripsi" rows="3"></textarea></div>
+        <div class="form-right">
+          <div class="form-group"><label>Nama</label><input type="text" name="Nama" required></div>
+          <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" required></div>
+          <div class="form-group"><label>Kategori</label><input type="text" name="Kategori" required></div>
+          <div class="form-group"><label>Deskripsi</label><textarea name="Deskripsi" rows="3"></textarea></div>
 
-        <!-- Tambahan: Bahan penyusun -->
-        <div class="form-group">
-          <label>Bahan Penyusun</label>
-          <div id="bahan-container">
-            <div class="bahan-row" style="display:flex;gap:10px;margin-bottom:8px;">
-              <select name="bahan[]" class="bahan-select" required style="flex:1;">
-                <option value="">-- Pilih Bahan --</option>
-                @foreach ($stok as $item)
-                  <option value="{{ $item->ID_Barang }}">{{ $item->Nama }} ({{ $item->Jumlah_Item }})</option>
-                @endforeach
-              </select>
-              <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" style="width:100px;">
+          <!-- Tambahan: Bahan penyusun -->
+          <div class="form-group">
+            <label>Bahan Penyusun</label>
+            <div id="bahan-container">
+              <div class="bahan-row" style="display:flex;gap:10px;margin-bottom:8px;">
+                <select name="bahan[]" class="bahan-select" required style="flex:1;">
+                  <option value="">-- Pilih Bahan --</option>
+                  @foreach ($stok as $item)
+                    <option value="{{ $item->ID_Barang }}">{{ $item->Nama }} ({{ $item->Jumlah_Item }})</option>
+                  @endforeach
+                </select>
+                <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" style="width:100px;">
+              </div>
             </div>
+            <button type="button" onclick="addBahanRow()" class="btn-yellow" style="margin-top:5px;">+ Tambah Bahan</button>
           </div>
-          <button type="button" onclick="addBahanRow()" class="btn-yellow" style="margin-top:5px;">+ Tambah Bahan</button>
         </div>
       </div>
-    </div>
 
-    <div class="modal-footer">
-      <a href="#" class="modal-cancel" onclick="closeModal('addModal')">Kembali</a>
-      <button type="submit" class="btn-green">Tambah</button>
-    </div>
-  </form>
-</div>
+      <div class="modal-footer">
+        <a href="#" class="modal-cancel" onclick="closeModal('addModal')">Kembali</a>
+        <button type="submit" class="btn-green">Tambah</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <!-- Modal Edit Produk -->
 <div id="editModal" class="modal-overlay" style="display:none;">
-<div class="modal-card">
-  <h2 class="modal-title">Edit Produk</h2>
-  <form id="editForm" method="POST" enctype="multipart/form-data">
-    @csrf
-    @method('PUT')
-    <div class="modal-body">
-      <div class="form-left">
-        <label for="edit-foto" class="foto-box">
-          <img id="edit-foto-img" src="{{ asset('img/sample-product.png') }}" style="width:100%;border-radius:10px;">
-        </label>
-        <input type="file" name="Foto" id="edit-foto" accept="image/*" style="display:none"
-                onchange="preview('edit-foto-img', null, event)">
+  <div class="modal-card">
+    <h2 class="modal-title">Edit Produk</h2>
+    <form id="editForm" method="POST" enctype="multipart/form-data">
+      @csrf
+      @method('PUT')
+      <div class="modal-body">
+        <div class="form-left">
+          <label for="edit-foto" class="foto-box">
+            <img id="edit-foto-img" src="{{ asset('img/sample-product.png') }}" style="width:100%;border-radius:10px;">
+          </label>
+          <input type="file" name="Foto" id="edit-foto" accept="image/*" style="display:none"
+                 onchange="preview('edit-foto-img', null, event)">
+        </div>
+        <div class="form-right">
+          <div class="form-group"><label>Nama</label><input type="text" name="Nama" id="editNama" required></div>
+          <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" id="editHarga" required></div>
+          <div class="form-group"><label>Kategori</label><input type="text" name="Kategori" id="editKategori" required></div>
+        </div>
       </div>
-      <div class="form-right">
-        <div class="form-group"><label>Nama</label><input type="text" name="Nama" id="editNama" required></div>
-        <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" id="editHarga" required></div>
-        <div class="form-group"><label>Kategori</label><input type="text" name="Kategori" id="editKategori" required></div>
+      <div class="modal-footer">
+        <a href="#" class="modal-cancel" onclick="closeModal('editModal')">Kembali</a>
+        <button type="submit" class="btn-green">Simpan</button>
       </div>
-    </div>
-    <div class="modal-footer">
-      <a href="#" class="modal-cancel" onclick="closeModal('editModal')">Kembali</a>
-      <button type="submit" class="btn-green">Simpan</button>
-    </div>
-  </form>
+    </form>
+  </div>
 </div>
 
 <!-- Context Dropdown untuk Edit & Hapus -->
@@ -142,8 +145,8 @@
     box-shadow:0 2px 10px rgba(0,0,0,0.2);
     z-index:9999;
     overflow:hidden;">
-  <button id="btnEdit" style="display:block;width:100%;padding:8px;border:none;background:white;cursor:pointer;">✏️ Edit</button>
-  <button id="btnDelete" style="display:block;width:100%;padding:8px;border:none;background:white;color:red;cursor:pointer;">🗑️ Hapus</button>
+  <button id="btnEdit" style="display:block;width:100%;padding:8px;border:none;background:white;cursor:pointer;">✏ Edit</button>
+  <button id="btnDelete" style="display:block;width:100%;padding:8px;border:none;background:white;color:red;cursor:pointer;">🗑 Hapus</button>
 </div>
 
 <!-- Modal Pembayaran -->
@@ -187,167 +190,205 @@
 </div>
 
 <script>
-let cart = [];
-const pelangganList = document.querySelector('.pelanggan-list');
-const totalHargaEl = document.querySelector('.harga-total');
+document.addEventListener('DOMContentLoaded', () => {
+  let cart = [];
+  const pelangganList = document.querySelector('.pelanggan-list');
+  const totalHargaEl = document.querySelector('.harga-total');
+  const contextMenu = document.getElementById('contextMenu');
+  let currentCardId = null;
 
-// ------------------------
-// Fungsi umum
-// ------------------------
-function openModal(id){ document.getElementById(id).style.display='flex'; }
-function closeModal(id){ document.getElementById(id).style.display='none'; }
-
-function preview(imgId, textId, e){
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const img = document.getElementById(imgId);
-    img.src = reader.result; img.style.display='block';
-    if (textId) document.getElementById(textId).style.display='none';
-  };
-  reader.readAsDataURL(file);
-}
-
-// ------------------------
-// Tambah ke keranjang
-// ------------------------
-function addToCart(nama, harga) {
-  cart.push({ nama, harga });
-  renderCart();
-}
-
-function removeFromCart(index) {
-  cart.splice(index, 1);
-  renderCart();
-}
-
-function renderCart() {
-  pelangganList.innerHTML = '';
-  let total = 0;
-  cart.forEach((item, index) => {
-    const div = document.createElement('div');
-    div.classList.add('pelanggan-item');
-    div.innerHTML = `
-      <div><strong>${item.nama}</strong><br><small>Rp ${item.harga.toLocaleString('id-ID')}</small></div>
-      <button onclick="removeFromCart(${index})" style="background:none;border:none;color:red;font-weight:bold;cursor:pointer;">❌</button>
-    `;
-    pelangganList.appendChild(div);
-    total += item.harga;
-  });
-  totalHargaEl.textContent = `Rp ${total.toLocaleString('id-ID')}`;
-  
-  // 🟢 Tambahan: update nominal pembayaran setiap kali total berubah
-  document.getElementById('nominalBayar').textContent = `Rp ${total.toLocaleString('id-ID')}`;
-}
-
-function openModal(id) {
-  document.getElementById(id).style.display = 'flex';
-  if (id === 'paymentModal') {
-    // 🟢 Pastikan nominal tetap update saat modal dibuka
-    const totalText = totalHargaEl.textContent;
-    document.getElementById('nominalBayar').textContent = totalText;
+  // ------------------------
+  // Fungsi umum
+  // ------------------------
+  function openModal(id) {
+    document.getElementById(id).style.display = 'flex';
+    if (id === 'paymentModal') {
+      // Pastikan nominal tetap update saat modal dibuka
+      const totalText = totalHargaEl.textContent;
+      document.getElementById('nominalBayar').textContent = totalText;
+    }
   }
-}
 
-// ------------------------
-// Klik kiri & klik kanan
-// ------------------------
-const cards = document.querySelectorAll('.produk-card:not(.add-card)');
-const contextMenu = document.getElementById('contextMenu');
-let currentCardId = null;
-
-cards.forEach(card => {
-  const nama = card.dataset.nama;
-  const harga = parseInt(card.dataset.harga);
-  card.addEventListener('click', () => addToCart(nama, harga));
-  card.addEventListener('contextmenu', e => {
-    e.preventDefault();
-    currentCardId = card.dataset.id;
-    contextMenu.style.top = `${e.clientY}px`;
-    contextMenu.style.left = `${e.clientX}px`;
-    contextMenu.style.display = 'block';
-  });
-});
-
-document.addEventListener('click', e => {
-  if (!contextMenu.contains(e.target)) contextMenu.style.display = 'none';
-});
-
-// ------------------------
-// Tombol Edit & Hapus
-// ------------------------
-document.getElementById('btnEdit').addEventListener('click', () => {
-  contextMenu.style.display = 'none';
-  const card = document.querySelector(`.produk-card[data-id="${currentCardId}"]`);
-  if (!card) return;
-  document.getElementById('editNama').value = card.dataset.nama;
-  document.getElementById('editHarga').value = card.dataset.harga;
-  document.getElementById('editKategori').value = card.dataset.kategori;
-  document.getElementById('edit-foto-img').src = card.querySelector('img').src;
-  document.getElementById('editForm').action = `/menu/${currentCardId}`;
-  openModal('editModal');
-});
-
-document.getElementById('btnDelete').addEventListener('click', () => {
-  contextMenu.style.display = 'none';
-  if (confirm('Yakin ingin menghapus produk ini?')) {
-    fetch(`/menu/${currentCardId}`, {
-      method: 'DELETE',
-      headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-    }).then(() => window.location.reload());
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
   }
-});
 
-// ------------------------
-// Pembayaran
-// ------------------------
-function setPayment(amount) {
-  if (amount > 0) document.getElementById('customPay').value = amount;
-}
+  function preview(imgId, textId, e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = document.getElementById(imgId);
+      img.src = reader.result;
+      img.style.display = 'block';
+      if (textId) document.getElementById(textId).style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
 
-function processPayment() {
-  const totalText = totalHargaEl.textContent.replace(/[^\d]/g, '');
-  const total = parseInt(totalText);
-  const customPay = parseInt(document.getElementById('customPay').value) || 0;
+  // ------------------------
+  // Tambah & hapus dari keranjang
+  // ------------------------
+  function addToCart(nama, harga) {
+    cart.push({ nama, harga });
+    renderCart();
+  }
 
-  if (customPay >= total && cart.length > 0) {
-    fetch('{{ route("transaksi.store") }}', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-      },
-      body: JSON.stringify({
-        items: cart.map(c => ({ id: c.id || null, qty: 1 })),
-        total: total,
-        metode: 'Tunai'
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === 'success') {
-        alert("✅ Pembayaran Berhasil!\nID Transaksi: " + data.id_transaksi);
-        cart = []; renderCart(); closeModal('paymentModal');
-      } else alert("❌ Terjadi kesalahan: " + data.message);
-    })
-    .catch(err => {
-      console.error(err);
-      alert("❌ Gagal menyimpan transaksi!");
+  function removeFromCart(index) {
+    cart.splice(index, 1);
+    renderCart();
+  }
+
+  function renderCart() {
+    pelangganList.innerHTML = '';
+    let total = 0;
+    cart.forEach((item, index) => {
+      const div = document.createElement('div');
+      div.classList.add('pelanggan-item');
+      div.innerHTML = `
+        <div><strong>${item.nama}</strong><br><small>Rp ${item.harga.toLocaleString('id-ID')}</small></div>
+        <button onclick="removeFromCart(${index})" style="background:none;border:none;color:red;font-weight:bold;cursor:pointer;">❌</button>
+      `;
+      pelangganList.appendChild(div);
+      total += item.harga;
     });
-  } else alert("❌ Pembayaran gagal, nominal kurang atau keranjang kosong!");
-}
+    totalHargaEl.textContent = `Rp ${total.toLocaleString('id-ID')}`;
+    document.getElementById('nominalBayar').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+  }
 
-// ------------------------
-// Filter Produk
-// ------------------------
-function filterProduk() {
-  const keyword = document.getElementById("searchProduk").value.toLowerCase().trim();
-  document.querySelectorAll(".produk-card").forEach(card => {
-    if (card.classList.contains("add-card")) return;
-    const nama = card.dataset.nama.toLowerCase();
-    card.style.display = (!keyword || nama.includes(keyword)) ? "block" : "none";
+  // ------------------------
+  // Klik kiri & klik kanan pada produk
+  // ------------------------
+  const cards = document.querySelectorAll('.produk-card:not(.add-card)');
+
+  cards.forEach(card => {
+    const nama = card.dataset.nama;
+    const harga = parseInt(card.dataset.harga);
+
+    // Klik kiri: tambah ke keranjang
+    card.addEventListener('click', () => addToCart(nama, harga));
+
+    // Klik kanan: tampilkan context menu
+    card.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      currentCardId = card.dataset.id;
+      contextMenu.style.top = `${e.clientY}px`;
+      contextMenu.style.left = `${e.clientX}px`;
+      contextMenu.style.display = 'block';
+    });
   });
-}
+
+  // Klik di luar context menu → tutup
+  document.addEventListener('click', e => {
+    if (!contextMenu.contains(e.target)) contextMenu.style.display = 'none';
+  });
+
+  // ------------------------
+  // Tombol Edit & Hapus
+  // ------------------------
+  document.getElementById('btnEdit').addEventListener('click', () => {
+    contextMenu.style.display = 'none';
+    const card = document.querySelector(`.produk-card[data-id="${currentCardId}"]`);
+    if (!card) return;
+    document.getElementById('editNama').value = card.dataset.nama;
+    document.getElementById('editHarga').value = card.dataset.harga;
+    document.getElementById('editKategori').value = card.dataset.kategori;
+    document.getElementById('edit-foto-img').src = card.querySelector('img').src;
+    document.getElementById('editForm').action = `/menu/${currentCardId}`;
+    openModal('editModal');
+  });
+
+  document.getElementById('btnDelete').addEventListener('click', () => {
+    contextMenu.style.display = 'none';
+    if (confirm('Yakin ingin menghapus produk ini?')) {
+      fetch(`/menu/${currentCardId}`, {
+        method: 'DELETE',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+      }).then(() => window.location.reload());
+    }
+  });
+
+  // ------------------------
+  // Pembayaran
+  // ------------------------
+  window.setPayment = function(amount) {
+    if (amount > 0) document.getElementById('customPay').value = amount;
+  }
+
+  window.processPayment = function() {
+    const totalText = totalHargaEl.textContent.replace(/[^\d]/g, '');
+    const total = parseInt(totalText);
+    const customPay = parseInt(document.getElementById('customPay').value) || 0;
+
+    if (customPay >= total && cart.length > 0) {
+      fetch('{{ route("transaksi.store") }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+          items: cart.map(c => ({ id: c.id || null, qty: 1 })),
+          total: total,
+          metode: 'Tunai'
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          alert("✅ Pembayaran Berhasil!\nID Transaksi: " + data.id_transaksi);
+          cart = [];
+          renderCart();
+          closeModal('paymentModal');
+        } else {
+          alert("❌ Terjadi kesalahan: " + data.message);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert("❌ Gagal menyimpan transaksi!");
+      });
+    } else {
+      alert("❌ Pembayaran gagal, nominal kurang atau keranjang kosong!");
+    }
+  }
+
+  // ------------------------
+  // Filter Produk
+  // ------------------------
+  window.filterProduk = function() {
+    const keyword = document.getElementById("searchProduk").value.toLowerCase().trim();
+    document.querySelectorAll(".produk-card").forEach(card => {
+      if (card.classList.contains("add-card")) return;
+      const nama = card.dataset.nama.toLowerCase();
+      card.style.display = (!keyword || nama.includes(keyword)) ? "block" : "none";
+    });
+  }
+
+  // ------------------------
+  // Buka modal dari tombol tambah bahan
+  // ------------------------
+  window.addBahanRow = function() {
+    const container = document.getElementById('bahan-container');
+    const newRow = document.createElement('div');
+    newRow.classList.add('bahan-row');
+    newRow.style.cssText = 'display:flex;gap:10px;margin-bottom:8px;';
+    newRow.innerHTML = `
+      <select name="bahan[]" class="bahan-select" required style="flex:1;">
+        <option value="">-- Pilih Bahan --</option>
+        @foreach ($stok as $item)
+          <option value="{{ $item->ID_Barang }}">{{ $item->Nama }} ({{ $item->Jumlah_Item }})</option>
+        @endforeach
+      </select>
+      <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" style="width:100px;">
+    `;
+    container.appendChild(newRow);
+  }
+
+  // Buat fungsi open/close modal global
+  window.openModal = openModal;
+  window.closeModal = closeModal;
+});
 </script>
+
 @endsection
