@@ -43,6 +43,7 @@ class TransaksiPenjualan extends Model
         return $this->belongsTo(Member::class, 'ID_Member', 'ID_Member');
     }
 
+    
     public function detailPenjualan()
     {
         return $this->hasMany(DetailPenjualan::class, 'ID_Penjualan', 'ID_Penjualan');
