@@ -90,29 +90,38 @@ class LaporanController extends Controller
 
 
     public function index(Request $request)
-    {
-        // Default tanggal (7 hari terakhir)
-        $start = $request->get('start') ?? Carbon::now()->subDays(7)->format('Y-m-d');
-        $end   = $request->get('end') ?? Carbon::now()->format('Y-m-d');
+{
+    // Default tanggal (7 hari terakhir)
+    $start = $request->get('start') ?? Carbon::now()->subDays(7)->format('Y-m-d');
+    $end   = $request->get('end') ?? Carbon::now()->format('Y-m-d');
 
-        // Ambil data transaksi berdasarkan periode
-        $laporan = $this->getLaporanData($start, $end);
+    // Ambil data transaksi berdasarkan periode
+    $laporan = $this->getLaporanData($start, $end);
 
-        if ($request->get('export') === 'pdf') {
-            try {
-                $pdf = PDF::loadView('exports.penjualan-pdf', compact('laporan', 'start', 'end'));
-                $pdf->setPaper('a4');
-                $filename = 'laporan-penjualan-' .
-                    Carbon::parse($start)->format('d-m-Y') .
-                    '_sd_' .
-                    Carbon::parse($end)->format('d-m-Y') .
-                    '.pdf';
+    // Jika user minta export PDF
+    if ($request->get('export') === 'pdf') {
+        try {
+            $pdf = PDF::loadView('exports.penjualan-pdf', compact('laporan', 'start', 'end'));
+            $pdf->setPaper('a4');
 
-                return $pdf->download($filename);
-            } catch (\Exception $e) {
-                return back()->withErrors(['error' => 'Gagal menghasilkan PDF. Silakan coba lagi.']);
-            }
+            $filename = 'laporan-penjualan-' .
+                Carbon::parse($start)->format('d-m-Y') .
+                '_sd_' .
+                Carbon::parse($end)->format('d-m-Y') .
+                '.pdf';
+
+            // ✅ Berhasil export PDF
+            session()->flash('success', '✅ Laporan berhasil diekspor ke PDF!');
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => '❌ Gagal menghasilkan PDF. Silakan coba lagi.']);
         }
-        return view('penjualan', compact('laporan', 'start', 'end'));
     }
+
+    // ✅ Berhasil menampilkan laporan di halaman
+    return view('penjualan', compact('laporan', 'start', 'end'))
+        ->with('success', '✅ Laporan berhasil ditampilkan!');
+}
+
 }
