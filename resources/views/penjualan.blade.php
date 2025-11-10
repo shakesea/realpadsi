@@ -75,7 +75,22 @@
                         @endif
                     </td>
                     <td>
-                        <strong>Rp {{ number_format($item['total'], 0, ',', '.') }}</strong>
+                        @php
+                        $poinDipakai = $item['member']['poin_digunakan'] ?? 0;
+                        $potonganRp = $poinDipakai * 100; // 1 poin = Rp100
+                        $totalBruto = $item['total']; // nilai dari DB
+                        $totalFinal = max($totalBruto - $potonganRp, 0); // hitung potongan di sini
+                        @endphp
+
+                        @if($poinDipakai > 0)
+                        <div style="text-align:right">
+                        <div>Bruto: <small>Rp {{ number_format($totalBruto,0,',','.') }}</small></div>
+                        <div>Potongan (Poin: {{ $poinDipakai }}): <small style="color:#d32;">- Rp {{ number_format($potonganRp,0,',','.') }}</small></div>
+                        <div style="margin-top:6px"><strong>Bayar: Rp {{ number_format($totalFinal,0,',','.') }}</strong></div>
+                        </div>
+                        @else
+                        <strong>Rp {{ number_format($totalFinal, 0, ',', '.') }}</strong>
+                        @endif
                     </td>
                 </tr>
                 @empty
@@ -200,14 +215,17 @@
 
         .pdf-link {
             padding: 5px 15px;
-            background: #f44336;
-            color: white;
+            background: #4CAF50; /* hijau sama seperti tombol Terapkan */
+            color: #fff !important; /* teks putih permanen */
             text-decoration: none;
             border-radius: 4px;
+            transition: background 0.2s;
         }
 
         .pdf-link:hover {
-            background: #e53935;
+            background: #45a049; /* sedikit lebih gelap saat hover */
+            color: #fff !important; /* tetap putih saat hover */
+            text-decoration: none; /* hilangkan underline */
         }
     </style>
 </div>
