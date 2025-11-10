@@ -7,6 +7,7 @@ use App\Http\Controllers\StokController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\TransaksiPenjualanController;
+use App\Http\Controllers\MenuController;
 
 
 use Illuminate\Support\Facades\Route;
@@ -80,6 +81,15 @@ Route::get('/', fn() => redirect('/login'));
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Menu routes
+Route::prefix('menu')->middleware('App\Http\Middleware\CheckLogin')->group(function () {
+    Route::get('/', [MenuController::class, 'index'])->name('menu.index');
+    Route::post('/', [MenuController::class, 'store'])->name('menu.store');
+    Route::put('/{id}', [MenuController::class, 'update'])->name('menu.update');
+    Route::delete('/{id}', [MenuController::class, 'destroy'])->name('menu.destroy');
+    Route::get('/{id}/bahan', [MenuController::class, 'getBahanPenyusun'])->name('menu.bahan');
+});
 
 // ======================================================
 // PROTECTED ROUTES (HARUS LOGIN)

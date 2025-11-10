@@ -37,23 +37,22 @@
 
       <!-- Filter kategori -->
       <div class="menu-filter">
-        <button class="filter-btn active">Coffee (15)</button>
-        <button class="filter-btn">Makanan (23)</button>
-        <button class="filter-btn">Snack (3)</button>
-        <button class="filter-btn">Dessert (2)</button>
-        <button class="filter-btn">Alacarte (20)</button>
+        <button class="filter-btn active" data-category="all">Semua</button>
+        @foreach($categories as $category)
+        <button class="filter-btn" data-category="{{ $category }}">{{ $category }}</button>
+        @endforeach
       </div>
 
       <!-- Grid produk -->
       <div class="produk-grid">
         @foreach ($menus as $menu)
         <div class="produk-card"
-             data-id="{{ $menu->ID_Menu }}"
-             data-nama="{{ $menu->Nama }}"
-             data-harga="{{ $menu->Harga }}"
-             data-kategori="{{ $menu->Kategori }}">
-          <img src="{{ $menu->Foto ? 'data:image/jpeg;base64,'.base64_encode($menu->Foto) : asset('img/sample-product.png') }}" 
-               alt="{{ $menu->Nama }}">
+          data-id="{{ $menu->ID_Menu }}"
+          data-nama="{{ $menu->Nama }}"
+          data-harga="{{ $menu->Harga }}"
+          data-kategori="{{ $menu->Kategori }}">
+          <img src="{{ $menu->Foto ? 'data:image/jpeg;base64,'.base64_encode($menu->Foto) : asset('img/sample-product.png') }}"
+            alt="{{ $menu->Nama }}">
           <div class="produk-name">{{ $menu->Nama }}</div>
           <div class="produk-price">Rp {{ number_format($menu->Harga, 0, ',', '.') }}</div>
         </div>
@@ -81,7 +80,7 @@
             <img id="add-preview-img" style="display:none;width:100%;border-radius:10px;">
           </label>
           <input type="file" name="Foto" id="foto-upload" accept="image/*" style="display:none"
-                 onchange="preview('add-preview-img','add-preview-text',event)">
+            onchange="preview('add-preview-img','add-preview-text',event)">
         </div>
 
         <div class="form-right">
@@ -98,7 +97,7 @@
                 <select name="bahan[]" class="bahan-select" required style="flex:1;">
                   <option value="">-- Pilih Bahan --</option>
                   @foreach ($stok as $item)
-                    <option value="{{ $item->ID_Barang }}">{{ $item->Nama }} ({{ $item->Jumlah_Item }})</option>
+                  <option value="{{ $item->ID_Barang }}">{{ $item->Nama }} ({{ $item->Jumlah_Item }})</option>
                   @endforeach
                 </select>
                 <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" style="width:100px;">
@@ -130,12 +129,33 @@
             <img id="edit-foto-img" src="{{ asset('img/sample-product.png') }}" style="width:100%;border-radius:10px;">
           </label>
           <input type="file" name="Foto" id="edit-foto" accept="image/*" style="display:none"
-                 onchange="preview('edit-foto-img', null, event)">
+            onchange="preview('edit-foto-img', null, event)">
         </div>
         <div class="form-right">
           <div class="form-group"><label>Nama</label><input type="text" name="Nama" id="editNama" required></div>
           <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" id="editHarga" required></div>
-          <div class="form-group"><label>Kategori</label><input type="text" name="Kategori" id="editKategori" required></div>
+          <div class="form-group">
+            <label>Kategori</label>
+            <select name="Kategori" id="editKategori" required>
+              <option value="">-- Pilih Kategori --</option>
+              @foreach($categories as $category)
+              <option value="{{ $category }}">{{ $category }}</option>
+              @endforeach
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Deskripsi</label>
+            <textarea name="Deskripsi" id="editDeskripsi" rows="3"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Bahan Penyusun</label>
+            <div id="edit-bahan-container">
+              <!-- Will be filled dynamically -->
+            </div>
+            <button type="button" onclick="addEditBahanRow()" class="btn-yellow">+ Tambah Bahan</button>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -173,8 +193,8 @@
           <button class="pay-btn" onclick="setPayment(25000)">Rp 25.000</button>
           <button class="pay-btn" onclick="setPayment(50000)">Rp 50.000</button>
           <button class="pay-btn" onclick="setPayment(100000)">Rp 100.000</button>
-          <input id="customPay" type="number" placeholder="Rp Custom" 
-                 style="flex:1;padding:8px 10px;border:1px solid #ccc;border-radius:8px;">
+          <input id="customPay" type="number" placeholder="Rp Custom"
+            style="flex:1;padding:8px 10px;border:1px solid #ccc;border-radius:8px;">
         </div>
       </div>
 
@@ -219,7 +239,9 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td colspan="6">Memuat data...</td></tr>
+            <tr>
+              <td colspan="6">Memuat data...</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -250,194 +272,272 @@
 {{-- ===================================================== --}}
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  let cart = [];
-  const pelangganList = document.querySelector('.pelanggan-list');
-  const totalHargaEl = document.querySelector('.harga-total');
-  const contextMenu = document.getElementById('contextMenu');
-  let currentCardId = null;
+  document.addEventListener('DOMContentLoaded', () => {
+    let cart = [];
+    const pelangganList = document.querySelector('.pelanggan-list');
+    const totalHargaEl = document.querySelector('.harga-total');
+    const contextMenu = document.getElementById('contextMenu');
+    let currentCardId = null;
 
-  function openModal(id) {
-    document.getElementById(id).style.display = 'flex';
-    if (id === 'paymentModal') {
-      const totalText = totalHargaEl.textContent;
-      document.getElementById('nominalBayar').textContent = totalText;
+    // Category filter
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const category = this.dataset.category;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        filterProducts(category);
+      });
+    });
+
+    function filterProducts(category) {
+      const cards = document.querySelectorAll('.produk-card:not(.add-card)');
+      cards.forEach(card => {
+        if (category === 'all' || card.dataset.kategori === category) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
     }
-    // Saat memberModal dibuka, load data member
-    if (id === 'memberModal') {
-      if (typeof loadMembers === 'function') { loadMembers(); clearMemberForm(); }
+
+    function openModal(id) {
+      document.getElementById(id).style.display = 'flex';
+      if (id === 'paymentModal') {
+        const totalText = totalHargaEl.textContent;
+        document.getElementById('nominalBayar').textContent = totalText;
+      }
+      // Saat memberModal dibuka, load data member
+      if (id === 'memberModal') {
+        if (typeof loadMembers === 'function') {
+          loadMembers();
+          clearMemberForm();
+        }
+      }
     }
-  }
-  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-  function preview(imgId, textId, e) {
-    const file = e.target.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = document.getElementById(imgId);
-      img.src = reader.result; img.style.display = 'block';
-      if (textId) document.getElementById(textId).style.display = 'none';
-    };
-    reader.readAsDataURL(file);
-  }
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
 
-  function addToCart(nama, harga) { cart.push({ nama, harga }); renderCart(); }
-  function removeFromCart(index) { cart.splice(index, 1); renderCart(); }
+    function preview(imgId, textId, e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = document.getElementById(imgId);
+        img.src = reader.result;
+        img.style.display = 'block';
+        if (textId) document.getElementById(textId).style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
 
-  function renderCart() {
-    pelangganList.innerHTML = '';
-    let total = 0;
-    cart.forEach((item, index) => {
-      const div = document.createElement('div');
-      div.classList.add('pelanggan-item');
-      div.innerHTML = `
+    function addToCart(nama, harga) {
+      cart.push({
+        nama,
+        harga
+      });
+      renderCart();
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      renderCart();
+    }
+
+    function renderCart() {
+      pelangganList.innerHTML = '';
+      let total = 0;
+      cart.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.classList.add('pelanggan-item');
+        div.innerHTML = `
         <div><strong>${item.nama}</strong><br><small>Rp ${item.harga.toLocaleString('id-ID')}</small></div>
         <button onclick="removeFromCart(${index})" style="background:none;border:none;color:red;font-weight:bold;cursor:pointer;">❌</button>
       `;
-      pelangganList.appendChild(div);
-      total += item.harga;
-    });
-    totalHargaEl.textContent = `Rp ${total.toLocaleString('id-ID')}`;
-    document.getElementById('nominalBayar').textContent = `Rp ${total.toLocaleString('id-ID')}`;
-  }
-
-  const cards = document.querySelectorAll('.produk-card:not(.add-card)');
-  cards.forEach(card => {
-    const nama = card.dataset.nama;
-    const harga = parseInt(card.dataset.harga);
-    card.addEventListener('click', () => addToCart(nama, harga));
-    card.addEventListener('contextmenu', e => {
-      e.preventDefault();
-      currentCardId = card.dataset.id;
-      contextMenu.style.top = `${e.clientY}px`;
-      contextMenu.style.left = `${e.clientX}px`;
-      contextMenu.style.display = 'block';
-    });
-  });
-
-  document.addEventListener('click', e => {
-    if (!contextMenu.contains(e.target)) contextMenu.style.display = 'none';
-  });
-
-  document.getElementById('btnEdit').addEventListener('click', () => {
-    contextMenu.style.display = 'none';
-    const card = document.querySelector(`.produk-card[data-id="${currentCardId}"]`);
-    if (!card) return;
-    document.getElementById('editNama').value = card.dataset.nama;
-    document.getElementById('editHarga').value = card.dataset.harga;
-    document.getElementById('editKategori').value = card.dataset.kategori;
-    document.getElementById('edit-foto-img').src = card.querySelector('img').src;
-    document.getElementById('editForm').action = `/menu/${currentCardId}`;
-    openModal('editModal');
-  });
-
-  document.getElementById('btnDelete').addEventListener('click', () => {
-    contextMenu.style.display = 'none';
-    if (confirm('Yakin ingin menghapus produk ini?')) {
-      fetch(`/menu/${currentCardId}`, {
-        method: 'DELETE',
-        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-      }).then(() => window.location.reload());
-    }
-  });
-
-  window.setPayment = function(amount) {
-    if (amount > 0) document.getElementById('customPay').value = amount;
-  }
-
-  window.processPayment = function() {
-    const totalText = totalHargaEl.textContent.replace(/[^\d]/g, '');
-    const total = parseInt(totalText);
-    const customPay = parseInt(document.getElementById('customPay').value) || 0;
-
-    if (customPay >= total && cart.length > 0) {
-      fetch('{{ route("transaksi.store") }}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({
-          items: cart.map(c => ({ id: c.id || null, qty: 1 })),
-          total: total,
-          metode: 'Tunai',
-          // ===== kirim pilihan member (jika ada) =====
-          member: window.selectedMember ? {
-            id: window.selectedMember.id,
-            poin_pakai: window.selectedMember.poin_pakai
-          } : null
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === 'success') {
-          alert("✅ Pembayaran Berhasil!\nID Transaksi: " + data.id_transaksi);
-          cart = [];
-          renderCart();
-          closeModal('paymentModal');
-          // reset member yang dipilih
-          window.selectedMember = null;
-          const pill = document.getElementById('selected-member-pill');
-          if (pill) pill.remove();
-        } else {
-          alert("❌ Terjadi kesalahan: " + data.message);
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        alert("❌ Gagal menyimpan transaksi!");
+        pelangganList.appendChild(div);
+        total += item.harga;
       });
-    } else {
-      alert("❌ Pembayaran gagal, nominal kurang atau keranjang kosong!");
+      totalHargaEl.textContent = `Rp ${total.toLocaleString('id-ID')}`;
+      document.getElementById('nominalBayar').textContent = `Rp ${total.toLocaleString('id-ID')}`;
     }
-  }
 
-  window.filterProduk = function() {
-    const keyword = document.getElementById("searchProduk").value.toLowerCase().trim();
-    document.querySelectorAll(".produk-card").forEach(card => {
-      if (card.classList.contains("add-card")) return;
-      const nama = card.dataset.nama.toLowerCase();
-      card.style.display = (!keyword || nama.includes(keyword)) ? "block" : "none";
+    const cards = document.querySelectorAll('.produk-card:not(.add-card)');
+    cards.forEach(card => {
+      const nama = card.dataset.nama;
+      const harga = parseInt(card.dataset.harga);
+      card.addEventListener('click', () => addToCart(nama, harga));
+      card.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        currentCardId = card.dataset.id;
+        contextMenu.style.top = `${e.clientY}px`;
+        contextMenu.style.left = `${e.clientX}px`;
+        contextMenu.style.display = 'block';
+      });
     });
-  }
 
-  window.addBahanRow = function() {
-    const container = document.getElementById('bahan-container');
-    const newRow = document.createElement('div');
-    newRow.classList.add('bahan-row');
-    newRow.style.cssText = 'display:flex;gap:10px;margin-bottom:8px;';
-    newRow.innerHTML = `
+    document.addEventListener('click', e => {
+      if (!contextMenu.contains(e.target)) contextMenu.style.display = 'none';
+    });
+
+    document.getElementById('btnEdit').addEventListener('click', async () => {
+      contextMenu.style.display = 'none';
+      const card = document.querySelector(`.produk-card[data-id="${currentCardId}"]`);
+      if (!card) return;
+
+      // Set basic info
+      document.getElementById('editNama').value = card.dataset.nama;
+      document.getElementById('editHarga').value = card.dataset.harga;
+      document.getElementById('editKategori').value = card.dataset.kategori;
+      document.getElementById('editDeskripsi').value = card.dataset.deskripsi;
+      document.getElementById('edit-foto-img').src = card.querySelector('img').src;
+      document.getElementById('editForm').action = `/menu/${currentCardId}`;
+
+      // Get bahan penyusun
+      try {
+        const response = await fetch(`/menu/${currentCardId}/bahan`);
+        const bahan = await response.json();
+        const container = document.getElementById('edit-bahan-container');
+        container.innerHTML = '';
+
+        if (bahan.length === 0) {
+          addEditBahanRow();
+        } else {
+          bahan.forEach(b => {
+            const row = createBahanRow(b.ID_Barang, b.Jumlah_Item);
+            container.appendChild(row);
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching bahan:', error);
+        addEditBahanRow();
+      }
+
+      openModal('editModal');
+    });
+    document.getElementById('btnDelete').addEventListener('click', () => {
+      contextMenu.style.display = 'none';
+      if (confirm('Yakin ingin menghapus produk ini?')) {
+        fetch(`/menu/${currentCardId}`, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+          }
+        }).then(() => window.location.reload());
+      }
+    });
+
+    window.setPayment = function(amount) {
+      if (amount > 0) document.getElementById('customPay').value = amount;
+    }
+
+    window.processPayment = function() {
+      const totalText = totalHargaEl.textContent.replace(/[^\d]/g, '');
+      const total = parseInt(totalText);
+      const customPay = parseInt(document.getElementById('customPay').value) || 0;
+
+      if (customPay >= total && cart.length > 0) {
+        fetch('{{ route("transaksi.store") }}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+              items: cart.map(c => ({
+                id: c.id || null,
+                qty: 1
+              })),
+              total: total,
+              metode: 'Tunai',
+              member: window.selectedMember ? {
+                id: window.selectedMember.id,
+                poin_pakai: window.selectedMember.poin_pakai
+              } : null
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === 'success') {
+              alert("✅ Pembayaran Berhasil!\nID Transaksi: " + data.id_transaksi);
+              cart = [];
+              renderCart();
+              closeModal('paymentModal');
+              // reset member yang dipilih
+              window.selectedMember = null;
+              const pill = document.getElementById('selected-member-pill');
+              if (pill) pill.remove();
+            } else {
+              alert("❌ Terjadi kesalahan: " + data.message);
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            alert("❌ Gagal menyimpan transaksi!");
+          });
+      } else {
+        alert("❌ Pembayaran gagal, nominal kurang atau keranjang kosong!");
+      }
+    }
+
+    window.filterProduk = function() {
+      const keyword = document.getElementById("searchProduk").value.toLowerCase().trim();
+      document.querySelectorAll(".produk-card").forEach(card => {
+        if (card.classList.contains("add-card")) return;
+        const nama = card.dataset.nama.toLowerCase();
+        card.style.display = (!keyword || nama.includes(keyword)) ? "block" : "none";
+      });
+    }
+
+    function createBahanRow(selectedId = '', jumlah = '') {
+      const row = document.createElement('div');
+      row.classList.add('bahan-row');
+      row.style.cssText = 'display:flex;gap:10px;margin-bottom:8px;';
+      row.innerHTML = `
       <select name="bahan[]" class="bahan-select" required style="flex:1;">
         <option value="">-- Pilih Bahan --</option>
         @foreach ($stok as $item)
-          <option value="{{ $item->ID_Barang }}">{{ $item->Nama }} ({{ $item->Jumlah_Item }})</option>
+          <option value="{{ $item->ID_Barang }}"${selectedId === '{{ $item->ID_Barang }}' ? ' selected' : ''}>
+            {{ $item->Nama }} ({{ $item->Jumlah_Item }})
+          </option>
         @endforeach
       </select>
-      <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" style="width:100px;">
+      <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" value="${jumlah}" style="width:100px;">
+      <button type="button" class="btn-remove-bahan" onclick="this.parentElement.remove()">&times;</button>
     `;
-    container.appendChild(newRow);
-  }
-
-  window.openModal = openModal;
-  window.closeModal = closeModal;
-  window.removeFromCart = removeFromCart;
-});
-
-// ============ SCRIPT KHUSUS MODAL MEMBER ============
-window.selectedMember = null;
-
-async function loadMembers(){
-  const tbody = document.querySelector('#tblMembers tbody');
-  if(!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="6">Memuat data...</td></tr>`;
-  try{
-    const res = await fetch(`{{ route('kasir.members.json') }}`);
-    const data = await res.json();
-    if(!Array.isArray(data) || data.length === 0){
-      tbody.innerHTML = `<tr><td colspan="6">Belum ada data member.</td></tr>`;
-      return;
+      return row;
     }
-    tbody.innerHTML = data.map((m,i)=>`
+
+    window.addBahanRow = function() {
+      const container = document.getElementById('bahan-container');
+      container.appendChild(createBahanRow());
+    }
+
+    window.addEditBahanRow = function() {
+      const container = document.getElementById('edit-bahan-container');
+      container.appendChild(createBahanRow());
+    }
+
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.removeFromCart = removeFromCart;
+  });
+
+  // ============ SCRIPT KHUSUS MODAL MEMBER ============
+  window.selectedMember = null;
+
+  async function loadMembers() {
+    const tbody = document.querySelector('#tblMembers tbody');
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="6">Memuat data...</td></tr>`;
+    try {
+      const res = await fetch(`{{ route('kasir.members.json') }}`);
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6">Belum ada data member.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = data.map((m, i) => `
       <tr>
         <td>${String(i+1).padStart(2,'0')}</td>
         <td>${esc(m.nama||'')}</td>
@@ -454,70 +554,78 @@ async function loadMembers(){
       </tr>
     `).join('');
 
-    document.querySelectorAll('input[name="pick_member"]').forEach(r=>{
-      r.addEventListener('change', e=>{
-        const R = e.target;
-        const nm = decodeURIComponent(R.dataset.nama||'');
-        const em = decodeURIComponent(R.dataset.email||'');
-        const tl = decodeURIComponent(R.dataset.telp||'');
-        const pt = Number(R.dataset.poin||0);
-        document.getElementById('m_nama').value = nm;
-        document.getElementById('m_email').value = em;
-        document.getElementById('m_telp').value = tl;
-        document.getElementById('m_poin_total').value = pt;
-        const poinP = document.getElementById('m_poin_pakai');
-        poinP.max = pt;
-        if(Number(poinP.value) > pt) poinP.value = pt;
-        document.getElementById('m_poin_help').textContent = `Maksimal ${pt} poin.`;
-        poinP.dataset.memberId = R.value;
+      document.querySelectorAll('input[name="pick_member"]').forEach(r => {
+        r.addEventListener('change', e => {
+          const R = e.target;
+          const nm = decodeURIComponent(R.dataset.nama || '');
+          const em = decodeURIComponent(R.dataset.email || '');
+          const tl = decodeURIComponent(R.dataset.telp || '');
+          const pt = Number(R.dataset.poin || 0);
+          document.getElementById('m_nama').value = nm;
+          document.getElementById('m_email').value = em;
+          document.getElementById('m_telp').value = tl;
+          document.getElementById('m_poin_total').value = pt;
+          const poinP = document.getElementById('m_poin_pakai');
+          poinP.max = pt;
+          if (Number(poinP.value) > pt) poinP.value = pt;
+          document.getElementById('m_poin_help').textContent = `Maksimal ${pt} poin.`;
+          poinP.dataset.memberId = R.value;
+        });
       });
-    });
 
-  }catch(e){
-    console.error(e);
-    tbody.innerHTML = `<tr><td colspan="6">Gagal memuat data.</td></tr>`;
+    } catch (e) {
+      console.error(e);
+      tbody.innerHTML = `<tr><td colspan="6">Gagal memuat data.</td></tr>`;
+    }
   }
-}
 
-function clearMemberForm(){
-  document.getElementById('m_nama').value = '';
-  document.getElementById('m_email').value = '';
-  document.getElementById('m_telp').value = '';
-  document.getElementById('m_poin_total').value = 0;
-  const poinP = document.getElementById('m_poin_pakai');
-  poinP.value = 0; poinP.removeAttribute('max'); poinP.dataset.memberId = '';
-  document.getElementById('m_poin_help').textContent = 'Maksimal sesuai total poin.';
-}
-
-document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('btnMemberApply').addEventListener('click', ()=>{
+  function clearMemberForm() {
+    document.getElementById('m_nama').value = '';
+    document.getElementById('m_email').value = '';
+    document.getElementById('m_telp').value = '';
+    document.getElementById('m_poin_total').value = 0;
     const poinP = document.getElementById('m_poin_pakai');
-    const id = poinP.dataset.memberId || '';
-    const pt = Number(document.getElementById('m_poin_total').value || 0);
-    const pp = Number(poinP.value || 0);
-    if(!id){ alert('Silakan pilih member terlebih dahulu.'); return; }
-    if(pp < 0 || pp > pt){ alert('Poin yang dipakai tidak valid.'); return; }
+    poinP.value = 0;
+    poinP.removeAttribute('max');
+    poinP.dataset.memberId = '';
+    document.getElementById('m_poin_help').textContent = 'Maksimal sesuai total poin.';
+  }
 
-    window.selectedMember = {
-      id,
-      nama:  document.getElementById('m_nama').value,
-      email: document.getElementById('m_email').value,
-      no_telp: document.getElementById('m_telp').value,
-      poin_total: pt,
-      poin_pakai: pp
-    };
-
-    // tampilkan ringkasan di panel kiri
-    const host = document.querySelector('.pelanggan-list');
-    if(host){
-      let pill = document.getElementById('selected-member-pill');
-      if(!pill){
-        pill = document.createElement('div');
-        pill.id = 'selected-member-pill';
-        pill.className = 'selected-member-pill';
-        host.prepend(pill);
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btnMemberApply').addEventListener('click', () => {
+      const poinP = document.getElementById('m_poin_pakai');
+      const id = poinP.dataset.memberId || '';
+      const pt = Number(document.getElementById('m_poin_total').value || 0);
+      const pp = Number(poinP.value || 0);
+      if (!id) {
+        alert('Silakan pilih member terlebih dahulu.');
+        return;
       }
-      pill.innerHTML = `
+      if (pp < 0 || pp > pt) {
+        alert('Poin yang dipakai tidak valid.');
+        return;
+      }
+
+      window.selectedMember = {
+        id,
+        nama: document.getElementById('m_nama').value,
+        email: document.getElementById('m_email').value,
+        no_telp: document.getElementById('m_telp').value,
+        poin_total: pt,
+        poin_pakai: pp
+      };
+
+      // tampilkan ringkasan di panel kiri
+      const host = document.querySelector('.pelanggan-list');
+      if (host) {
+        let pill = document.getElementById('selected-member-pill');
+        if (!pill) {
+          pill = document.createElement('div');
+          pill.id = 'selected-member-pill';
+          pill.className = 'selected-member-pill';
+          host.prepend(pill);
+        }
+        pill.innerHTML = `
         <div>
           <strong>${esc(window.selectedMember.nama)}</strong><br>
           <small>${esc(window.selectedMember.email)} • ${esc(window.selectedMember.no_telp || '-')}</small><br>
@@ -526,14 +634,22 @@ document.addEventListener('DOMContentLoaded',()=>{
         <button type="button" style="background:none;border:none;color:#d33;cursor:pointer;font-weight:700;"
           onclick="(function(){ const p=document.getElementById('selected-member-pill'); if(p) p.remove(); window.selectedMember=null; })()">×</button>
       `;
-    }
+      }
 
-    closeModal('memberModal');
+      closeModal('memberModal');
+    });
   });
-});
 
-function esc(s){return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
-// =====================================================
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    } [c]));
+  }
+  // =====================================================
 </script>
 
 @endsection

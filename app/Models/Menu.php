@@ -16,10 +16,23 @@ class Menu extends Model
         'Nama',
         'Harga',
         'Kategori',
+        'Deskripsi',
         'Foto',
         'Created_At',
         'Updated_At'
     ];
+
+    public static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            $model->Created_At = now();
+            $model->Updated_At = now();
+        });
+        static::updating(function ($model) {
+            $model->Updated_At = now();
+        });
+    }
 
     public function bahanPenyusun()
     {

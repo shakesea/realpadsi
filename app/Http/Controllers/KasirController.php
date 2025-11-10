@@ -11,11 +11,17 @@ use Illuminate\Support\Facades\DB;
 class KasirController extends Controller
 {
     // 1️⃣ TAMPILKAN HALAMAN KASIR
-    public function index()
+    public function index(Request $request)
     {
-        $menus = Menu::orderBy('Kategori')->get();
+        $kategori = $request->get('kategori');
+        $menus = Menu::when($kategori, function ($query, $kategori) {
+            return $query->where('Kategori', $kategori);
+        })->orderBy('Kategori')->get();
+
         $stok = Stok::all();
-        return view('kasir', compact('menus', 'stok'));
+        $categories = \App\Helpers\MenuHelper::getCategories();
+
+        return view('kasir', compact('menus', 'stok', 'categories', 'kategori'));
     }
 
     // 2️⃣ TAMBAH PRODUK
