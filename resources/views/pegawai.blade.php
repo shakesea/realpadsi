@@ -3,6 +3,20 @@
 @section('title', 'NutaPOS - Pegawai')
 
 @section('content')
+@if ($errors->any())
+<div class="flash-error">
+    @foreach ($errors->all() as $error)
+        <p>{{ $error }}</p>
+    @endforeach
+</div>
+@endif
+
+@if (session('success'))
+<div class="flash-success">
+    {{ session('success') }}
+</div>
+@endif
+
 
 <div class="pegawai-container">
     <div class="pegawai-card">

@@ -26,6 +26,8 @@ Route::get('/kasir', [KasirController::class, 'index'])->name('kasir.index');
 Route::get('/kasir/members/json', [MemberController::class, 'listForKasir'])
     ->name('kasir.members.json');
 
+    Route::delete('/member/{id}', [MemberController::class, 'destroy'])->name('member.destroy');
+
 Route::post('/menu', [KasirController::class, 'store'])->name('menu.store');
 Route::post('/transaksi', [TransaksiPenjualanController::class, 'store'])->name('transaksi.store');
 Route::put('/menu/{id}', [KasirController::class, 'update'])->name('menu.update');

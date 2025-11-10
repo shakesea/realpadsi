@@ -118,3 +118,22 @@
 .pilih-pelayan {
         
 }
+.flash-error {
+    background: #ffdddd;
+    border-left: 4px solid #d10000;
+    padding: 10px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.flash-success {
+    background: #ddffdd;
+    border-left: 4px solid #008f1f;
+    padding: 10px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+}
