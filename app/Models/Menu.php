@@ -9,6 +9,7 @@ class Menu extends Model
     protected $table = 'Menu';
     protected $primaryKey = 'ID_Menu';
     public $incrementing = false;
+    protected $keyType = 'string';
     public $timestamps = false;
 
     protected $fillable = [

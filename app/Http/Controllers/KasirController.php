@@ -96,22 +96,60 @@ class KasirController extends Controller
             'Nama' => 'required|string|max:100',
             'Harga' => 'required|numeric',
             'Kategori' => 'required|string|max:100',
+            'Deskripsi' => 'nullable|string',
             'Foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'bahan' => 'nullable|array',
+            'jumlah_digunakan' => 'nullable|array',
         ]);
 
-        $menu = Menu::findOrFail($id);
+        DB::beginTransaction();
+        try {
+            $menu = Menu::findOrFail($id);
 
-        if ($request->hasFile('Foto')) {
-            $menu->Foto = file_get_contents($request->file('Foto')->getRealPath());
+            if ($request->hasFile('Foto')) {
+                $menu->Foto = file_get_contents($request->file('Foto')->getRealPath());
+            }
+
+            $menu->Nama = $request->Nama;
+            $menu->Harga = $request->Harga;
+            $menu->Kategori = $request->Kategori;
+            $menu->Deskripsi = $request->Deskripsi;
+            $menu->Updated_At = now();
+            $menu->save();
+
+            // Update bahan penyusun
+            if ($request->has('bahan')) {
+                // Delete existing bahan
+                BahanPenyusun::where('ID_Menu', $id)->delete();
+
+                // Get last ID_Penyusun
+                $lastBP = BahanPenyusun::orderBy('ID_Penyusun', 'desc')->first();
+                $lastNumBP = $lastBP ? intval(substr($lastBP->ID_Penyusun, 2)) : 0;
+
+                // Add new bahan
+                foreach ($request->bahan as $i => $idBarang) {
+                    if (!$idBarang) continue;
+
+                    $idPenyusun = 'BP' . str_pad(++$lastNumBP, 3, '0', STR_PAD_LEFT);
+
+                    BahanPenyusun::create([
+                        'ID_Penyusun' => $idPenyusun,
+                        'ID_Menu' => $id,
+                        'ID_Barang' => $idBarang,
+                        'Jumlah_Digunakan' => $request->jumlah_digunakan[$i] ?? 1,
+                        'Kategori' => $request->Kategori,
+                        'Created_At' => now(),
+                        'Updated_At' => now(),
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return redirect()->back()->with('success', '✅ Produk berhasil diperbarui!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', '❌ Gagal memperbarui produk: ' . $e->getMessage());
         }
-
-        $menu->Nama = $request->Nama;
-        $menu->Harga = $request->Harga;
-        $menu->Kategori = $request->Kategori;
-        $menu->Updated_At = now();
-        $menu->save();
-
-        return redirect()->back()->with('success', '✅ Produk berhasil diperbarui!');
     }
 
     // 4️⃣ HAPUS PRODUK

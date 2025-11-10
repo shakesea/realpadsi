@@ -13,33 +13,70 @@ class LaporanController extends Controller
 {
     private function getLaporanData($start, $end)
     {
-        return TransaksiPenjualan::whereDate('Tgl_Penjualan', '>=', $start)
+        return TransaksiPenjualan::with(['detailPenjualan.menu', 'member'])
+            ->whereDate('Tgl_Penjualan', '>=', $start)
             ->whereDate('Tgl_Penjualan', '<=', $end)
             ->orderBy('Tgl_Penjualan', 'desc')
             ->get()
             ->map(function ($trx) {
-                // Ambil nama dari Manager atau Pegawai
-                $nama = null;
+
+                // 🧾 Dapatkan nama kasir (manager / pegawai)
                 if ($trx->ID_Manager) {
                     $manager = Manager::where('ID_Manager', $trx->ID_Manager)->first();
-                    $nama = $manager ? $manager->Nama_Manager : 'Manager Tidak Dikenal';
+                    $nama = $manager ? $manager->Username : 'Manager Tidak Dikenal';
                 } elseif ($trx->ID_Pegawai) {
                     $pegawai = Pegawai::where('ID_Pegawai', $trx->ID_Pegawai)->first();
-                    $nama = $pegawai ? $pegawai->Nama_Pegawai : 'Pegawai Tidak Dikenal';
+                    $nama = $pegawai ? $pegawai->Username : 'Pegawai Tidak Dikenal';
                 } else {
                     $nama = 'Tidak Diketahui';
                 }
 
+                // 🍽️ Kelompokkan item berdasarkan kategori menu
+                $items = collect($trx->detailPenjualan)
+                    ->groupBy(function ($detail) {
+                        return $detail->menu ? $detail->menu->Kategori : 'Tanpa Kategori';
+                    })
+                    ->map(function ($details) {
+                        return [
+                            'items' => $details->map(function ($detail) {
+                                $menu = $detail->menu;
+                                $harga = $menu ? $menu->Harga : 0;
+                                $qty = $detail->Quantity;
+                                $subtotal = $detail->Subtotal ?? ($qty * $harga);
+
+                                return [
+                                    'nama' => $menu ? $menu->Nama : 'Menu Tidak Ditemukan',
+                                    'qty' => $qty,
+                                    'harga' => $harga,
+                                    'subtotal' => $subtotal,
+                                ];
+                            }),
+                            'total_qty' => $details->sum('Quantity'),
+                            'total_amount' => $details->sum(function ($detail) {
+                                $harga = $detail->menu ? $detail->menu->Harga : 0;
+                                return $detail->Subtotal ?? ($detail->Quantity * $harga);
+                            }),
+                        ];
+                    })->toArray();
+
+                // 📋 Return hasil laporan per transaksi
                 return [
                     'nama' => $nama,
                     'total' => $trx->TotalHarga,
                     'kode' => $trx->ID_Penjualan,
-                    ''
                     'waktu' => Carbon::parse($trx->Tgl_Penjualan)->format('H:i:s'),
                     'tanggal' => Carbon::parse($trx->Tgl_Penjualan)->format('d/m/Y'),
+                    'metode' => $trx->Metode_Pembayaran,
+                    'items' => $items,
+                    'member' => $trx->member ? [
+                        'nama' => $trx->member->Nama,
+                        'poin_digunakan' => $trx->Poin_Digunakan ?? 0,
+                        'poin_didapat' => $trx->Poin_Didapat ?? 0,
+                    ] : null,
                 ];
             });
     }
+
 
     public function index(Request $request)
     {
