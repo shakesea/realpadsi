@@ -128,7 +128,6 @@ class TransaksiPenjualanController extends Controller
                     // 'TotalBayar'     => $totalBayar,
                 ]);
 
-<<<<<<< HEAD
                 // 🔹 Simpan detail item ke tabel Detail_Penjualan
                 foreach ($items as $item) {
                     // Ambil nilai ID_Menu dan lainnya secara aman
@@ -148,9 +147,6 @@ class TransaksiPenjualanController extends Controller
                     ]);
                 }
                 Log::info('ITEMS PAYLOAD:', $items);
-=======
-                // (opsional) simpan detail item satu-satu di tabel detail penjualan
->>>>>>> 337b20e3000e7867b73d50c41b5b6f20f99c99d2
 
                 return [
                     'trx'         => $transaksi,
@@ -175,12 +171,7 @@ class TransaksiPenjualanController extends Controller
             ]);
 
         } catch (\Throwable $e) {
-<<<<<<< HEAD
             Log::error('ERROR SIMPAN TRANSAKSI: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-=======
-            Log::error('Error transaksi penjualan: '.$e->getMessage());
-
->>>>>>> 337b20e3000e7867b73d50c41b5b6f20f99c99d2
             return response()->json([
                 'status'  => 'error',
                 'message' => $e->getMessage(),
