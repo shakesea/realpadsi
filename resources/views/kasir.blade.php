@@ -213,7 +213,7 @@
     <div class="modal-footer" style="justify-content:space-between">
       <a href="#" class="modal-cancel" onclick="closeModal('paymentModal')">Kembali</a>
       <div style="display:flex; gap:10px;">
-        <button class="btn-yellow">Simpan</button>
+        <button class="btn-yellow" onclick="resetTransaksi(false)">Simpan</button>
         <button class="btn-green" onclick="processPayment()">Proses Pembayaran</button>
       </div>
     </div>
@@ -414,6 +414,42 @@
 
     document.addEventListener('click', e => {
       if (!contextMenu.contains(e.target)) contextMenu.style.display = 'none';
+      // 🔁 Reset transaksi
+    window.resetTransaksi = function (isAfterPayment = false) {
+      const pelangganList = document.querySelector('.pelanggan-list');
+      const totalHargaEl  = document.querySelector('.harga-total');
+      const nominalBayar  = document.getElementById('nominalBayar');
+      const customPay     = document.getElementById('customPay');
+      // Jika tombol "Simpan" ditekan TANPA pembayaran
+      if (!isAfterPayment) {
+        if (!cart || cart.length === 0) {
+          alert("⚠️ Tidak ada itemm dalam keranjang!\nSilakan tambahkan produk terlebih dahulu sebelum menyimpan.");
+          return;
+        }
+        alert("❌ Belum ada transaksi yang berhasil disimpan.\nSilakan lakukan pembayaran terlebih dahulu.");
+        return;
+      }
+      // Jika dipanggil SETELAH pembayaran berhasil → bersihkan semuanya
+      cart.length = 0; // clear array in-place, tidak ganti referensi
+
+      if (pelangganList) pelangganList.innerHTML = '';
+      if (totalHargaEl)  totalHargaEl.textContent = 'Rp 0';
+      if (nominalBayar)  nominalBayar.textContent = 'Rp 0';
+      if (customPay)     customPay.value = '';
+
+      // hapus member yang dipilih
+      window.selectedMember = null;
+      const pill = document.getElementById('selected-member-pill');
+      if (pill) pill.remove();
+
+      // tutup modal
+      if (typeof closeModal === 'function') {
+        closeModal('paymentModal');
+      }
+
+      alert('🧾 Transaksi berhasil disimpan dan keranjang sudah dikosongkan.');
+    };
+
     });
 
     document.getElementById('btnEdit').addEventListener('click', async () => {
@@ -468,11 +504,11 @@
     }
 
     window.processPayment = function() {
-      const totalText = totalHargaEl.textContent.replace(/[^\d]/g, '');
-      const total = parseInt(totalText);
-      const customPay = parseInt(document.getElementById('customPay').value) || 0;
+        const totalText = totalHargaEl.textContent.replace(/[^\d]/g, '');
+        const total = parseInt(totalText);
+        const customPay = parseInt(document.getElementById('customPay').value) || 0;
 
-      if (customPay >= total && cart.length > 0) {
+        if (customPay >= total && cart.length > 0) {
           fetch('{{ route("transaksi.store") }}', {
             method: 'POST',
             headers: {
@@ -489,30 +525,33 @@
               } : null
             })
           })
-          .then(res => res.json())
-          .then(data => {
-            if (data.status === 'success') {
-              alert(
-                "✅ Pembayaran Berhasil!\n" +
-                "ID: " + data.id_transaksi + "\n" +
-                "Potongan Poin: Rp " + Number(data.potongan_dari_poin||0).toLocaleString('id-ID') + "\n" +
-                "Total Bayar: Rp " + Number(data.total_bayar||0).toLocaleString('id-ID') + "\n" +
-                "Poin Didapat: " + (data.poin_didapat||0) + "\n" +
-                "Sisa Poin Member: " + (data.poin_member_akhir ?? '-')
-              );
-              // reset keranjang & member seperti sekarang
-            } else {
-              alert("❌ " + data.message);
-            }
-          })
-          .catch(err => {
-            console.error(err);
-            alert("❌ Gagal menyimpan transaksi!");
-          });
-      } else {
-        alert("❌ Pembayaran gagal, nominal kurang atau keranjang kosong!");
-      }
-    }
+            .then(res => res.json())
+            .then(data => {
+              if (data.status === 'success') {
+                alert(
+                  "✅ Pembayaran Berhasil!\n" +
+                  "ID Transaksi: " + data.id_transaksi + "\n" +
+                  "Potongan Poin: Rp " + Number(data.potongan_dari_poin||0).toLocaleString('id-ID') + "\n" +
+                  "Total Bayar: Rp " + Number(data.total_bayar||0).toLocaleString('id-ID') + "\n" +
+                  "Poin Didapat: " + (data.poin_didapat||0) + "\n" +
+                  "Sisa Poin Member: " + (data.poin_member_akhir ?? '-')
+                );
+
+                // ✅ Panggil resetTransaksi dengan flag true (aman untuk clear)
+                resetTransaksi(true);
+
+              } else {
+                alert("❌ " + data.message);
+              }
+            })
+            .catch(err => {
+              console.error(err);
+              alert("❌ Gagal menyimpan transaksi!");
+            });
+          } else {
+            alert("❌ Pembayaran gagal, nominal kurang atau keranjang kosong!");
+          }
+        }
 
     window.filterProduk = function() {
       const keyword = document.getElementById("searchProduk").value.toLowerCase().trim();
@@ -683,7 +722,9 @@
       "'": '&#039;'
     } [c]));
   }
-  // =====================================================
-</script>
 
+
+
+
+</script>
 @endsection
