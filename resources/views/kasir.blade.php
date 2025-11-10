@@ -368,16 +368,22 @@
       reader.readAsDataURL(file);
     }
 
-    function addToCart(nama, harga) {
-      cart.push({
-        nama,
-        harga
-      });
+    function addToCart(id, nama, harga) {
+      const existing = cart.find(item => item.id === id);
+      if (existing) {
+        existing.qty += 1; // tambah quantity jika sudah ada
+      } else {
+        cart.push({ id, nama, harga, qty: 1 });
+      }
       renderCart();
     }
 
     function removeFromCart(index) {
-      cart.splice(index, 1);
+      if (cart[index].qty > 1) {
+        cart[index].qty -= 1;
+      } else {
+        cart.splice(index, 1);
+      }
       renderCart();
     }
 
@@ -385,14 +391,15 @@
       pelangganList.innerHTML = '';
       let total = 0;
       cart.forEach((item, index) => {
-        const div = document.createElement('div');
+        const div = document.createElement('div'); // ✅ tambahkan ini
         div.classList.add('pelanggan-item');
         div.innerHTML = `
-        <div><strong>${item.nama}</strong><br><small>Rp ${item.harga.toLocaleString('id-ID')}</small></div>
-        <button onclick="removeFromCart(${index})" style="background:none;border:none;color:red;font-weight:bold;cursor:pointer;">❌</button>
-      `;
+          <div><strong>${item.nama}</strong><br>
+          <small>${item.qty}x Rp ${item.harga.toLocaleString('id-ID')}</small></div>
+          <button onclick="removeFromCart(${index})" style="background:none;border:none;color:red;font-weight:bold;cursor:pointer;">❌</button>
+        `;
         pelangganList.appendChild(div);
-        total += item.harga;
+        total += item.harga * item.qty;
       });
       totalHargaEl.textContent = `Rp ${total.toLocaleString('id-ID')}`;
       document.getElementById('nominalBayar').textContent = `Rp ${total.toLocaleString('id-ID')}`;
@@ -400,9 +407,10 @@
 
     const cards = document.querySelectorAll('.produk-card:not(.add-card)');
     cards.forEach(card => {
+      const id = card.dataset.id;
       const nama = card.dataset.nama;
       const harga = parseInt(card.dataset.harga);
-      card.addEventListener('click', () => addToCart(nama, harga));
+      card.addEventListener('click', () => addToCart(id, nama, harga));
       card.addEventListener('contextmenu', e => {
         e.preventDefault();
         currentCardId = card.dataset.id;
@@ -516,7 +524,7 @@
               'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             body: JSON.stringify({
-              items: cart.map(c => ({ id: c.id || null, qty: 1 })),
+              items: cart.map(c => ({ id: c.id, qty: c.qty })),
               total: total,
               metode: 'Tunai',
               member: window.selectedMember ? {

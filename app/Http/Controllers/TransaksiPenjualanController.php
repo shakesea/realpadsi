@@ -134,7 +134,25 @@ class TransaksiPenjualanController extends Controller
                     // 'TotalBayar'        => $totalBayar,
                 ]);
 
-                // (opsional) simpan detail item satu-satu di tabel detail
+                // 🔹 Simpan detail item ke tabel Detail_Penjualan
+                foreach ($items as $item) {
+                    // Ambil nilai ID_Menu dan lainnya secara aman
+                    $menuId  = $item['id'] ?? $item['ID_Menu'] ?? null;
+                    $qty     = $item['qty'] ?? $item['Quantity'] ?? 1;
+                    $harga   = $item['harga'] ?? $item['Harga'] ?? 0;
+
+                    // Jika tidak ada ID_Menu, lewati item ini (biar gak error)
+                    if (!$menuId) continue;
+
+                    DB::table('Detail_Penjualan')->insert([
+                        'ID_Detail_Penjualan' => 'DTL' . str_pad(rand(1, 9999), 5, '0', STR_PAD_LEFT),
+                        'ID_Menu'             => $menuId,
+                        'ID_Penjualan'        => $transaksi->ID_Penjualan,
+                        'Quantity'            => $qty,
+                        'Subtotal'            => $qty * $harga,
+                    ]);
+                }
+                Log::info('ITEMS PAYLOAD:', $items);
 
                 return [
                     'trx'         => $transaksi,
@@ -158,6 +176,7 @@ class TransaksiPenjualanController extends Controller
                 'poin_member_akhir'  => $result['poin_akhir'],
             ]);
         } catch (\Throwable $e) {
+            Log::error('ERROR SIMPAN TRANSAKSI: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'status'  => 'error',
                 'message' => $e->getMessage(),

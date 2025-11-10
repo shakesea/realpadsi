@@ -51,7 +51,7 @@ class LaporanController extends Controller
                                 $menu = $detail->menu;
                                 // prefer harga recorded in detail, else fallback to menu price
                                 $harga = $detail->Harga ?? ($menu ? $menu->Harga : 0);
-                                $qty = $detail->Jumlah ?? 0;
+                                $qty = $detail->Quantity ?? 0;
                                 $subtotal = ($detail->Subtotal ?? null) ?: ($qty * $harga);
 
                                 return [
@@ -61,10 +61,10 @@ class LaporanController extends Controller
                                     'subtotal' => $subtotal,
                                 ];
                             }),
-                            'total_qty' => $details->sum('Jumlah'),
+                            'total_qty' => $details->sum('Quantity'),
                             'total_amount' => $details->sum(function ($detail) {
                                 $harga = $detail->Harga ?? ($detail->menu ? $detail->menu->Harga : 0);
-                                $qty = $detail->Jumlah ?? 0;
+                                $qty = $detail->Quantity ?? 0;
                                 return ($detail->Subtotal ?? null) ?: ($qty * $harga);
                             }),
                         ];
