@@ -39,35 +39,27 @@ class TransaksiPenjualanController extends Controller
         $poinPakai  = (int) $request->input('member.poin_pakai', 0);
 
         // aturan poin
-        $RP_PER_POIN = 100;    // 1 poin = Rp100
+        $RP_PER_POIN = 100;      // 1 poin = Rp100
         $RP_PER_POIN_EARN = 1000; // 1 poin didapat per Rp1.000
 
         // Ambil pengguna yang sedang login dari session
-        // Auth logic menyimpan data user di session key 'user' pada AuthController
         $user = Session::get('user'); // array: ['id'=>..,'role'=>..]
         $managerId = null;
         $pegawaiId = null;
         if (is_array($user)) {
             if (!empty($user['role']) && $user['role'] === 'manager') {
-                // simpan langsung id manager (jangan bungkus dalam array)
                 $managerId = $user['id'];
             } elseif (!empty($user['role']) && $user['role'] === 'pegawai') {
                 $pegawaiId = $user['id'];
             }
         }
+
         Log::info('SESSION USER:', Session::get('user'));
 
         try {
             $result = DB::transaction(function () use (
-                $items,
-                $totalBruto,
-                $metode,
-                $memberId,
-                $poinPakai,
-                $RP_PER_POIN,
-                $RP_PER_POIN_EARN,
-                $managerId,
-                $pegawaiId
+                $items, $totalBruto, $metode, $memberId, $poinPakai,
+                $RP_PER_POIN, $RP_PER_POIN_EARN, $managerId, $pegawaiId
             ) {
                 $member = null;
                 $poinDipakai = 0;
@@ -77,63 +69,66 @@ class TransaksiPenjualanController extends Controller
                 $poinAkhir   = null;
 
                 if ($memberId) {
-                    // kunci row biar saldo poin konsisten
+                    // Lock row agar saldo poin konsisten
                     $member = Member::where('ID_Member', $memberId)->lockForUpdate()->first();
+
                     if ($member) {
-                        $maxByTotal = intdiv($totalBruto, $RP_PER_POIN);         // contoh: 23.500 -> 235 poin
+                        // Pastikan poin yang digunakan tidak melebihi saldo dan batas berdasarkan total
+                        $maxByTotal = intdiv($totalBruto, $RP_PER_POIN); // contoh: 23.500 -> 235 poin
                         $maxBySaldo = (int) $member->Poin;
                         $maxPakai   = min($maxByTotal, $maxBySaldo);
 
                         $poinDipakai = max(0, min($poinPakai, $maxPakai));
+
+                        // Hitung potongan harga dari poin
                         $potonganRp  = $poinDipakai * $RP_PER_POIN;
+
+                        // Total yang harus dibayar setelah potongan (tidak boleh negatif)
                         $totalBayar  = max(0, $totalBruto - $potonganRp);
 
-                        // poin didapat dari nilai SETELAH diskon (kalau mau sebelum diskon, ganti $totalBruto)
+                        // ✅ Member tetap mendapatkan poin dari total SETELAH potongan
                         $poinDidapat = (int) floor($totalBayar / $RP_PER_POIN_EARN);
 
-                        // update saldo poin member
+                        // Update saldo poin akhir
                         $member->Poin = (int)$member->Poin - $poinDipakai + $poinDidapat;
                         $member->save();
+
                         $poinAkhir = (int) $member->Poin;
                     } else {
-                        // kalau id ada tapi member gak ketemu, treat tanpa member
+                        // Jika ID tidak ditemukan, abaikan sebagai non-member
                         $memberId = null;
                     }
                 } else {
-                    // tanpa member tetap dapet poin? biasanya tidak.
-                    // kalau mau kasih poin umum, hilangkan else ini dan hitung dari totalBayar.
+                    // Non-member tetap bisa transaksi, tapi tidak dapat poin
                     $poinDidapat = 0;
                 }
 
-                // generate ID TRX
+                // Generate ID Transaksi baru
                 $last = TransaksiPenjualan::orderBy('ID_Penjualan', 'desc')->value('ID_Penjualan');
                 $num  = $last ? ((int) preg_replace('/\D/', '', $last) + 1) : 1;
                 $newId = 'TRX' . str_pad($num, 3, '0', STR_PAD_LEFT);
 
                 // SIMPAN TRANSAKSI
-                // CATATAN: di sini aku simpan TotalHarga = nominal SETELAH diskon.
-                // Kalau kamu mau simpan BRUTO, ganti 'TotalHarga' => $totalBruto,
-                // dan tambahkan kolom 'TotalBayar' untuk nilai akhirnya.
                 $transaksi = TransaksiPenjualan::create([
                     'ID_Penjualan'      => $newId,
                     'ID_Pegawai'        => $pegawaiId,
-                    'ID_Manager'        => $managerId ?? null,
+                    'ID_Manager'        => $managerId,
                     'ID_Member'         => $memberId,
                     'Tgl_Penjualan'     => now(),
-                    // konsisten dengan kolom di tabel kamu:
-                    // ganti ke 'Metode_Pembayaran' ATAU 'MetodeBayar' sesuai yang ada di DB
+                    // kolom disesuaikan dengan DB
                     'Metode_Pembayaran' => $metode,
-                    'TotalHarga'        => $totalBayar,            // simpan nilai akhirnya
+                    'TotalHarga'        => $totalBayar,            
                     'Jumlah_Item'       => count($items),
                     'Status'            => 'Selesai',
                     'Poin_Digunakan'    => $poinDipakai,
                     'Poin_Didapat'      => $poinDidapat,
-                    // kalau kamu punya kolom DiskonPoin/TotalBruto/TotalBayar, isi juga:
-                    // 'DiskonPoin'        => $potonganRp,
-                    // 'TotalBruto'        => $totalBruto,
-                    // 'TotalBayar'        => $totalBayar,
+                    // jika kolom tambahan tersedia, aktifkan:
+                    // 'DiskonPoin'     => $potonganRp,
+                    // 'TotalBruto'     => $totalBruto,
+                    // 'TotalBayar'     => $totalBayar,
                 ]);
 
+<<<<<<< HEAD
                 // 🔹 Simpan detail item ke tabel Detail_Penjualan
                 foreach ($items as $item) {
                     // Ambil nilai ID_Menu dan lainnya secara aman
@@ -153,6 +148,9 @@ class TransaksiPenjualanController extends Controller
                     ]);
                 }
                 Log::info('ITEMS PAYLOAD:', $items);
+=======
+                // (opsional) simpan detail item satu-satu di tabel detail penjualan
+>>>>>>> 337b20e3000e7867b73d50c41b5b6f20f99c99d2
 
                 return [
                     'trx'         => $transaksi,
@@ -175,8 +173,14 @@ class TransaksiPenjualanController extends Controller
                 'poin_didapat'       => $result['poin_dapat'],
                 'poin_member_akhir'  => $result['poin_akhir'],
             ]);
+
         } catch (\Throwable $e) {
+<<<<<<< HEAD
             Log::error('ERROR SIMPAN TRANSAKSI: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+=======
+            Log::error('Error transaksi penjualan: '.$e->getMessage());
+
+>>>>>>> 337b20e3000e7867b73d50c41b5b6f20f99c99d2
             return response()->json([
                 'status'  => 'error',
                 'message' => $e->getMessage(),

@@ -138,3 +138,28 @@
 .stok-table tbody tr:hover {
   background-color: #f9f9f9;
 }
+
+.flash-alert {
+    width: 100%;
+    padding: 14px 20px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 20px;
+    animation: fadeDown 0.3s ease;
+}
+
+.flash-error {
+    background: #FF4D4D;
+    color: white;
+}
+
+.flash-success {
+    background: #4CAF50;
+    color: white;
+}
+
+@keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

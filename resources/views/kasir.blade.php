@@ -86,7 +86,16 @@
         <div class="form-right">
           <div class="form-group"><label>Nama</label><input type="text" name="Nama" required></div>
           <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" required></div>
-          <div class="form-group"><label>Kategori</label><input type="text" name="Kategori" required></div>
+          <div class="form-group">
+            <label>Kategori</label>
+            <select name="Kategori" required>
+              <option value="">-- Pilih Kategori --</option>
+              @foreach($categories as $category)
+                <option value="{{ $category }}">{{ $category }}</option>
+              @endforeach
+            </select>
+          </div>
+
           <div class="form-group"><label>Deskripsi</label><textarea name="Deskripsi" rows="3"></textarea></div>
 
           <!-- Tambahan: Bahan penyusun -->

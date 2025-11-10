@@ -5,40 +5,38 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Stok;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class StokController extends Controller
 {
-    // SKPL-SPSFC-005-04: Tampil Detail Stok
+    // Tampilkan Data Stok
     public function index()
     {
         $stokData = Stok::orderBy('ID_Barang')->get();
         return view('stok', compact('stokData'));
     }
 
-    // SKPL-SPSFC-005-01: Tambah Informasi Stok
+    // Form Tambah
     public function create()
     {
         return view('tambahstok');
     }
 
+    // Simpan Data
     public function store(Request $request)
     {
-        $request->validate([
-            'nama' => 'required|string|max:100',
-            'jumlah' => 'required|numeric|min:0',
-            'kategori' => 'required|string|max:50',
+        $validator = Validator::make($request->all(), [
+            'nama' => ['required', 'regex:/^[a-zA-Z0-9\s]+$/'],
+            'jumlah' => ['required', 'numeric', 'min:0'],
+            'kategori' => ['required', 'regex:/^[a-zA-Z0-9\s,]+$/'],
         ]);
 
-        // Generate ID baru (STOK##)
-        $last = Stok::orderBy('ID_Barang', 'desc')->first();
-        if ($last) {
-            // Ambil 2 digit terakhir dari ID lama
-            $lastNumber = intval(substr($last->ID_Barang, 4)); // bukan 5!
-        } else {
-            $lastNumber = 0;
+        if ($validator->fails()) {
+            return redirect()->back()->with('error', 'Perubahan Gagal di Simpan. Data Tidak Valid atau Kosong')->withInput();
         }
 
-        // Naikkan 1 angka dari ID terakhir
+        $last = Stok::orderBy('ID_Barang', 'desc')->first();
+        $lastNumber = $last ? intval(substr($last->ID_Barang, 4)) : 0;
         $newId = 'STOK' . str_pad($lastNumber + 1, 2, '0', STR_PAD_LEFT);
 
         Stok::create([
@@ -49,23 +47,29 @@ class StokController extends Controller
             'Created_At' => now(),
             'Updated_At' => now(),
         ]);
+
         return redirect()->route('stok.index')->with('success', 'Stok baru berhasil ditambahkan!');
     }
 
-    // SKPL-SPSFC-005-02: Ubah Informasi Stok
+    // Form Edit
     public function edit($id)
     {
         $stokItem = Stok::where('ID_Barang', $id)->firstOrFail();
         return view('editstok', compact('stokItem'));
     }
 
+    // Update Data
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'nama' => 'required|string|max:100',
-            'jumlah' => 'required|numeric|min:0',
-            'kategori' => 'required|string|max:50',
+        $validator = Validator::make($request->all(), [
+            'nama' => ['required', 'regex:/^[a-zA-Z0-9\s]+$/'],
+            'jumlah' => ['required', 'numeric', 'min:0'],
+            'kategori' => ['required', 'regex:/^[a-zA-Z0-9\s,]+$/'],
         ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->with('error', 'Perubahan Gagal di Simpan. Data Tidak Valid atau Kosong')->withInput();
+        }
 
         $stokItem = Stok::where('ID_Barang', $id)->firstOrFail();
         $stokItem->update([
@@ -78,7 +82,7 @@ class StokController extends Controller
         return redirect()->route('stok.index')->with('success', 'Data stok berhasil diperbarui!');
     }
 
-    // SKPL-SPSFC-005-03: Hapus Informasi Stok
+    // Hapus Data
     public function destroy($id)
     {
         $stokItem = Stok::where('ID_Barang', $id)->firstOrFail();
