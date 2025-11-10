@@ -108,8 +108,10 @@ Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
         Route::post('/pegawai/tambah', [PegawaiController::class, 'store'])->name('pegawai.store');
         Route::delete('/pegawai/{id}', [PegawaiController::class, 'destroy'])->name('pegawai.destroy');
 
-        Route::get('/kasir', [KasirController::class, 'index'])->name('kasir.index');
-        Route::post('/kasir/store', [KasirController::class, 'store'])->name('kasir.store');
+        Route::post('/transaksi/store', [TransaksiPenjualanController::class, 'store'])->name('transaksi.store');
+
+        // Route::get('/kasir', [KasirController::class, 'index'])->name('kasir.index');
+        // Route::post('/kasir/store', [KasirController::class, 'store'])->name('kasir.store');
 
         Route::get('/member', [MemberController::class, 'index'])->name('member.index');
         Route::post('/member', [MemberController::class, 'store'])->name('member.store');
@@ -131,6 +133,8 @@ Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
     Route::middleware('role:pegawai')->group(function () {
         Route::get('/kasir', [KasirController::class, 'index'])->name('kasir.index');
         Route::post('/transaksi', [TransaksiPenjualanController::class, 'store'])->name('transaksi.store');
+
+        Route::post('/transaksi/store', [TransaksiPenjualanController::class, 'store'])->name('transaksi.store');
 
         Route::get('/member', [MemberController::class, 'index'])->name('member.index');
 
