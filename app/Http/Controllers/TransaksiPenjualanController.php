@@ -54,35 +54,37 @@ class TransaksiPenjualanController extends Controller
             $totalBayar  = $totalBruto;
             $poinDidapat = 0;
             $poinAkhir   = null;
+            
+        if ($memberId) {
+            // Lock row agar tidak terjadi race condition poin
+            $member = Member::where('ID_Member', $memberId)->lockForUpdate()->first();
 
-            if ($memberId) {
-                // kunci row biar saldo poin konsisten
-                $member = Member::where('ID_Member', $memberId)->lockForUpdate()->first();
-                if ($member) {
-                    $maxByTotal = intdiv($totalBruto, $RP_PER_POIN);         // contoh: 23.500 -> 235 poin
-                    $maxBySaldo = (int) $member->Poin;
-                    $maxPakai   = min($maxByTotal, $maxBySaldo);
+            if ($member) {
+                $saldoPoin   = (int) $member->Poin;
+                $poinDipakai = max(0, min($poinPakai, $saldoPoin)); // tidak boleh lebih dari saldo
 
-                    $poinDipakai = max(0, min($poinPakai, $maxPakai));
-                    $potonganRp  = $poinDipakai * $RP_PER_POIN;
-                    $totalBayar  = max(0, $totalBruto - $potonganRp);
+                // Hitung potongan harga dari poin
+                $potonganRp  = $poinDipakai * $RP_PER_POIN;
 
-                    // poin didapat dari nilai SETELAH diskon (kalau mau sebelum diskon, ganti $totalBruto)
-                    $poinDidapat = (int) floor($totalBayar / $RP_PER_POIN_EARN);
+                // Total yang harus dibayar setelah potongan (tidak boleh negatif)
+                $totalBayar  = max(0, $totalBruto - $potonganRp);
 
-                    // update saldo poin member
-                    $member->Poin = (int)$member->Poin - $poinDipakai + $poinDidapat;
-                    $member->save();
-                    $poinAkhir = (int) $member->Poin;
-                } else {
-                    // kalau id ada tapi member gak ketemu, treat tanpa member
-                    $memberId = null;
-                }
+                // ✅ Member tetap mendapatkan poin dari total SETELAH potongan
+                $poinDidapat = (int) floor($totalBayar / $RP_PER_POIN_EARN);
+
+                // Update saldo poin akhir
+                $member->Poin = $saldoPoin - $poinDipakai + $poinDidapat;
+                $member->save();
+
+                $poinAkhir = (int) $member->Poin;
             } else {
-                // tanpa member tetap dapet poin? biasanya tidak.
-                // kalau mau kasih poin umum, hilangkan else ini dan hitung dari totalBayar.
-                $poinDidapat = 0;
+                // Jika ID tidak ditemukan, abaikan sebagai non-member
+                $memberId = null;
             }
+        } else {
+            // Non-member tetap bisa transaksi, tapi tidak dapat poin
+            $poinDidapat = 0;
+        }
 
             // generate ID TRX
             $last = TransaksiPenjualan::orderBy('ID_Penjualan', 'desc')->value('ID_Penjualan');
