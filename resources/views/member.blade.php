@@ -2,6 +2,19 @@
 @section('title', 'NutaPOS - Member')
 
 @section('content')
+
+@if(session('error'))
+<div class="flash-alert flash-error">
+    {{ session('error') }}
+</div>
+@endif
+
+@if(session('success'))
+<div class="flash-alert flash-success">
+    {{ session('success') }}
+</div>
+@endif
+
 <div class="member-container">
   <div class="member-grid">
     @foreach($members as $m)
