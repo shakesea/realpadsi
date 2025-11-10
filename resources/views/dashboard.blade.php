@@ -20,23 +20,23 @@
         <div class="cards">
             <div class="card card-large">
                 <p>Total Penjualan</p>
-                <h3>Rp 10.000.000</h3>
+                <h3>Rp {{ number_format($totalPenjualan, 0, ',', '.') }}</h3>
             </div>
             <div class="card">
                 <p>Jumlah Transaksi</p>
-                <h3>100 transaksi</h3>
+                <h3>{{ $jumlahTransaksi }} transaksi</h3>
             </div>
             <div class="card">
                 <p>Rata-rata Transaksi</p>
-                <h3>Rp 39.000</h3>
+                <h3>Rp {{ number_format($rataRata, 0, ',', '.') }}</h3>
             </div>
             <div class="card">
                 <p>Laba Kotor</p>
-                <h3>Rp 18.000.000</h3>
+                <h3>Rp {{ number_format($labaKotor, 0, ',', '.') }}</h3>
             </div>
             <div class="card">
                 <p>Total Biaya</p>
-                <h3>Rp 15.240.000</h3>
+                <h3>Rp {{ number_format($totalBiaya, 0, ',', '.') }}</h3>
             </div>
         </div>
 
@@ -52,17 +52,32 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const ctx = document.getElementById('salesChart');
+
 new Chart(ctx, {
     type: 'line',
     data: {
-        labels: ['30 Apr', '1 Mei', '2 Mei', '3 Mei', '4 Mei', '5 Mei'],
-        datasets: [
-            { label: 'April', data: [20, 15, 18, 17, 21, 19], borderWidth: 2, fill: true },
-            { label: 'Mei', data: [18, 16, 19, 20, 22, 21], borderWidth: 2, fill: true }
-        ]
+        labels: {!! json_encode($labels) !!}, // dari controller
+        datasets: [{
+            label: 'Total Penjualan',
+            data: {!! json_encode($data) !!},
+            borderWidth: 2,
+            borderColor: 'rgba(75,192,192,1)',
+            backgroundColor: 'rgba(75,192,192,0.2)',
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
     }
 });
 </script>
+
 
 
 @endsection

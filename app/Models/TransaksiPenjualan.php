@@ -17,24 +17,15 @@ class TransaksiPenjualan extends Model
         'ID_Penjualan',
         'ID_Pegawai',
         'ID_Manager',
-<<<<<<< HEAD
         'ID_Member',
-=======
-        'ID_Member',          // ✅ tambahkan untuk relasi member
->>>>>>> 78f4fb824686e50d06c81e9f5689bc4de2c874e4
         'Tgl_Penjualan',
         'Metode_Pembayaran',  // ✅ tambahkan untuk metode pembayaran
         'TotalHarga',
         'Jumlah_Item',
         'Status',
-<<<<<<< HEAD
         'Metode_Pembayaran',
         'Poin_Digunakan',
         'Poin_Didapat'
-=======
-        'Poin_Digunakan',     // ✅ tambahkan poin yang digunakan
-        'Poin_Didapat',       // ✅ tambahkan poin yang didapat
->>>>>>> 78f4fb824686e50d06c81e9f5689bc4de2c874e4
     ];
 
     public function pegawai()

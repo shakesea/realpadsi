@@ -8,7 +8,7 @@ use App\Http\Controllers\MemberController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\TransaksiPenjualanController;
 use App\Http\Controllers\MenuController;
-
+use App\Http\Controllers\DashboardController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -56,9 +56,9 @@ Route::get('/login', function () {
     return view('login');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->name('dashboard');
 
 // Route::get('/penjualan', function () {
 //     return view('penjualan');
@@ -97,7 +97,10 @@ Route::prefix('menu')->middleware('App\Http\Middleware\CheckLogin')->group(funct
 Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
 
     // Semua role bisa lihat dashboard
-    Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware('App\Http\Middleware\CheckLogin')
+    ->name('dashboard');
+
 
     // ==================================================
     // ROLE: MANAGER (akses semua halaman)
