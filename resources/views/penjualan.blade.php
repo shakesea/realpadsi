@@ -20,8 +20,7 @@
                 </select> entries
             </label>
             <span> | </span>
-            <a href="#">Column Settings</a>
-            <a href="#" class="pdf-link">PDF</a>
+            <a href="{{ route('penjualan.index', ['export' => 'pdf', 'start' => request('start', $start), 'end' => request('end', $end)]) }}" class="pdf-link" target="_blank">Export PDF</a>
         </div>
     </div>
 
