@@ -249,15 +249,51 @@
       <hr style="margin:6px 0 12px">
 
       <form onsubmit="return false;">
-        <div class="grid-2" style="grid-template-columns:repeat(2,1fr); gap:12px;">
-          <div><label>Nama</label><input class="input" id="m_nama" readonly></div>
-          <div><label>Email</label><input class="input" id="m_email" readonly></div>
-          <div><label>No. Telepon</label><input class="input" id="m_telp" readonly></div>
-          <div><label>Total Poin</label><input class="input" id="m_poin_total" readonly></div>
-          <div>
-            <label>Poin yang akan digunakan</label>
-            <input type="number" min="0" value="0" class="input" id="m_poin_pakai">
-            <small id="m_poin_help" class="muted">Maksimal sesuai total poin.</small>
+        <div class="mmx-formgrid">
+          <!-- Nama -->
+          <div class="mmx-field">
+            <label for="m_nama">Nama</label>
+            <div class="mmx-inputwrap">
+              <i class="fa-solid fa-user"></i>
+              <input class="mmx-input" id="m_nama" type="text" readonly>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="mmx-field">
+            <label for="m_email">Email</label>
+            <div class="mmx-inputwrap">
+              <i class="fa-solid fa-envelope"></i>
+              <input class="mmx-input" id="m_email" type="text" readonly>
+            </div>
+          </div>
+
+          <!-- Telepon -->
+          <div class="mmx-field">
+            <label for="m_telp">No. Telepon</label>
+            <div class="mmx-inputwrap">
+              <i class="fa-solid fa-phone"></i>
+              <input class="mmx-input" id="m_telp" type="text" readonly>
+            </div>
+          </div>
+
+          <!-- Total Poin -->
+          <div class="mmx-field">
+            <label for="m_poin_total">Total Poin</label>
+            <div class="mmx-inputwrap">
+              <i class="fa-solid fa-star"></i>
+              <input class="mmx-input" id="m_poin_total" type="number" readonly>
+            </div>
+          </div>
+
+          <!-- Poin yang akan digunakan (span 2 kolom) -->
+          <div class="mmx-field mmx-field--span2">
+            <label for="m_poin_pakai">Poin yang akan digunakan</label>
+            <div class="mmx-inputwrap">
+              <i class="fa-solid fa-wallet"></i>
+              <input class="mmx-input" id="m_poin_pakai" type="number" min="0" value="0">
+            </div>
+            <small id="m_poin_help" class="mmx-muted">Maksimal sesuai total poin.</small>
           </div>
         </div>
       </form>
@@ -437,17 +473,14 @@
       const customPay = parseInt(document.getElementById('customPay').value) || 0;
 
       if (customPay >= total && cart.length > 0) {
-        fetch('{{ route("transaksi.store") }}', {
+          fetch('{{ route("transaksi.store") }}', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             body: JSON.stringify({
-              items: cart.map(c => ({
-                id: c.id || null,
-                qty: 1
-              })),
+              items: cart.map(c => ({ id: c.id || null, qty: 1 })),
               total: total,
               metode: 'Tunai',
               member: window.selectedMember ? {
@@ -459,16 +492,17 @@
           .then(res => res.json())
           .then(data => {
             if (data.status === 'success') {
-              alert("✅ Pembayaran Berhasil!\nID Transaksi: " + data.id_transaksi);
-              cart = [];
-              renderCart();
-              closeModal('paymentModal');
-              // reset member yang dipilih
-              window.selectedMember = null;
-              const pill = document.getElementById('selected-member-pill');
-              if (pill) pill.remove();
+              alert(
+                "✅ Pembayaran Berhasil!\n" +
+                "ID: " + data.id_transaksi + "\n" +
+                "Potongan Poin: Rp " + Number(data.potongan_dari_poin||0).toLocaleString('id-ID') + "\n" +
+                "Total Bayar: Rp " + Number(data.total_bayar||0).toLocaleString('id-ID') + "\n" +
+                "Poin Didapat: " + (data.poin_didapat||0) + "\n" +
+                "Sisa Poin Member: " + (data.poin_member_akhir ?? '-')
+              );
+              // reset keranjang & member seperti sekarang
             } else {
-              alert("❌ Terjadi kesalahan: " + data.message);
+              alert("❌ " + data.message);
             }
           })
           .catch(err => {
