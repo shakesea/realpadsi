@@ -34,6 +34,7 @@ class LaporanController extends Controller
                     'nama' => $nama,
                     'total' => $trx->TotalHarga,
                     'kode' => $trx->ID_Penjualan,
+                    ''
                     'waktu' => Carbon::parse($trx->Tgl_Penjualan)->format('H:i:s'),
                     'tanggal' => Carbon::parse($trx->Tgl_Penjualan)->format('d/m/Y'),
                 ];

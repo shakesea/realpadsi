@@ -28,9 +28,13 @@
         <table class="laporan-table">
             <thead>
                 <tr>
-                    <th>Nama</th>
+                    <th>Tanggal</th>
+                    <th>Metode Pembayaran</th>
+                    <th>Item</th>
+                    <th>Kategori</th>
+                    <th>Quantitas</th>
+                    <th>Subtotal</th>
                     <th>Total</th>
-                    <th>Kode Transaksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -39,10 +43,14 @@
                     <td><strong>{{ $item['nama'] }}</strong><br><small>{{ $item['waktu'] }}</small></td>
                     <td>Rp {{ number_format($item['total'], 0, ',', '.') }}</td>
                     <td>{{ $item['kode'] }}</td>
+                    <td>{{ $item['kode'] }}</td>
+                    <td>{{ $item['kode'] }}</td>
+                    <td>{{ $item['kode'] }}</td>
+                    <td>{{ $item['kode'] }}</td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="3" style="text-align:center; color:#777;">Tidak ada transaksi pada periode ini</td>
+                    <td colspan="7" style="text-align:center; color:#777;">Tidak ada transaksi pada periode ini</td>
                 </tr>
                 @endforelse
             </tbody>
