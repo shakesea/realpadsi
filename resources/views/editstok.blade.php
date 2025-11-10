@@ -3,6 +3,20 @@
 @section('title', 'Edit Stok')
 
 @section('content')
+{{-- Flash Error --}}
+@if(session('error'))
+<div class="flash-alert flash-error">
+    {{ session('error') }}
+</div>
+@endif
+
+@if(session('success'))
+<div class="flash-alert flash-success">
+    {{ session('success') }}
+</div>
+@endif
+
+
 <div class="form-container">
     <div class="form-card">
         <h1 class="form-title">Edit Stok</h1>
