@@ -32,7 +32,7 @@
 
             <div class="form-group">
                 <label for="alamat">Alamat</label>
-                <textarea id="alamat" name="alamat" rows="3" required></textarea>
+                <input id="alamat" name="alamat" rows="3" required>
             </div>
 
             <div class="form-footer">

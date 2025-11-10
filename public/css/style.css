@@ -663,15 +663,24 @@ body {
    ======================================================================= */
 
 .form-container {
-    width: 100%;
-    padding: 40px 60px;
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+  width: calc(100% - 260px);     
+  margin-left: 260px;            
+  padding: 40px 60px;
+  min-height: 600px;             
+  box-sizing: border-box;
 }
 
 .form-card {
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    padding: 40px 50px;
+  flex: 1;                       
+  max-width: 1000px;            
+  margin: 0 auto;                
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 40px 50px;
 }
 
 .form-title {
