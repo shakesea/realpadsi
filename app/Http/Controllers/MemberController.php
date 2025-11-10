@@ -82,4 +82,22 @@ class MemberController extends Controller
             return redirect()->route('member.index')->with('error', '❌ Gagal menghapus member: ' . $e->getMessage());
         }
     }
+
+    /**
+     * JSON untuk popup Member di Kasir
+     */
+    public function listForKasir()
+    {
+        $members = Member::select(
+                'ID_Member as id',
+                'Nama as nama',
+                'Email as email',
+                'No_Telepon as no_telp',
+                'Poin as poin'
+            )
+            ->orderBy('Nama')
+            ->get();
+
+        return response()->json($members);
+    }
 }

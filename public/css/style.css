@@ -124,6 +124,65 @@ body {
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
+/* ====== Topbar: hamburger + badge ONLINE ====== */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 16px;
+  background:#fff;
+  border-bottom:1px solid #e5e7eb;
+  position:sticky; top:0; z-index:50;
+}
+.topbar .left-section{
+  display:flex; align-items:center; gap:12px;
+}
+
+/* ikon "garis 3" */
+.menu-icon{
+  font-size:22px; line-height:1;
+  padding:8px 10px; border-radius:8px;
+  background:#f3f4f6; color:#334155;
+  cursor:pointer; user-select:none;
+}
+.menu-icon:hover{ background:#e5e7eb; }
+
+/* badge status */
+.status{
+  display:inline-flex; align-items:center; gap:8px;
+  background:#ecfdf5; color:#047857;
+  border-radius:9999px; padding:6px 10px;
+  font-weight:600; font-size:14px;
+}
+.status-dot{
+  width:8px; height:8px; border-radius:9999px;
+  background:#22c55e;
+  box-shadow:0 0 0 3px rgba(34,197,94,.18);
+}
+
+/* Style opsional untuk offline (pakai .status.offline) */
+.status.offline{ background:#fef2f2; color:#b91c1c; }
+.status.offline .status-dot{
+  background:#ef4444;
+  box-shadow:0 0 0 3px rgba(239,68,68,.18);
+}
+
+/* ====== (Opsional) Collapse sidebar sederhana saat klik hamburger ====== */
+.sidebar-collapsed .sidebar{ width:72px; }
+.sidebar-collapsed .sidebar .logo{ display:none; }
+.sidebar-collapsed .sidebar .menu a{ white-space:nowrap; overflow:hidden; }
+/* Geser konten topbar supaya mulai setelah sidebar */
+:root{
+  /* sesuaikan dengan lebar sidebar-mu (220–260px biasanya) */
+  --sidebar-width: 240px;
+}
+
+@media (min-width: 992px){
+  .topbar{
+    padding-left: calc(var(--sidebar-width) + 16px); /* 16px = jarak aman */
+    padding-right: 16px; /* biar kanan rapi */
+  }
+}
 
 /* ========== LOGIN PAGE ========== */
 /* ========== LOGIN PAGE ========== */
@@ -473,6 +532,7 @@ body {
 .main { /* ini background utama*/
     flex: 1;
     padding: 30px;
+    padding-top: 70px;
 }
 
 .topbar {
@@ -481,6 +541,14 @@ body {
   align-items: center;
   background-color: transparent;
   height: 60px;
+  border-bottom: none !important;
+  box-shadow: none !important; /* jika ada bayangan garis halus */
+  
+}
+
+.main, .container, body {
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .left-section {

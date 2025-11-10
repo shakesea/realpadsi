@@ -193,6 +193,38 @@
         dropdown.style.display = 'none';
     });
 </script>
+<script>
+  // Toggle dropdown profil (kode asli kamu – dipertahankan)
+  const profileToggle = document.getElementById('profileToggle');
+  const dropdown = document.getElementById('profileDropdown');
+
+  profileToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+  });
+  document.addEventListener('click', () => {
+      dropdown.style.display = 'none';
+  });
+
+  // === Tambahan: Toggle hamburger (garis 3) untuk collapse sidebar (opsional) ===
+  document.querySelector('.menu-icon')?.addEventListener('click', () => {
+    document.body.classList.toggle('sidebar-collapsed');
+  });
+
+  // === (Opsional) Set status online/offline (hanya visual) ===
+  const isOnline = true; // ganti ke false kalau mau lihat tampilan offline
+  const statusEl = document.querySelector('.status');
+  const statusText = document.querySelector('.status-text');
+  if (statusEl && statusText) {
+    if (isOnline) {
+      statusEl.classList.remove('offline');
+      statusText.textContent = 'Online';
+    } else {
+      statusEl.classList.add('offline');
+      statusText.textContent = 'Offline';
+    }
+  }
+</script>
 
 </body>
 </html>

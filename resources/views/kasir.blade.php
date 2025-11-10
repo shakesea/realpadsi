@@ -10,6 +10,17 @@
     <div class="menu-left">
       <h3 class="pelanggan-title">Pelanggan</h3>
       <div class="pelanggan-list"></div>
+
+      <!-- ========= TAMBAHAN: Tombol Member di atas garis Total ========= -->
+      <div class="member-inline">
+        {{-- Ubah: buka modal, bukan pindah halaman --}}
+        <button type="button" class="member-btn" onclick="openModal('memberModal')">
+          <span class="member-ico"><i class="fas fa-user"></i></span>
+          Member
+        </button>
+      </div>
+      <!-- =============================================================== -->
+
       <div class="total-section">
         <div>Total</div>
         <div class="harga-total">Rp 0</div>
@@ -189,6 +200,55 @@
   </div>
 </div>
 
+{{-- ============= MODAL PILIH MEMBER (BARU) ============= --}}
+<div id="memberModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card" style="max-width:1100px;">
+    <h2 class="modal-title">Daftar Member</h2>
+
+    <div class="modal-body" style="grid-template-columns:1fr;">
+      <div class="table-responsive" style="max-height:360px; overflow:auto;">
+        <table class="table" id="tblMembers">
+          <thead>
+            <tr>
+              <th style="width:50px;">NO</th>
+              <th>NAMA</th>
+              <th>EMAIL</th>
+              <th>NO. TELEPON</th>
+              <th style="width:120px;">TOTAL POIN</th>
+              <th style="width:80px; text-align:center;">PILIH</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="6">Memuat data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <hr style="margin:6px 0 12px">
+
+      <form onsubmit="return false;">
+        <div class="grid-2" style="grid-template-columns:repeat(2,1fr); gap:12px;">
+          <div><label>Nama</label><input class="input" id="m_nama" readonly></div>
+          <div><label>Email</label><input class="input" id="m_email" readonly></div>
+          <div><label>No. Telepon</label><input class="input" id="m_telp" readonly></div>
+          <div><label>Total Poin</label><input class="input" id="m_poin_total" readonly></div>
+          <div>
+            <label>Poin yang akan digunakan</label>
+            <input type="number" min="0" value="0" class="input" id="m_poin_pakai">
+            <small id="m_poin_help" class="muted">Maksimal sesuai total poin.</small>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <a href="#" class="modal-cancel" onclick="closeModal('memberModal')">Kembali</a>
+      <button class="btn-green" id="btnMemberApply">Lanjutkan</button>
+    </div>
+  </div>
+</div>
+{{-- ===================================================== --}}
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   let cart = [];
@@ -197,49 +257,32 @@ document.addEventListener('DOMContentLoaded', () => {
   const contextMenu = document.getElementById('contextMenu');
   let currentCardId = null;
 
-  // ------------------------
-  // Fungsi umum
-  // ------------------------
   function openModal(id) {
     document.getElementById(id).style.display = 'flex';
     if (id === 'paymentModal') {
-      // Pastikan nominal tetap update saat modal dibuka
       const totalText = totalHargaEl.textContent;
       document.getElementById('nominalBayar').textContent = totalText;
     }
+    // Saat memberModal dibuka, load data member
+    if (id === 'memberModal') {
+      if (typeof loadMembers === 'function') { loadMembers(); clearMemberForm(); }
+    }
   }
-
-  
-
-  function closeModal(id) {
-    document.getElementById(id).style.display = 'none';
-  }
+  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
   function preview(imgId, textId, e) {
-    const file = e.target.files[0];
-    if (!file) return;
+    const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
       const img = document.getElementById(imgId);
-      img.src = reader.result;
-      img.style.display = 'block';
+      img.src = reader.result; img.style.display = 'block';
       if (textId) document.getElementById(textId).style.display = 'none';
     };
     reader.readAsDataURL(file);
   }
 
-  // ------------------------
-  // Tambah & hapus dari keranjang
-  // ------------------------
-  function addToCart(nama, harga) {
-    cart.push({ nama, harga });
-    renderCart();
-  }
-
-  function removeFromCart(index) {
-    cart.splice(index, 1);
-    renderCart();
-  }
+  function addToCart(nama, harga) { cart.push({ nama, harga }); renderCart(); }
+  function removeFromCart(index) { cart.splice(index, 1); renderCart(); }
 
   function renderCart() {
     pelangganList.innerHTML = '';
@@ -258,19 +301,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('nominalBayar').textContent = `Rp ${total.toLocaleString('id-ID')}`;
   }
 
-  // ------------------------
-  // Klik kiri & klik kanan pada produk
-  // ------------------------
   const cards = document.querySelectorAll('.produk-card:not(.add-card)');
-
   cards.forEach(card => {
     const nama = card.dataset.nama;
     const harga = parseInt(card.dataset.harga);
-
-    // Klik kiri: tambah ke keranjang
     card.addEventListener('click', () => addToCart(nama, harga));
-
-    // Klik kanan: tampilkan context menu
     card.addEventListener('contextmenu', e => {
       e.preventDefault();
       currentCardId = card.dataset.id;
@@ -280,14 +315,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Klik di luar context menu → tutup
   document.addEventListener('click', e => {
     if (!contextMenu.contains(e.target)) contextMenu.style.display = 'none';
   });
 
-  // ------------------------
-  // Tombol Edit & Hapus
-  // ------------------------
   document.getElementById('btnEdit').addEventListener('click', () => {
     contextMenu.style.display = 'none';
     const card = document.querySelector(`.produk-card[data-id="${currentCardId}"]`);
@@ -310,9 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ------------------------
-  // Pembayaran
-  // ------------------------
   window.setPayment = function(amount) {
     if (amount > 0) document.getElementById('customPay').value = amount;
   }
@@ -332,7 +360,12 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({
           items: cart.map(c => ({ id: c.id || null, qty: 1 })),
           total: total,
-          metode: 'Tunai'
+          metode: 'Tunai',
+          // ===== kirim pilihan member (jika ada) =====
+          member: window.selectedMember ? {
+            id: window.selectedMember.id,
+            poin_pakai: window.selectedMember.poin_pakai
+          } : null
         })
       })
       .then(res => res.json())
@@ -342,6 +375,10 @@ document.addEventListener('DOMContentLoaded', () => {
           cart = [];
           renderCart();
           closeModal('paymentModal');
+          // reset member yang dipilih
+          window.selectedMember = null;
+          const pill = document.getElementById('selected-member-pill');
+          if (pill) pill.remove();
         } else {
           alert("❌ Terjadi kesalahan: " + data.message);
         }
@@ -355,9 +392,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ------------------------
-  // Filter Produk
-  // ------------------------
   window.filterProduk = function() {
     const keyword = document.getElementById("searchProduk").value.toLowerCase().trim();
     document.querySelectorAll(".produk-card").forEach(card => {
@@ -367,9 +401,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ------------------------
-  // Buka modal dari tombol tambah bahan
-  // ------------------------
   window.addBahanRow = function() {
     const container = document.getElementById('bahan-container');
     const newRow = document.createElement('div');
@@ -387,12 +418,122 @@ document.addEventListener('DOMContentLoaded', () => {
     container.appendChild(newRow);
   }
 
-  // Buat fungsi open/close modal global
   window.openModal = openModal;
   window.closeModal = closeModal;
   window.removeFromCart = removeFromCart;
-
 });
+
+// ============ SCRIPT KHUSUS MODAL MEMBER ============
+window.selectedMember = null;
+
+async function loadMembers(){
+  const tbody = document.querySelector('#tblMembers tbody');
+  if(!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="6">Memuat data...</td></tr>`;
+  try{
+    const res = await fetch(`{{ route('kasir.members.json') }}`);
+    const data = await res.json();
+    if(!Array.isArray(data) || data.length === 0){
+      tbody.innerHTML = `<tr><td colspan="6">Belum ada data member.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map((m,i)=>`
+      <tr>
+        <td>${String(i+1).padStart(2,'0')}</td>
+        <td>${esc(m.nama||'')}</td>
+        <td>${esc(m.email||'')}</td>
+        <td>${esc(m.no_telp||'')}</td>
+        <td>${Number(m.poin||0)}</td>
+        <td style="text-align:center;">
+          <input type="radio" name="pick_member" value="${m.id}"
+            data-nama="${encodeURIComponent(m.nama||'')}"
+            data-email="${encodeURIComponent(m.email||'')}"
+            data-telp="${encodeURIComponent(m.no_telp||'')}"
+            data-poin="${Number(m.poin||0)}">
+        </td>
+      </tr>
+    `).join('');
+
+    document.querySelectorAll('input[name="pick_member"]').forEach(r=>{
+      r.addEventListener('change', e=>{
+        const R = e.target;
+        const nm = decodeURIComponent(R.dataset.nama||'');
+        const em = decodeURIComponent(R.dataset.email||'');
+        const tl = decodeURIComponent(R.dataset.telp||'');
+        const pt = Number(R.dataset.poin||0);
+        document.getElementById('m_nama').value = nm;
+        document.getElementById('m_email').value = em;
+        document.getElementById('m_telp').value = tl;
+        document.getElementById('m_poin_total').value = pt;
+        const poinP = document.getElementById('m_poin_pakai');
+        poinP.max = pt;
+        if(Number(poinP.value) > pt) poinP.value = pt;
+        document.getElementById('m_poin_help').textContent = `Maksimal ${pt} poin.`;
+        poinP.dataset.memberId = R.value;
+      });
+    });
+
+  }catch(e){
+    console.error(e);
+    tbody.innerHTML = `<tr><td colspan="6">Gagal memuat data.</td></tr>`;
+  }
+}
+
+function clearMemberForm(){
+  document.getElementById('m_nama').value = '';
+  document.getElementById('m_email').value = '';
+  document.getElementById('m_telp').value = '';
+  document.getElementById('m_poin_total').value = 0;
+  const poinP = document.getElementById('m_poin_pakai');
+  poinP.value = 0; poinP.removeAttribute('max'); poinP.dataset.memberId = '';
+  document.getElementById('m_poin_help').textContent = 'Maksimal sesuai total poin.';
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('btnMemberApply').addEventListener('click', ()=>{
+    const poinP = document.getElementById('m_poin_pakai');
+    const id = poinP.dataset.memberId || '';
+    const pt = Number(document.getElementById('m_poin_total').value || 0);
+    const pp = Number(poinP.value || 0);
+    if(!id){ alert('Silakan pilih member terlebih dahulu.'); return; }
+    if(pp < 0 || pp > pt){ alert('Poin yang dipakai tidak valid.'); return; }
+
+    window.selectedMember = {
+      id,
+      nama:  document.getElementById('m_nama').value,
+      email: document.getElementById('m_email').value,
+      no_telp: document.getElementById('m_telp').value,
+      poin_total: pt,
+      poin_pakai: pp
+    };
+
+    // tampilkan ringkasan di panel kiri
+    const host = document.querySelector('.pelanggan-list');
+    if(host){
+      let pill = document.getElementById('selected-member-pill');
+      if(!pill){
+        pill = document.createElement('div');
+        pill.id = 'selected-member-pill';
+        pill.className = 'selected-member-pill';
+        host.prepend(pill);
+      }
+      pill.innerHTML = `
+        <div>
+          <strong>${esc(window.selectedMember.nama)}</strong><br>
+          <small>${esc(window.selectedMember.email)} • ${esc(window.selectedMember.no_telp || '-')}</small><br>
+          <small>Poin dipakai: ${window.selectedMember.poin_pakai} / ${window.selectedMember.poin_total}</small>
+        </div>
+        <button type="button" style="background:none;border:none;color:#d33;cursor:pointer;font-weight:700;"
+          onclick="(function(){ const p=document.getElementById('selected-member-pill'); if(p) p.remove(); window.selectedMember=null; })()">×</button>
+      `;
+    }
+
+    closeModal('memberModal');
+  });
+});
+
+function esc(s){return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+// =====================================================
 </script>
 
 @endsection

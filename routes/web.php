@@ -21,6 +21,10 @@ Route::get('/pegawai/tambah', [PegawaiController::class, 'create'])->name('pegaw
 Route::post('/pegawai/tambah', [PegawaiController::class, 'store'])->name('pegawai.store');
 
 Route::get('/kasir', [KasirController::class, 'index'])->name('kasir.index');
+// JSON untuk modal Member di kasir
+Route::get('/kasir/members/json', [MemberController::class, 'listForKasir'])
+    ->name('kasir.members.json');
+
 Route::post('/menu', [KasirController::class, 'store'])->name('menu.store');
 Route::post('/transaksi', [TransaksiPenjualanController::class, 'store'])->name('transaksi.store');
 Route::put('/menu/{id}', [KasirController::class, 'update'])->name('menu.update');
