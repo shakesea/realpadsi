@@ -420,17 +420,15 @@
       const totalHargaEl  = document.querySelector('.harga-total');
       const nominalBayar  = document.getElementById('nominalBayar');
       const customPay     = document.getElementById('customPay');
-
       // Jika tombol "Simpan" ditekan TANPA pembayaran
       if (!isAfterPayment) {
         if (!cart || cart.length === 0) {
-          alert("⚠️ Tidak ada item dalam keranjang!\nSilakan tambahkan produk terlebih dahulu sebelum menyimpan.");
+          alert("⚠️ Tidak ada itemm dalam keranjang!\nSilakan tambahkan produk terlebih dahulu sebelum menyimpan.");
           return;
         }
         alert("❌ Belum ada transaksi yang berhasil disimpan.\nSilakan lakukan pembayaran terlebih dahulu.");
         return;
       }
-
       // Jika dipanggil SETELAH pembayaran berhasil → bersihkan semuanya
       cart.length = 0; // clear array in-place, tidak ganti referensi
 
@@ -727,6 +725,6 @@
 
 
 
-  
+
 </script>
 @endsection
