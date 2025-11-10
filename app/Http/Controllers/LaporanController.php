@@ -23,10 +23,19 @@ class LaporanController extends Controller
                 // 🧾 Dapatkan nama kasir (manager / pegawai)
                 if ($trx->ID_Manager) {
                     $manager = Manager::where('ID_Manager', $trx->ID_Manager)->first();
-                    $nama = $manager ? $manager->Username : 'Manager Tidak Dikenal';
+                    // Prefer a human-friendly name field if available, fallback to username/email
+                    if ($manager) {
+                        $nama = $manager->Nama_Manager ?? $manager->Username ?? $manager->Email ?? 'Manager Tidak Dikenal';
+                    } else {
+                        $nama = 'Manager Tidak Dikenal';
+                    }
                 } elseif ($trx->ID_Pegawai) {
                     $pegawai = Pegawai::where('ID_Pegawai', $trx->ID_Pegawai)->first();
-                    $nama = $pegawai ? $pegawai->Username : 'Pegawai Tidak Dikenal';
+                    if ($pegawai) {
+                        $nama = $pegawai->Nama_Pegawai ?? $pegawai->Username ?? $pegawai->Email ?? 'Pegawai Tidak Dikenal';
+                    } else {
+                        $nama = 'Pegawai Tidak Dikenal';
+                    }
                 } else {
                     $nama = 'Tidak Diketahui';
                 }
@@ -40,9 +49,10 @@ class LaporanController extends Controller
                         return [
                             'items' => $details->map(function ($detail) {
                                 $menu = $detail->menu;
-                                $harga = $menu ? $menu->Harga : 0;
-                                $qty = $detail->Quantity;
-                                $subtotal = $detail->Subtotal ?? ($qty * $harga);
+                                // prefer harga recorded in detail, else fallback to menu price
+                                $harga = $detail->Harga ?? ($menu ? $menu->Harga : 0);
+                                $qty = $detail->Jumlah ?? 0;
+                                $subtotal = ($detail->Subtotal ?? null) ?: ($qty * $harga);
 
                                 return [
                                     'nama' => $menu ? $menu->Nama : 'Menu Tidak Ditemukan',
@@ -51,10 +61,11 @@ class LaporanController extends Controller
                                     'subtotal' => $subtotal,
                                 ];
                             }),
-                            'total_qty' => $details->sum('Quantity'),
+                            'total_qty' => $details->sum('Jumlah'),
                             'total_amount' => $details->sum(function ($detail) {
-                                $harga = $detail->menu ? $detail->menu->Harga : 0;
-                                return $detail->Subtotal ?? ($detail->Quantity * $harga);
+                                $harga = $detail->Harga ?? ($detail->menu ? $detail->menu->Harga : 0);
+                                $qty = $detail->Jumlah ?? 0;
+                                return ($detail->Subtotal ?? null) ?: ($qty * $harga);
                             }),
                         ];
                     })->toArray();
