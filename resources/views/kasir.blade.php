@@ -4,6 +4,8 @@
 @section('content')
 
 <div class="menu-container">
+  <!-- Flash notification container (dynamically filled by JS) -->
+  <div id="flash-container" style="position:fixed;top:20px;left:0;right:0;z-index:1050;display:flex;flex-direction:column;align-items:center;pointer-events:none"></div>
   <div class="menu-layout">
 
     <!-- Sidebar pelanggan kiri -->
@@ -91,7 +93,7 @@
             <select name="Kategori" required>
               <option value="">-- Pilih Kategori --</option>
               @foreach($categories as $category)
-                <option value="{{ $category }}">{{ $category }}</option>
+              <option value="{{ $category }}">{{ $category }}</option>
               @endforeach
             </select>
           </div>
@@ -103,13 +105,13 @@
             <label>Bahan Penyusun</label>
             <div id="bahan-container">
               <div class="bahan-row" style="display:flex;gap:10px;margin-bottom:8px;">
-                <select name="bahan[]" class="bahan-select" required style="flex:1;">
+                <select name="bahan[]" class="bahan-select" style="flex:1;">
                   <option value="">-- Pilih Bahan --</option>
                   @foreach ($stok as $item)
                   <option value="{{ $item->ID_Barang }}">{{ $item->Nama }} ({{ $item->Jumlah_Item }})</option>
                   @endforeach
                 </select>
-                <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" style="width:100px;">
+                <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" min="1" style="width:100px;">
               </div>
             </div>
             <button type="button" onclick="addBahanRow()" class="btn-yellow" style="margin-top:5px;">+ Tambah Bahan</button>
@@ -324,6 +326,22 @@
     const contextMenu = document.getElementById('contextMenu');
     let currentCardId = null;
 
+    // Global flash helper to show notifications (reusable across functions)
+    window.showFlash = function(type, message, timeout = 5000) {
+      const container = document.getElementById('flash-container');
+      if (!container) return;
+      const div = document.createElement('div');
+      div.className = `flash-alert ${type === 'success' ? 'flash-success' : 'flash-error'}`;
+      div.style.pointerEvents = 'auto';
+      div.textContent = message;
+      container.appendChild(div);
+      setTimeout(() => {
+        div.style.transition = 'opacity 0.3s, transform 0.3s';
+        div.style.opacity = '0';
+        div.style.transform = 'translateY(-6px)';
+        setTimeout(() => div.remove(), 350);
+      }, timeout);
+    }
     // Category filter
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', function() {
@@ -382,7 +400,12 @@
       if (existing) {
         existing.qty += 1; // tambah quantity jika sudah ada
       } else {
-        cart.push({ id, nama, harga, qty: 1 });
+        cart.push({
+          id,
+          nama,
+          harga,
+          qty: 1
+        });
       }
       renderCart();
     }
@@ -432,40 +455,38 @@
     document.addEventListener('click', e => {
       if (!contextMenu.contains(e.target)) contextMenu.style.display = 'none';
       // 🔁 Reset transaksi
-    window.resetTransaksi = function (isAfterPayment = false) {
-      const pelangganList = document.querySelector('.pelanggan-list');
-      const totalHargaEl  = document.querySelector('.harga-total');
-      const nominalBayar  = document.getElementById('nominalBayar');
-      const customPay     = document.getElementById('customPay');
-      // Jika tombol "Simpan" ditekan TANPA pembayaran
-      if (!isAfterPayment) {
-        if (!cart || cart.length === 0) {
-          alert("⚠️ Tidak ada itemm dalam keranjang!\nSilakan tambahkan produk terlebih dahulu sebelum menyimpan.");
+      window.resetTransaksi = function(isAfterPayment = false) {
+        const pelangganList = document.querySelector('.pelanggan-list');
+        const totalHargaEl = document.querySelector('.harga-total');
+        const nominalBayar = document.getElementById('nominalBayar');
+        const customPay = document.getElementById('customPay');
+
+        if (!isAfterPayment) {
+          if (!cart || cart.length === 0) {
+            window.showFlash && window.showFlash('error', "⚠️ Tidak ada item dalam keranjang! Silakan tambahkan produk terlebih dahulu sebelum menyimpan.");
+            return;
+          }
+          window.showFlash && window.showFlash('error', "❌ Belum ada transaksi yang berhasil disimpan. Silakan lakukan pembayaran terlebih dahulu.");
           return;
         }
-        alert("❌ Belum ada transaksi yang berhasil disimpan.\nSilakan lakukan pembayaran terlebih dahulu.");
-        return;
-      }
-      // Jika dipanggil SETELAH pembayaran berhasil → bersihkan semuanya
-      cart.length = 0; // clear array in-place, tidak ganti referensi
 
-      if (pelangganList) pelangganList.innerHTML = '';
-      if (totalHargaEl)  totalHargaEl.textContent = 'Rp 0';
-      if (nominalBayar)  nominalBayar.textContent = 'Rp 0';
-      if (customPay)     customPay.value = '';
+        // Bersihkan keranjang setelah pembayaran berhasil
+        cart.length = 0;
+        if (pelangganList) pelangganList.innerHTML = '';
+        if (totalHargaEl) totalHargaEl.textContent = 'Rp 0';
+        if (nominalBayar) nominalBayar.textContent = 'Rp 0';
+        if (customPay) customPay.value = '';
 
-      // hapus member yang dipilih
-      window.selectedMember = null;
-      const pill = document.getElementById('selected-member-pill');
-      if (pill) pill.remove();
+        // hapus member yang dipilih
+        window.selectedMember = null;
+        const pill = document.getElementById('selected-member-pill');
+        if (pill) pill.remove();
 
-      // tutup modal
-      if (typeof closeModal === 'function') {
-        closeModal('paymentModal');
-      }
-
-      alert('🧾 Transaksi berhasil disimpan dan keranjang sudah dikosongkan.');
-    };
+        // tutup modal
+        if (typeof closeModal === 'function') {
+          closeModal('paymentModal');
+        }
+      };
 
     });
 
@@ -493,7 +514,7 @@
           addEditBahanRow();
         } else {
           bahan.forEach(b => {
-            const row = createBahanRow(b.ID_Barang, b.Jumlah_Item);
+            const row = createBahanRow(b.ID_Barang, b.Jumlah_Digunakan);
             container.appendChild(row);
           });
         }
@@ -521,54 +542,74 @@
     }
 
     window.processPayment = function() {
-        const totalText = totalHargaEl.textContent.replace(/[^\d]/g, '');
-        const total = parseInt(totalText);
-        const customPay = parseInt(document.getElementById('customPay').value) || 0;
+      const totalText = totalHargaEl.textContent.replace(/[^\d]/g, '');
+      const total = parseInt(totalText) || 0;
+      const customPay = parseInt(document.getElementById('customPay').value) || 0;
 
-        if (customPay >= total && cart.length > 0) {
-          fetch('{{ route("transaksi.store") }}', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({
-              items: cart.map(c => ({ id: c.id, qty: c.qty })),
-              total: total,
-              metode: 'Tunai',
-              member: window.selectedMember ? {
-                id: window.selectedMember.id,
-                poin_pakai: window.selectedMember.poin_pakai
-              } : null
-            })
+      // Helper to show flash-like notifications (mimic stok view)
+      function showNotification(type, message, timeout = 5000) {
+        const container = document.getElementById('flash-container');
+        if (!container) return;
+        const div = document.createElement('div');
+        div.className = `flash-alert ${type === 'success' ? 'flash-success' : 'flash-error'}`;
+        div.style.pointerEvents = 'auto';
+        div.textContent = message;
+        container.appendChild(div);
+        setTimeout(() => {
+          div.style.transition = 'opacity 0.3s, transform 0.3s';
+          div.style.opacity = '0';
+          div.style.transform = 'translateY(-6px)';
+          setTimeout(() => div.remove(), 350);
+        }, timeout);
+      }
+
+      // Validation: harus ada item dan nominal cukup
+      if (cart.length === 0) {
+        showNotification('error', 'Pembayaran gagal, keranjang kosong!');
+        return;
+      }
+
+      if (customPay < total) {
+        showNotification('error', 'Pembayaran gagal, nominal yang dimasukkan kurang!');
+        return;
+      }
+
+      // Proses kirim transaksi ke server
+      fetch('{{ route("transaksi.store") }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+          },
+          body: JSON.stringify({
+            items: cart.map(c => ({
+              id: c.id,
+              qty: c.qty
+            })),
+            total: total,
+            metode: 'Tunai',
+            member: window.selectedMember ? {
+              id: window.selectedMember.id,
+              poin_pakai: window.selectedMember.poin_pakai
+            } : null
           })
-            .then(res => res.json())
-            .then(data => {
-              if (data.status === 'success') {
-                alert(
-                  "✅ Pembayaran Berhasil!\n" +
-                  "ID Transaksi: " + data.id_transaksi + "\n" +
-                  "Potongan Poin: Rp " + Number(data.potongan_dari_poin||0).toLocaleString('id-ID') + "\n" +
-                  "Total Bayar: Rp " + Number(data.total_bayar||0).toLocaleString('id-ID') + "\n" +
-                  "Poin Didapat: " + (data.poin_didapat||0) + "\n" +
-                  "Sisa Poin Member: " + (data.poin_member_akhir ?? '-')
-                );
-
-                // ✅ Panggil resetTransaksi dengan flag true (aman untuk clear)
-                resetTransaksi(true);
-
-              } else {
-                alert("❌ " + data.message);
-              }
-            })
-            .catch(err => {
-              console.error(err);
-              alert("❌ Gagal menyimpan transaksi!");
-            });
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            const msg = `✅ Pembayaran Berhasil! ID: ${data.id_transaksi} — Total Bayar: Rp ${Number(data.total_bayar || 0).toLocaleString('id-ID')}`;
+            showNotification('success', msg, 7000);
+            // reset transaksi dan clear UI
+            resetTransaksi(true);
           } else {
-            alert("❌ Pembayaran gagal, nominal kurang atau keranjang kosong!");
+            showNotification('error', `❌ ${data.message}`);
           }
-        }
+        })
+        .catch(err => {
+          console.error(err);
+          showNotification('error', '❌ Gagal menyimpan transaksi!');
+        });
+    }
 
     window.filterProduk = function() {
       const keyword = document.getElementById("searchProduk").value.toLowerCase().trim();
@@ -584,17 +625,17 @@
       row.classList.add('bahan-row');
       row.style.cssText = 'display:flex;gap:10px;margin-bottom:8px;';
       row.innerHTML = `
-      <select name="bahan[]" class="bahan-select" required style="flex:1;">
-        <option value="">-- Pilih Bahan --</option>
-        @foreach ($stok as $item)
-          <option value="{{ $item->ID_Barang }}"${selectedId === '{{ $item->ID_Barang }}' ? ' selected' : ''}>
-            {{ $item->Nama }} ({{ $item->Jumlah_Item }})
-          </option>
-        @endforeach
-      </select>
-      <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" value="${jumlah}" style="width:100px;">
-      <button type="button" class="btn-remove-bahan" onclick="this.parentElement.remove()">&times;</button>
-    `;
+        <select name="bahan[]" class="bahan-select" style="flex:1;">
+          <option value="">-- Pilih Bahan --</option>
+          @foreach ($stok as $item)
+            <option value="{{ $item->ID_Barang }}" ${selectedId === '{{ $item->ID_Barang }}' ? 'selected' : ''}>
+              {{ $item->Nama }} ({{ $item->Jumlah_Item }})
+            </option>
+          @endforeach
+        </select>
+        <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" value="${jumlah}" min="1" style="width:100px;">
+        <button type="button" class="btn-remove-bahan" onclick="this.parentElement.remove()">&times;</button>
+      `;
       return row;
     }
 
@@ -739,9 +780,5 @@
       "'": '&#039;'
     } [c]));
   }
-
-
-
-
 </script>
 @endsection
