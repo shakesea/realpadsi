@@ -87,7 +87,7 @@ body {
 }
 
 .dashboard {
-    width: auto;
+    width: 80vw;
     margin-left: 250px;
 }
 /* ========== DASHBOARD CARDS ========== */
