@@ -1,22 +1,8 @@
 @extends('layouts.main')
-
 @section('title', 'NutaPOS - Stok')
-
 @section('content')
 
-{{-- Flash Message --}}
-@if(session('error'))
-<div class="flash-alert flash-error">
-    {{ session('error') }}
-</div>
-@endif
-
-@if(session('success'))
-<div class="flash-alert flash-success">
-    {{ session('success') }}
-</div>
-@endif
-
+<x-flash />
 
 <div class="stok-container">
     <div class="stok-header">

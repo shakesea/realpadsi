@@ -923,3 +923,33 @@ body {
 .delete-title {
   color: #c94444;
 }
+
+.flash-alert {
+  padding: 12px 20px;
+  margin: 15px auto;
+  max-width: 800px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 15px;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.flash-success {
+  background-color: #e6f9ec;
+  color: #16723e;
+  border: 1px solid #1fb058;
+  box-shadow: 0 0 6px rgba(31,176,88,0.2);
+}
+
+.flash-error {
+  background-color: #fdecea;
+  color: #b21f2d;
+  border: 1px solid #f5c2c7;
+  box-shadow: 0 0 6px rgba(178,31,45,0.2);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
