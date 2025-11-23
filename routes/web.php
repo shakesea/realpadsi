@@ -115,9 +115,6 @@ Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
 
         Route::post('/transaksi/store', [TransaksiPenjualanController::class, 'store'])->name('transaksi.store');
 
-        // Route::get('/kasir', [KasirController::class, 'index'])->name('kasir.index');
-        // Route::post('/kasir/store', [KasirController::class, 'store'])->name('kasir.store');
-
         Route::get('/member', [MemberController::class, 'index'])->name('member.index');
         Route::post('/member', [MemberController::class, 'store'])->name('member.store');
         Route::delete('/member/{id}', [MemberController::class, 'destroy'])->name('member.destroy');

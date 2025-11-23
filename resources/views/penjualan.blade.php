@@ -35,17 +35,24 @@
                     <option>10</option>
                     <option>25</option>
                     <option>50</option>
-                </select> entries
+                </select> Entries
             </label>
             <span> | </span>
 
-            {{-- 📄 Tombol Ekspor PDF --}}
+            {{-- Tombol Ekspor PDF --}}
             <form action="{{ route('penjualan.index') }}" method="GET" style="display:inline;">
                 <input type="hidden" name="export" value="pdf">
                 <input type="hidden" name="start" value="{{ request('start', $start) }}">
                 <input type="hidden" name="end" value="{{ request('end', $end) }}">
                 <button type="submit" class="pdf-link">Export PDF</button>
             </form>
+
+            {{-- Tombol Import File --}}
+            <form id="import-form" action="{{ route('penjualan.index') }}" method="POST" enctype="multipart/form-data" style="display:inline;">
+                @csrf
+                <input type="file" id="import-file" name="file" accept=".xlsx,.xls,.csv" style="display:none;">
+                <button type="button" class="pdf-link" onclick="document.getElementById('import-file').click()">Import File</button>
+            </form> 
         </div>
     </div>
 
@@ -188,5 +195,13 @@
     margin-bottom: 3px;
 }
 </style>
+
+<!-- Script buat import file -->
+<script>
+document.getElementById('import-file').addEventListener('change', function() {
+    document.getElementById('import-form').submit();
+});
+</script>
+
 @endsection
  
