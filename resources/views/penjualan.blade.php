@@ -48,11 +48,12 @@
             </form>
 
             {{-- Tombol Import File --}}
-            <form id="import-form" action="{{ route('penjualan.index') }}" method="POST" enctype="multipart/form-data" style="display:inline;">
+            <form id="import-form" action="{{ route('penjualan.import') }}" method="POST" enctype="multipart/form-data" style="display:inline;">
                 @csrf
-                <input type="file" id="import-file" name="file" accept=".xlsx,.xls,.csv" style="display:none;">
+                <input type="file" id="import-file" name="file" accept=".xlsx,.xls,.csv" style="display:none;"
+                    onchange="document.getElementById('import-form').submit()">
                 <button type="button" class="pdf-link" onclick="document.getElementById('import-file').click()">Import File</button>
-            </form> 
+            </form>
         </div>
     </div>
 

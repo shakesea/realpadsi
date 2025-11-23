@@ -47,8 +47,7 @@ Route::get('/penjualan', [LaporanController::class, 'index'])->name('penjualan.i
 Route::get('/kasir', [KasirController::class, 'index'])->name('kasir.index');
 Route::post('/kasir/store', [KasirController::class, 'store'])->name('menu.store');
 
-
-
+Route::post('/penjualan/import', [LaporanController::class, 'import'])->name('penjualan.import');
 
 Route::get('/', function () {
     return redirect('/login');

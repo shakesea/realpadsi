@@ -8,6 +8,8 @@ use App\Models\Manager;
 use App\Models\Pegawai;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\PenjualanImport;
 
 class LaporanController extends Controller
 {
@@ -122,6 +124,17 @@ class LaporanController extends Controller
     // ✅ Berhasil menampilkan laporan di halaman
     return view('penjualan', compact('laporan', 'start', 'end'))
         ->with('success', '✅ Laporan berhasil ditampilkan!');
-}
+    }
 
+    
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        Excel::import(new PenjualanImport, $request->file('file'));
+
+        return back()->with('success', 'Data berhasil diimport!');
+    }
 }
