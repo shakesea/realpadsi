@@ -213,10 +213,10 @@
       <div>
         <h3>QRIS</h3>
         <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
-          <button class="pay-btn">Ovo</button>
-          <button class="pay-btn">ShopeePay</button>
-          <button class="pay-btn">LinkAja</button>
-          <button class="pay-btn">Gopay</button>
+          <button class="pay-btn" onclick="setPaymentMethod('qris')">Ovo</button>
+          <button class="pay-btn" onclick="setPaymentMethod('qris')">ShopeePay</button>
+          <button class="pay-btn" onclick="setPaymentMethod('qris')">LinkAja</button>
+          <button class="pay-btn" onclick="setPaymentMethod('qris')">Gopay</button>
         </div>
       </div>
     </div>
@@ -317,6 +317,18 @@
   </div>
 </div>
 {{-- ===================================================== --}}
+
+<script>
+window.paymentMethod = 'tunai';
+
+window.setPaymentMethod = function(method){
+    window.paymentMethod = method;
+};
+</script>
+
+<script src="https://app.sandbox.midtrans.com/snap/snap.js"
+  data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}">
+</script>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
@@ -538,7 +550,12 @@
     });
 
     window.setPayment = function(amount) {
-      if (amount > 0) document.getElementById('customPay').value = amount;
+        document.getElementById('customPay').value = amount;
+
+        // hanya set tunai jika user benar-benar mau tunai
+        if (amount > 0 || amount === 0) {
+            window.paymentMethod = 'tunai';
+        }
     }
 
     window.processPayment = function() {
@@ -547,7 +564,7 @@
       const customPay = parseInt(document.getElementById('customPay').value) || 0;
 
       // Helper to show flash-like notifications (mimic stok view)
-      function showNotification(type, message, timeout = 5000) {
+      window.showNotification = function(type, message, timeout = 5000) {
         const container = document.getElementById('flash-container');
         if (!container) return;
         const div = document.createElement('div');
@@ -563,62 +580,96 @@
         }, timeout);
       }
 
-      // Validation: harus ada item dan nominal cukup
+      // Validasi item keranjang
       if (cart.length === 0) {
-        showNotification('error', 'Pembayaran gagal, keranjang kosong!');
+        window.showNotification('error', 'Pembayaran gagal, keranjang kosong!');
         return;
       }
 
-      if (customPay < total) {
-        showNotification('error', 'Pembayaran gagal, nominal yang dimasukkan kurang!');
-        return;
+      // 🟢 1. Jika pembayaran tunai → cek customPay
+      if (paymentMethod === 'tunai') {
+        if (customPay < total) {
+            window.showNotification('error', 'Pembayaran gagal, nominal tunai kurang!');
+            return;
+        }
+
+        // Simpan transaksi tunai
+        return saveTransaksiKeDatabase(cart, total, 'Tunai');
       }
 
-      // Proses kirim transaksi ke server
-      fetch('{{ route("transaksi.store") }}', {
+      // 🟢 2. Jika pembayaran QRIS/Midtrans → abaikan customPay
+      if (paymentMethod === 'qris') {
+        fetch('{{ route("payment.snap") }}', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': '{{ csrf_token() }}'
           },
           body: JSON.stringify({
-            items: cart.map(c => ({
-              id: c.id,
-              qty: c.qty
-            })),
-            total: total,
-            metode: 'Tunai',
-            member: window.selectedMember ? {
-              id: window.selectedMember.id,
-              poin_pakai: window.selectedMember.poin_pakai
-            } : null
+              items: cart.map(c => ({
+                  id: c.id,
+                  qty: c.qty
+              })),
+              total: total,
+              metode: 'QRIS'
           })
         })
         .then(res => res.json())
         .then(data => {
-          if (data.status === 'success') {
-            const msg = `✅ Pembayaran Berhasil! ID: ${data.id_transaksi} — Total Bayar: Rp ${Number(data.total_bayar || 0).toLocaleString('id-ID')}`;
-            showNotification('success', msg, 7000);
-            // reset transaksi dan clear UI
-            resetTransaksi(true);
-          } else {
-            showNotification('error', `❌ ${data.message}`);
-          }
+          snap.pay(data.snapToken, {
+            onSuccess: function(result) {
+              window.showNotification('success', 'Pembayaran Berhasil!');
+              saveTransaksiKeDatabase(cart, total, 'QRIS');
+            },
+            onPending: function(result){
+              window.showNotification('error', 'Menunggu pembayaran…');
+            },
+            onError: function(result){
+              winddow.showNotification('error', 'Pembayaran gagal!');
+            }
+          });
         })
         .catch(err => {
           console.error(err);
-          showNotification('error', '❌ Gagal menyimpan transaksi!');
+          window.showNotification('error', 'Gagal membuat transaksi digital!');
         });
-    }
+      }
+  }
 
-    window.filterProduk = function() {
-      const keyword = document.getElementById("searchProduk").value.toLowerCase().trim();
-      document.querySelectorAll(".produk-card").forEach(card => {
-        if (card.classList.contains("add-card")) return;
-        const nama = card.dataset.nama.toLowerCase();
-        card.style.display = (!keyword || nama.includes(keyword)) ? "block" : "none";
+    function saveTransaksiKeDatabase(cart, total, metode) {
+      fetch('{{ route("transaksi.store") }}', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': '{{ csrf_token() }}'
+          },
+          body: JSON.stringify({
+              items: cart.map(c => ({
+                  id: c.id,
+                  qty: c.qty
+              })),
+              total: total,
+              metode: metode
+          })
+      })
+      .then(res => res.json())
+      .then(data => {
+          showNotification('success', 'Transaksi berhasil disimpan!');
+          resetTransaksi(true);
+      })
+      .catch(err => {
+          showNotification('error', 'Gagal menyimpan transaksi!');
       });
     }
+
+      window.filterProduk = function() {
+        const keyword = document.getElementById("searchProduk").value.toLowerCase().trim();
+        document.querySelectorAll(".produk-card").forEach(card => {
+          if (card.classList.contains("add-card")) return;
+          const nama = card.dataset.nama.toLowerCase();
+          card.style.display = (!keyword || nama.includes(keyword)) ? "block" : "none";
+        });
+      }
 
     function createBahanRow(selectedId = '', jumlah = '') {
       const row = document.createElement('div');
@@ -628,7 +679,7 @@
         <select name="bahan[]" class="bahan-select" style="flex:1;">
           <option value="">-- Pilih Bahan --</option>
           @foreach ($stok as $item)
-            <option value="{{ $item->ID_Barang }}" ${selectedId === '{{ $item->ID_Barang }}' ? 'selected' : ''}>
+            <option value="{{ $item->ID_Barang }}" ${String(selectedId) === '{{ $item->ID_Barang }}' ? 'selected' : ''}>
               {{ $item->Nama }} ({{ $item->Jumlah_Item }})
             </option>
           @endforeach
