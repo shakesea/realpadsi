@@ -9,21 +9,21 @@ use App\Models\Menu;
 use App\Models\BahanPenyusun;
 use App\Models\Stok;
 use Carbon\Carbon;
-use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class PenjualanImport implements ToModel, WithHeadingRow
+class PenjualanImport
 {
-    public function model(array $row)
+    public function handle(array $row)
     {
+        // pastikan data sudah lowercase (mirip WithHeadingRow)
+        $row = array_change_key_case($row, CASE_LOWER);
+
         // 1️⃣ Cari menu berdasarkan ID_Menu
         $menu = Menu::where('ID_Menu', $row['id_menu'])->first();
 
-        // Jika menu belum ada → buat supaya import tetap lanjut
         if (!$menu) {
             $menu = Menu::create([
-                'ID_Menu' => $row['id_menu'],
-                'Subtotal' => $row['subtotal'] ?? 0,
+                'ID_Menu'   => $row['id_menu'],
+                'Subtotal'  => $row['subtotal'] ?? 0,
             ]);
         }
 
@@ -44,7 +44,7 @@ class PenjualanImport implements ToModel, WithHeadingRow
             ]
         );
 
-        // 3️⃣ Update poin member bila ada ID_Member
+        // 3️⃣ Update poin member
         if (!empty($row['id_member'])) {
             $member = Member::where('ID_Member', $row['id_member'])->first();
 
@@ -60,6 +60,7 @@ class PenjualanImport implements ToModel, WithHeadingRow
 
         // 4️⃣ Generate ID_Detail_Penjualan otomatis
         $lastDetail = DetailPenjualan::orderBy('ID_Detail_Penjualan', 'desc')->first();
+
         if ($lastDetail) {
             $lastNumber = intval(substr($lastDetail->ID_Detail_Penjualan, 3));
             $newDetailId = 'DTL' . str_pad($lastNumber + 1, 5, '0', STR_PAD_LEFT);
@@ -67,10 +68,10 @@ class PenjualanImport implements ToModel, WithHeadingRow
             $newDetailId = 'DTL00001';
         }
 
-        // Hitung jumlah pesanan item ini
+        // Hitung quantity
         $quantity = $row['quantity'] ?? $row['qty'] ?? 1;
 
-        // 5️⃣ Buat detail penjualan
+        // 5️⃣ Buat detail
         $detail = new DetailPenjualan([
             'ID_Detail_Penjualan' => $newDetailId,
             'ID_Menu'      => $menu->ID_Menu,
@@ -81,16 +82,15 @@ class PenjualanImport implements ToModel, WithHeadingRow
 
         $detail->save();
 
-        // 6️⃣ Kurangi stok berdasarkan tabel bahan_penyusun
+        // 6️⃣ Pengurangan stok
         $bahanList = BahanPenyusun::where('ID_Menu', $menu->ID_Menu)->get();
+
         foreach ($bahanList as $bahan) {
             $stok = Stok::where('ID_Barang', $bahan->ID_Barang)->first();
 
             if ($stok) {
-                // total bahan yang dipakai = jumlah bahan per menu * quantity yang dipesan
                 $stok->Jumlah_Item -= ($bahan->Jumlah_Digunakan * $quantity);
 
-                // cegah stok minus
                 if ($stok->Jumlah_Item < 0) {
                     $stok->Jumlah_Item = 0;
                 }
@@ -99,6 +99,6 @@ class PenjualanImport implements ToModel, WithHeadingRow
             }
         }
 
-        return $detail;
+        return $penjualan;
     }
 }

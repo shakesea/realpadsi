@@ -8,8 +8,8 @@ use App\Models\Manager;
 use App\Models\Pegawai;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\PenjualanImport;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class LaporanController extends Controller
 {
@@ -130,14 +130,42 @@ class LaporanController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => [
-                'required',
-                'mimes:csv,txt,xlsx,xls'
-            ]
+            'file' => 'required|mimes:xlsx,xls,csv'
         ]);
 
+        $path = $request->file('file')->getPathname();
 
-        Excel::import(new PenjualanImport, $request->file('file'));
+        // Load Excel
+        $spreadsheet = IOFactory::load($path);
+        $rows = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+
+        $importer = new PenjualanImport();
+        $rowNo = 0;
+
+        foreach ($rows as $row) {
+            $rowNo++;
+
+            if ($rowNo == 1) continue; // skip header
+
+            $mapped = [
+                'id_penjualan'   => $row['A'] ?? null,
+                'tgl_penjualan'  => $row['B'] ?? null,
+                'id_pegawai'     => $row['C'] ?? null,
+                'id_manager'     => $row['D'] ?? null,
+                'id_member'      => $row['E'] ?? null,
+                'metode_pembayaran' => $row['F'] ?? null,
+                'totalharga'     => $row['G'] ?? null,
+                'jumlah_item'    => $row['H'] ?? null,
+                'status'         => $row['I'] ?? null,
+                'poin_digunakan' => $row['J'] ?? null,
+                'poin_didapat'   => $row['K'] ?? null,
+                'id_menu'        => $row['L'] ?? null,   // ← kolom ID_MENU yang BENAR
+                'quantity'       => $row['M'] ?? null,
+                'subtotal'       => $row['N'] ?? null,
+            ];
+
+            $importer->handle($mapped);
+        }
 
         return back()->with('success', 'Data berhasil diimport!');
     }
