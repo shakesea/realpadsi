@@ -143,11 +143,13 @@ Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
     | IMPORT PENJUALAN
     |--------------------------------------------------------------------------
     */
+    // Tangani GET request (redirect atau show pending import)
+    Route::get('/penjualan/import', [LaporanController::class, 'showImport'])
+        ->name('penjualan.import.show');
+
     Route::post('/penjualan/import', [LaporanController::class, 'import'])
         ->name('penjualan.import');
-});
 
-Route::get('/test-log', function() {
-    \Log::error('TEST LOG DARI KAMU');
-    return 'OK';
+    Route::get('/penjualan/continue-import', [LaporanController::class, 'continueImport'])
+        ->name('laporan.continue-import');
 });

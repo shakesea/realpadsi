@@ -33,10 +33,16 @@ class MenuController extends Controller
             'jumlah_digunakan.*' => 'nullable|numeric|min:1',
         ]);
 
-        // --- Generate ID otomatis ---
-        $lastMenu = Menu::orderBy('ID_Menu', 'desc')->first();
-        $lastNum = $lastMenu ? intval(substr($lastMenu->ID_Menu, 4)) : 0;
-        $newId = 'MENU' . str_pad($lastNum + 1, 3, '0', STR_PAD_LEFT);
+        // --- Generate ID otomatis atau gunakan ID dari import ---
+        if ($request->has('ID_Menu') && !empty($request->ID_Menu)) {
+            // Gunakan ID dari import (CSV)
+            $newId = $request->ID_Menu;
+        } else {
+            // Generate ID baru otomatis
+            $lastMenu = Menu::orderBy('ID_Menu', 'desc')->first();
+            $lastNum = $lastMenu ? intval(substr($lastMenu->ID_Menu, 4)) : 0;
+            $newId = 'MENU' . str_pad($lastNum + 1, 3, '0', STR_PAD_LEFT);
+        }
 
         $menu = new Menu();
         $menu->ID_Menu = $newId;
@@ -78,6 +84,12 @@ class MenuController extends Controller
                     'Updated_At' => now(),
                 ]);
             }
+        }
+
+        // JIKA INI DARI PROSES IMPORT, REDIRECT KE CONTINUE IMPORT
+        if ($request->has('continue_import') && $request->continue_import == '1') {
+            return redirect()->route('laporan.continue-import')
+                ->with('success', '✅ Menu berhasil dibuat! Melanjutkan import...');
         }
 
         return redirect()->back()->with('success', '✅ Menu berhasil ditambahkan!');

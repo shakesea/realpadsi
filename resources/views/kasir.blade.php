@@ -90,12 +90,19 @@
           <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" required></div>
           <div class="form-group">
             <label>Kategori</label>
-            <select name="Kategori" required>
+            <select id="add-kategori-select" onchange="toggleAddKategoriCustom()" style="width:100%;">
               <option value="">-- Pilih Kategori --</option>
               @foreach($categories as $category)
               <option value="{{ $category }}">{{ $category }}</option>
               @endforeach
+              <option value="__custom__">+ Tambah Kategori Baru</option>
             </select>
+            <div id="add-kategori-custom-container" style="display:none;margin-top:8px;">
+              <input type="text" id="add-kategori-custom-input" placeholder="Masukkan kategori baru..."
+                style="width:100%;padding:8px;border:1px solid #ffc107;border-radius:6px;background:#fffbf0;">
+              <small style="color:#856404;display:block;margin-top:4px;">💡 Contoh: Dessert, Combo Menu, dll.</small>
+            </div>
+            <input type="hidden" name="Kategori" id="add-kategori-final" required>
           </div>
 
           <div class="form-group"><label>Deskripsi</label><textarea name="Deskripsi" rows="3"></textarea></div>
@@ -147,12 +154,19 @@
           <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" id="editHarga" required></div>
           <div class="form-group">
             <label>Kategori</label>
-            <select name="Kategori" id="editKategori" required>
+            <select id="edit-kategori-select" onchange="toggleEditKategoriCustom()" style="width:100%;">
               <option value="">-- Pilih Kategori --</option>
               @foreach($categories as $category)
               <option value="{{ $category }}">{{ $category }}</option>
               @endforeach
+              <option value="__custom__">+ Tambah Kategori Baru</option>
             </select>
+            <div id="edit-kategori-custom-container" style="display:none;margin-top:8px;">
+              <input type="text" id="edit-kategori-custom-input" placeholder="Masukkan kategori baru..."
+                style="width:100%;padding:8px;border:1px solid #ffc107;border-radius:6px;background:#fffbf0;">
+              <small style="color:#856404;display:block;margin-top:4px;">💡 Contoh: Dessert, Combo Menu, dll.</small>
+            </div>
+            <input type="hidden" name="Kategori" id="edit-kategori-final" required>
           </div>
 
           <div class="form-group">
@@ -319,11 +333,11 @@
 {{-- ===================================================== --}}
 
 <script>
-window.paymentMethod = 'tunai';
+  window.paymentMethod = 'tunai';
 
-window.setPaymentMethod = function(method){
+  window.setPaymentMethod = function(method) {
     window.paymentMethod = method;
-};
+  };
 </script>
 
 <script src="https://app.sandbox.midtrans.com/snap/snap.js"
@@ -353,6 +367,59 @@ window.setPaymentMethod = function(method){
         div.style.transform = 'translateY(-6px)';
         setTimeout(() => div.remove(), 350);
       }, timeout);
+    }
+
+    // Toggle kategori custom untuk form ADD
+    window.toggleAddKategoriCustom = function() {
+      const select = document.getElementById('add-kategori-select');
+      const customContainer = document.getElementById('add-kategori-custom-container');
+      const customInput = document.getElementById('add-kategori-custom-input');
+      const finalInput = document.getElementById('add-kategori-final');
+
+      if (select.value === '__custom__') {
+        customContainer.style.display = 'block';
+        customInput.focus();
+        finalInput.value = '';
+      } else {
+        customContainer.style.display = 'none';
+        customInput.value = '';
+        finalInput.value = select.value;
+      }
+    }
+
+    // Toggle kategori custom untuk form EDIT
+    window.toggleEditKategoriCustom = function() {
+      const select = document.getElementById('edit-kategori-select');
+      const customContainer = document.getElementById('edit-kategori-custom-container');
+      const customInput = document.getElementById('edit-kategori-custom-input');
+      const finalInput = document.getElementById('edit-kategori-final');
+
+      if (select.value === '__custom__') {
+        customContainer.style.display = 'block';
+        customInput.focus();
+        finalInput.value = '';
+      } else {
+        customContainer.style.display = 'none';
+        customInput.value = '';
+        finalInput.value = select.value;
+      }
+    }
+
+    // Update final input saat mengetik kategori custom
+    const addCustomInput = document.getElementById('add-kategori-custom-input');
+    const addFinalInput = document.getElementById('add-kategori-final');
+    if (addCustomInput && addFinalInput) {
+      addCustomInput.addEventListener('input', function() {
+        addFinalInput.value = this.value;
+      });
+    }
+
+    const editCustomInput = document.getElementById('edit-kategori-custom-input');
+    const editFinalInput = document.getElementById('edit-kategori-final');
+    if (editCustomInput && editFinalInput) {
+      editCustomInput.addEventListener('input', function() {
+        editFinalInput.value = this.value;
+      });
     }
     // Category filter
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -510,7 +577,26 @@ window.setPaymentMethod = function(method){
       // Set basic info
       document.getElementById('editNama').value = card.dataset.nama;
       document.getElementById('editHarga').value = card.dataset.harga;
-      document.getElementById('editKategori').value = card.dataset.kategori;
+
+      // Set kategori dengan support custom kategori
+      const kategoriValue = card.dataset.kategori;
+      const editKategoriSelect = document.getElementById('edit-kategori-select');
+      const editKategoriFinal = document.getElementById('edit-kategori-final');
+
+      // Cek apakah kategori ada di dropdown
+      const optionExists = Array.from(editKategoriSelect.options).some(opt => opt.value === kategoriValue);
+
+      if (optionExists) {
+        editKategoriSelect.value = kategoriValue;
+        editKategoriFinal.value = kategoriValue;
+      } else {
+        // Kategori custom, tampilkan input custom
+        editKategoriSelect.value = '__custom__';
+        toggleEditKategoriCustom();
+        document.getElementById('edit-kategori-custom-input').value = kategoriValue;
+        editKategoriFinal.value = kategoriValue;
+      }
+
       document.getElementById('editDeskripsi').value = card.dataset.deskripsi;
       document.getElementById('edit-foto-img').src = card.querySelector('img').src;
       document.getElementById('editForm').action = `/menu/${currentCardId}`;
@@ -550,12 +636,12 @@ window.setPaymentMethod = function(method){
     });
 
     window.setPayment = function(amount) {
-        document.getElementById('customPay').value = amount;
+      document.getElementById('customPay').value = amount;
 
-        // hanya set tunai jika user benar-benar mau tunai
-        if (amount > 0 || amount === 0) {
-            window.paymentMethod = 'tunai';
-        }
+      // hanya set tunai jika user benar-benar mau tunai
+      if (amount > 0 || amount === 0) {
+        window.paymentMethod = 'tunai';
+      }
     }
 
     window.processPayment = function() {
@@ -589,8 +675,8 @@ window.setPaymentMethod = function(method){
       // 🟢 1. Jika pembayaran tunai → cek customPay
       if (paymentMethod === 'tunai') {
         if (customPay < total) {
-            window.showNotification('error', 'Pembayaran gagal, nominal tunai kurang!');
-            return;
+          window.showNotification('error', 'Pembayaran gagal, nominal tunai kurang!');
+          return;
         }
 
         // Simpan transaksi tunai
@@ -600,76 +686,76 @@ window.setPaymentMethod = function(method){
       // 🟢 2. Jika pembayaran QRIS/Midtrans → abaikan customPay
       if (paymentMethod === 'qris') {
         fetch('{{ route("payment.snap") }}', {
-          method: 'POST',
-          headers: {
+            method: 'POST',
+            headers: {
               'Content-Type': 'application/json',
               'X-CSRF-TOKEN': '{{ csrf_token() }}'
-          },
-          body: JSON.stringify({
+            },
+            body: JSON.stringify({
               items: cart.map(c => ({
-                  id: c.id,
-                  qty: c.qty
+                id: c.id,
+                qty: c.qty
               })),
               total: total,
               metode: 'QRIS'
+            })
           })
-        })
-        .then(res => res.json())
-        .then(data => {
-          snap.pay(data.snapToken, {
-            onSuccess: function(result) {
-              window.showNotification('success', 'Pembayaran Berhasil!');
-              saveTransaksiKeDatabase(cart, total, 'QRIS');
-            },
-            onPending: function(result){
-              window.showNotification('error', 'Menunggu pembayaran…');
-            },
-            onError: function(result){
-              winddow.showNotification('error', 'Pembayaran gagal!');
-            }
+          .then(res => res.json())
+          .then(data => {
+            snap.pay(data.snapToken, {
+              onSuccess: function(result) {
+                window.showNotification('success', 'Pembayaran Berhasil!');
+                saveTransaksiKeDatabase(cart, total, 'QRIS');
+              },
+              onPending: function(result) {
+                window.showNotification('error', 'Menunggu pembayaran…');
+              },
+              onError: function(result) {
+                winddow.showNotification('error', 'Pembayaran gagal!');
+              }
+            });
+          })
+          .catch(err => {
+            console.error(err);
+            window.showNotification('error', 'Gagal membuat transaksi digital!');
           });
-        })
-        .catch(err => {
-          console.error(err);
-          window.showNotification('error', 'Gagal membuat transaksi digital!');
-        });
       }
-  }
+    }
 
     function saveTransaksiKeDatabase(cart, total, metode) {
       fetch('{{ route("transaksi.store") }}', {
           method: 'POST',
           headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
           },
           body: JSON.stringify({
-              items: cart.map(c => ({
-                  id: c.id,
-                  qty: c.qty
-              })),
-              total: total,
-              metode: metode
+            items: cart.map(c => ({
+              id: c.id,
+              qty: c.qty
+            })),
+            total: total,
+            metode: metode
           })
-      })
-      .then(res => res.json())
-      .then(data => {
+        })
+        .then(res => res.json())
+        .then(data => {
           showNotification('success', 'Transaksi berhasil disimpan!');
           resetTransaksi(true);
-      })
-      .catch(err => {
+        })
+        .catch(err => {
           showNotification('error', 'Gagal menyimpan transaksi!');
-      });
+        });
     }
 
-      window.filterProduk = function() {
-        const keyword = document.getElementById("searchProduk").value.toLowerCase().trim();
-        document.querySelectorAll(".produk-card").forEach(card => {
-          if (card.classList.contains("add-card")) return;
-          const nama = card.dataset.nama.toLowerCase();
-          card.style.display = (!keyword || nama.includes(keyword)) ? "block" : "none";
-        });
-      }
+    window.filterProduk = function() {
+      const keyword = document.getElementById("searchProduk").value.toLowerCase().trim();
+      document.querySelectorAll(".produk-card").forEach(card => {
+        if (card.classList.contains("add-card")) return;
+        const nama = card.dataset.nama.toLowerCase();
+        card.style.display = (!keyword || nama.includes(keyword)) ? "block" : "none";
+      });
+    }
 
     function createBahanRow(selectedId = '', jumlah = '') {
       const row = document.createElement('div');
