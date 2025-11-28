@@ -66,12 +66,17 @@ Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
         Route::delete('/pegawai/{id}', [PegawaiController::class, 'destroy'])->name('pegawai.destroy');
 
         // Stok
+        // Stok
         Route::get('/stok', [StokController::class, 'index'])->name('stok.index');
         Route::get('/stok/tambah', [StokController::class, 'create'])->name('stok.create');
         Route::post('/stok', [StokController::class, 'store'])->name('stok.store');
         Route::get('/stok/edit/{id}', [StokController::class, 'edit'])->name('stok.edit');
         Route::put('/stok/{id}', [StokController::class, 'update'])->name('stok.update');
         Route::delete('/stok/{id}', [StokController::class, 'destroy'])->name('stok.destroy');
+
+        // 💥 Tambahkan ini untuk export PDF
+        Route::get('/stok/export/pdf', [StokController::class, 'exportPDF'])->name('stok.export.pdf');
+
 
         // Member
         Route::get('/member', [MemberController::class, 'index'])->name('member.index');
@@ -107,6 +112,8 @@ Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
         Route::get('/stok', [StokController::class, 'index'])->name('stok.index');
         Route::get('/stok/edit/{id}', [StokController::class, 'edit'])->name('stok.edit');
         Route::put('/stok/{id}', [StokController::class, 'update'])->name('stok.update');
+        Route::get('/stok/export/pdf', [StokController::class, 'exportPDF'])->name('stok.export.pdf');
+
     });
 
 
