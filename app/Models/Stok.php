@@ -17,6 +17,7 @@ class Stok extends Model
         'Nama',
         'Jumlah_Item',
         'Kategori',
+        'Status',
         'Created_At',
         'Updated_At',
     ];

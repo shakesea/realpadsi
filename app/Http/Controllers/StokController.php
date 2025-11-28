@@ -4,25 +4,44 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Stok;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class StokController extends Controller
 {
-    // Tampilkan Data Stok
-    public function index()
+    // ===== Helper Status Stok =====
+    private function getStatus($jumlah)
     {
-        $stokData = Stok::orderBy('ID_Barang')->get();
-        return view('stok', compact('stokData'));
+        if ($jumlah == 0) {
+            return 'Habis';
+        } elseif ($jumlah <= 200) {
+            return 'Menipis';
+        } else {
+            return 'Aman';
+        }
     }
 
-    // Form Tambah
+    // ===== Tampilkan Data Stok =====
+    public function index(Request $request)
+    {
+        $filter = $request->query('status');
+
+        $stokData = Stok::when($filter, function ($query) use ($filter) {
+            return $query->where('Status', $filter);
+        })->orderBy('ID_Barang')->get();
+
+        return view('stok', compact('stokData', 'filter'));
+    }
+
+
+    // ===== Form Tambah =====
     public function create()
     {
         return view('tambahstok');
     }
 
-    // Simpan Data
+    // ===== Simpan Data Baru =====
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -32,33 +51,42 @@ class StokController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()->with('error', 'Perubahan Gagal di Simpan. Data Tidak Valid atau Kosong')->withInput();
+            return redirect()->back()
+                ->with('error', 'Perubahan Gagal di Simpan. Data Tidak Valid atau Kosong')
+                ->withInput();
         }
 
+        // Generate ID STOK
         $last = Stok::orderBy('ID_Barang', 'desc')->first();
         $lastNumber = $last ? intval(substr($last->ID_Barang, 4)) : 0;
         $newId = 'STOK' . str_pad($lastNumber + 1, 2, '0', STR_PAD_LEFT);
 
+        // Hitung status otomatis
+        $status = $this->getStatus($request->jumlah);
+
+        // Insert data
         Stok::create([
-            'ID_Barang' => $newId,
-            'Nama' => $request->nama,
+            'ID_Barang'   => $newId,
+            'Nama'        => $request->nama,
             'Jumlah_Item' => $request->jumlah,
-            'Kategori' => $request->kategori,
-            'Created_At' => now(),
-            'Updated_At' => now(),
+            'Kategori'    => $request->kategori,
+            'Status'      => $status,
+            'Created_At'  => now(),
+            'Updated_At'  => now(),
         ]);
 
-        return redirect()->route('stok.index')->with('success', 'Stok baru berhasil ditambahkan!');
+        return redirect()->route('stok.index')
+            ->with('success', 'Stok baru berhasil ditambahkan!');
     }
 
-    // Form Edit
+    // ===== Form Edit =====
     public function edit($id)
     {
         $stokItem = Stok::where('ID_Barang', $id)->firstOrFail();
         return view('editstok', compact('stokItem'));
     }
 
-    // Update Data
+    // ===== Update Data =====
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
@@ -68,26 +96,51 @@ class StokController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()->with('error', 'Perubahan Gagal di Simpan. Data Tidak Valid atau Kosong')->withInput();
+            return redirect()->back()
+                ->with('error', 'Perubahan Gagal di Simpan. Data Tidak Valid atau Kosong')
+                ->withInput();
         }
 
         $stokItem = Stok::where('ID_Barang', $id)->firstOrFail();
+
+        // Hitung ulang status berdasarkan stok baru
+        $status = $this->getStatus($request->jumlah);
+
         $stokItem->update([
-            'Nama' => $request->nama,
+            'Nama'        => $request->nama,
             'Jumlah_Item' => $request->jumlah,
-            'Kategori' => $request->kategori,
-            'Updated_At' => now(),
+            'Kategori'    => $request->kategori,
+            'Status'      => $status,
+            'Updated_At'  => now(),
         ]);
 
-        return redirect()->route('stok.index')->with('success', 'Data stok berhasil diperbarui!');
+        return redirect()->route('stok.index')
+            ->with('success', 'Data stok berhasil diperbarui!');
     }
 
-    // Hapus Data
+    public function exportPDF(Request $request)
+    {
+        $filter = $request->query('status');
+
+        $stokData = Stok::when($filter, function ($query) use ($filter) {
+            return $query->where('Status', $filter);
+        })->orderBy('ID_Barang')->get();
+
+        $pdf = Pdf::loadView('pdf.stok_report', compact('stokData', 'filter'))
+                ->setPaper('a4', 'portrait');
+
+        return $pdf->download('laporan_stok.pdf');
+    }
+
+
+
+    // ===== Hapus Data =====
     public function destroy($id)
     {
         $stokItem = Stok::where('ID_Barang', $id)->firstOrFail();
         $stokItem->delete();
 
-        return redirect()->route('stok.index')->with('success', 'Data stok berhasil dihapus!');
+        return redirect()->route('stok.index')
+            ->with('success', 'Data stok berhasil dihapus!');
     }
 }
