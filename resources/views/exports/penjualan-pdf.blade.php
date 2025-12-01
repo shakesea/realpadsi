@@ -139,6 +139,10 @@
             <h4>Transaksi Tertinggi</h4>
             <div class="value">Rp {{ number_format($laporan->max('total'), 0, ',', '.') }}</div>
         </div>
+        <div class="summary-box">
+            <h4>Total Pendapatan</h4>
+            <div class="value">Rp {{ number_format($laporan->sum('total'), 0, ',', '.') }}</div>
+        </div>
     </div>
     @endif
 

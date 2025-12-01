@@ -45,15 +45,6 @@
             transition: transform .3s ease;
             z-index: 9990;
         }
-
-        /* ========================= MAIN ========================= */
-        .main {
-            margin-top: 80px;
-            margin-left: 260px;
-            padding: 20px;
-            transition: all .3s ease;
-        }
-
         /* Saat sidebar collapse: MAIN FULL LEBAR */
         body.sidebar-hidden .sidebar {
             transform: translateX(-260px);
