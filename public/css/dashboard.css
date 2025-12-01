@@ -1,132 +1,50 @@
 /* =======================================
-   GENERAL LAYOUT
+   FIX: Chart sejajar & tajam
 ======================================= */
-.section-title {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
-
-/* =======================================
-   FILTER BAR
-======================================= */
-.filter-bar {
+.chart-row {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;   /* ✅ sejajarkan atas, bukan stretch */
+  gap: 30px;
+  margin: 40px 0;
 }
 
-.filter-btn {
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 8px 16px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-/* =======================================
-   SUMMARY CARDS GRID
-======================================= */
-.cards {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  grid-template-rows: auto auto;
-  gap: 15px;
-  margin-bottom: 30px;
-}
-
-.card-large {
-  grid-row: span 2;
-}
-
-/* CARD STYLE */
-.card {
-  background: white;
+.chart-box-small {
+  flex: 1 1 45%;
+  background: #fff;
+  border-radius: 12px;
   padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #dadada;
-}
-
-.card p {
-  font-size: 14px;
-  color: #444;
-  margin-bottom: 5px;
-}
-
-.card h3 {
-  font-size: 22px;
-  color: #000000;
-  margin: 0;
-}
-
-/* =======================================
-   CHART TITLES
-======================================= */
-.subtitle {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-/* =======================================
-   MAIN CHART BOX (Line Chart)
-======================================= */
-.chart-box {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  margin-bottom: 30px;
-}
-
-/* =======================================
-   STOCK STATUS CHART AREA (Donut Chart)
-======================================= */
-
-/* Wrapper untuk seluruh bagian grafik kecil */
-.chart-section {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 25px;
+  justify-content: center;
+  min-height: 400px;         /* ✅ tinggi minimum biar sejajar */
 }
 
-/* Kotak kecil untuk donut chart */
-.chart-small {
-  max-width: 380px;      /* Biar tidak melebar */
+/* Perbaiki blur & proporsi */
+.chart-box-small canvas {
   width: 100%;
+  height: auto;           /* ✅ biarkan tinggi menyesuaikan rasio */
+  aspect-ratio: 16 / 9;   /* ✅ menjaga proporsi chart */
+  max-height: 350px;      /* ✅ batasi supaya nggak terlalu tinggi */
 }
 
-/* Box kecil untuk donut chart (card version) */
-.chart-box-small {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  width: 100%;
-}
-
-/* =======================================
-   RESPONSIVE MODE
-======================================= */
+/* Responsif (mobile) */
 @media (max-width: 900px) {
-  .cards {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto;
+  .chart-row {
+    flex-direction: column;
+    align-items: center;
   }
-
-  .card-large {
-    grid-row: span 1;
+  .chart-box-small {
+    width: 90%;
   }
 }
 
-@media (max-width: 600px) {
-  .cards {
-    grid-template-columns: 1fr;
-  }
-
-  .filter-bar {
-    flex-wrap: wrap;
-  }
+/* Supaya chart tajam di semua resolusi */
+canvas {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
 }

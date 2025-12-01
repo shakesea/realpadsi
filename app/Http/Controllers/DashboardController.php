@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\TransaksiPenjualan;
 use App\Models\Stok;
+use App\Models\Member;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -45,6 +47,24 @@ class DashboardController extends Controller
         $stokHabis = Stok::where('Status', 'Habis')->count();
 
         // ============================
+        // 4. GRAFIK MEMBER PER BULAN (Bar)
+        // ============================
+
+        $membersPerMonth = Member::selectRaw('MONTH(Created_At) as month, COUNT(*) as total')
+            ->whereYear('Created_At', date('Y'))
+            ->groupBy('month')
+            ->orderBy('month', 'asc')
+            ->get();
+
+        $memberLabels = [];
+        $memberData = [];
+
+        for ($i = 1; $i <= 12; $i++) {
+            $memberLabels[] = Carbon::create()->month($i)->format('F');
+            $memberData[] = $membersPerMonth->firstWhere('month', $i)->total ?? 0;
+        }
+
+        // ============================
         // RETURN VIEW
         // ============================
 
@@ -58,7 +78,9 @@ class DashboardController extends Controller
             'data',
             'stokAman',
             'stokMenipis',
-            'stokHabis'
+            'stokHabis',
+            'memberLabels',
+            'memberData'
         ));
     }
 }

@@ -5,7 +5,6 @@
 @section('content')
 
 <div class="container">
-
     <div class="dashboard">
 
         <h2 class="section-title">Ringkasan Penjualan</h2>
@@ -50,10 +49,20 @@
             <canvas id="salesChart"></canvas>
         </div>
 
-        <!-- Grafik Stok -->
-        <h2 class="subtitle">Distribusi Status Stok</h2>
-        <div class="chart-box" style="max-width: 500px; margin: auto;">
-            <canvas id="stokChart"></canvas>
+        <!-- Grafik Stok & Member sejajar -->
+        <h2 class="subtitle">Distribusi Stok & Jumlah Member</h2>
+        <div class="chart-row">
+            <!-- Grafik Stok -->
+            <div class="chart-box-small">
+                <h4 class="text-center mb-2">Distribusi Status Stok</h4>
+                <canvas id="stokChart"></canvas>
+            </div>
+
+            <!-- Grafik Member -->
+            <div class="chart-box-small">
+                <h4 class="text-center mb-2">Jumlah Member Baru per Bulan ({{ date('Y') }})</h4>
+                <canvas id="memberChart"></canvas>
+            </div>
         </div>
 
     </div>
@@ -62,12 +71,16 @@
 <!-- Chart JS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<!-- Pastikan chart tampil tajam di layar resolusi tinggi -->
+<script>
+Chart.defaults.devicePixelRatio = window.devicePixelRatio || 1;
+</script>
+
 <script>
 /* -------------------------
    GRAFIK PENJUALAN (LINE)
 -------------------------- */
 const salesCtx = document.getElementById('salesChart');
-
 new Chart(salesCtx, {
     type: 'line',
     data: {
@@ -76,14 +89,15 @@ new Chart(salesCtx, {
             label: 'Total Penjualan',
             data: {!! json_encode($data) !!},
             borderWidth: 2,
-            borderColor: 'rgba(75,192,192,1)',
-            backgroundColor: 'rgba(75,192,192,0.2)',
+            borderColor: '#1DB954',
+            backgroundColor: 'rgba(29,185,84,0.15)',
             fill: true,
             tension: 0.3
         }]
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
         scales: {
             y: { beginAtZero: true }
         }
@@ -95,7 +109,6 @@ new Chart(salesCtx, {
    GRAFIK STATUS STOK (DONUT)
 ------------------------------ */
 const stokCtx = document.getElementById('stokChart');
-
 new Chart(stokCtx, {
     type: 'doughnut',
     data: {
@@ -106,20 +119,47 @@ new Chart(stokCtx, {
                 {{ $stokMenipis ?? 0 }},
                 {{ $stokHabis ?? 0 }}
             ],
-            backgroundColor: [
-                '#4CAF50',
-                '#FFC107',
-                '#F44336'
-            ],
+            backgroundColor: ['#2ECC71', '#F1C40F', '#E74C3C'],
             hoverOffset: 8
         }]
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
-            legend: {
-                position: 'bottom'
+            legend: { position: 'bottom' }
+        }
+    }
+});
+
+
+/* -----------------------------
+   GRAFIK MEMBER PER BULAN (BAR)
+------------------------------ */
+const memberCtx = document.getElementById('memberChart');
+new Chart(memberCtx, {
+    type: 'bar',
+    data: {
+        labels: {!! json_encode($memberLabels) !!},
+        datasets: [{
+            label: 'Jumlah Member Baru',
+            data: {!! json_encode($memberData) !!},
+            backgroundColor: 'rgba(40, 167, 69, 0.6)',
+            borderColor: 'rgba(40, 167, 69, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { precision: 0 }
             }
+        },
+        plugins: {
+            legend: { display: false }
         }
     }
 });
