@@ -1,11 +1,51 @@
 /* =======================================
-   FIX: Chart sejajar & tajam
+   FILTER BAR
+======================================= */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  background: #f5f5f5;
+}
+
+.btn-filter {
+  background: #33aa33;
+  color: white;
+  border: none;
+}
+
+.btn-filter:hover {
+  background: #2b922b;
+}
+
+.btn-filter:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* =======================================
+   CHART CONTAINERS
 ======================================= */
 .chart-row {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  align-items: flex-start;   /* ✅ sejajarkan atas, bukan stretch */
+  align-items: flex-start; /* sejajarkan atas */
   gap: 30px;
   margin: 40px 0;
 }
@@ -20,71 +60,55 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;         /* ✅ tinggi minimum biar sejajar */
+  min-height: 400px; /* tinggi minimum agar sejajar */
 }
 
-/* Perbaiki blur & proporsi */
+/* Chart canvas proporsional dan tajam */
 .chart-box-small canvas {
   width: 100%;
-  height: auto;           /* ✅ biarkan tinggi menyesuaikan rasio */
-  aspect-ratio: 16 / 9;   /* ✅ menjaga proporsi chart */
-  max-height: 350px;      /* ✅ batasi supaya nggak terlalu tinggi */
+  height: auto;
+  aspect-ratio: 16 / 9;
+  max-height: 350px;
 }
 
-/* Responsif (mobile) */
+/* =======================================
+   CHART LOADER
+======================================= */
+.chart-loader {
+  display: none;
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #1DB954;
+  font-size: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* =======================================
+   RESPONSIVE MODE
+======================================= */
 @media (max-width: 900px) {
   .chart-row {
     flex-direction: column;
     align-items: center;
   }
+
   .chart-box-small {
     width: 90%;
+    min-height: 350px;
   }
 }
 
-/* Supaya chart tajam di semua resolusi */
+/* =======================================
+   CHART QUALITY
+======================================= */
 canvas {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
   image-rendering: pixelated;
-}
-
-
-.filter-bar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.filter-btn {
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    padding: 8px 16px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.chart-row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 30px;
-    margin: 40px 0;
-}
-
-.chart-box-small {
-    flex: 1 1 45%;
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    min-height: 380px;
-}
-
-.chart-box-small canvas {
-    width: 100% !important;
-    height: 300px !important;
 }
