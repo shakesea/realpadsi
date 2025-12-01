@@ -11,45 +11,38 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
+    /**
+     * ===============================
+     *  DASHBOARD UTAMA (GET)
+     * ===============================
+     */
     public function index()
     {
-        // ============================
-        // 1. CARD SUMMARY
-        // ============================
-
+        // 1️⃣ CARD SUMMARY
         $totalPenjualan = TransaksiPenjualan::sum('TotalHarga');
         $jumlahTransaksi = TransaksiPenjualan::count();
         $rataRata = TransaksiPenjualan::avg('TotalHarga');
-        $totalBiaya = 0; // Bisa dibuat dinamis nanti
+        $totalBiaya = 0;
         $labaKotor = $totalPenjualan * 0.3;
 
-        // ============================
-        // 2. GRAFIK PENJUALAN (Line)
-        // ============================
-
+        // 2️⃣ GRAFIK PENJUALAN (Line Chart)
         $penjualanPerTanggal = TransaksiPenjualan::select(
             DB::raw('DATE(Tgl_Penjualan) as tanggal'),
             DB::raw('SUM(TotalHarga) as total')
         )
-        ->groupBy(DB::raw('DATE(Tgl_Penjualan)'))
-        ->orderBy(DB::raw('DATE(Tgl_Penjualan)'), 'ASC')
-        ->get();
+            ->groupBy(DB::raw('DATE(Tgl_Penjualan)'))
+            ->orderBy(DB::raw('DATE(Tgl_Penjualan)'), 'ASC')
+            ->get();
 
         $labels = $penjualanPerTanggal->pluck('tanggal');
         $data = $penjualanPerTanggal->pluck('total');
 
-        // ============================
-        // 3. GRAFIK DONUT STATUS STOK
-        // ============================
-
+        // 3️⃣ GRAFIK STOK (Donut)
         $stokAman = Stok::where('Status', 'Aman')->count();
         $stokMenipis = Stok::where('Status', 'Menipis')->count();
         $stokHabis = Stok::where('Status', 'Habis')->count();
 
-        // ============================
-        // 4. GRAFIK MEMBER PER BULAN (Bar)
-        // ============================
-
+        // 4️⃣ GRAFIK MEMBER (Bar)
         $membersPerMonth = Member::selectRaw('MONTH(Created_At) as month, COUNT(*) as total')
             ->whereYear('Created_At', date('Y'))
             ->groupBy('month')
@@ -63,10 +56,6 @@ class DashboardController extends Controller
             $memberLabels[] = Carbon::create()->month($i)->format('F');
             $memberData[] = $membersPerMonth->firstWhere('month', $i)->total ?? 0;
         }
-
-        // ============================
-        // RETURN VIEW
-        // ============================
 
         return view('dashboard', compact(
             'totalPenjualan',
@@ -82,5 +71,74 @@ class DashboardController extends Controller
             'memberLabels',
             'memberData'
         ));
+    }
+
+    /**
+     * ===============================
+     *  AJAX FILTER (POST)
+     * ===============================
+     */
+    public function filterAjax(Request $request)
+    {
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+
+        // pastikan format tanggal valid
+        if (!$start_date || !$end_date) {
+            $start_date = date('Y-m-01');
+            $end_date = date('Y-m-t');
+        }
+
+        // 1️⃣ FILTER PENJUALAN
+        $query = TransaksiPenjualan::query()
+            ->whereDate('Tgl_Penjualan', '>=', $start_date)
+            ->whereDate('Tgl_Penjualan', '<=', $end_date);
+
+        $totalPenjualan = $query->sum('TotalHarga');
+        $jumlahTransaksi = $query->count();
+        $rataRata = $jumlahTransaksi > 0 ? $totalPenjualan / $jumlahTransaksi : 0;
+        $labaKotor = $totalPenjualan * 0.3;
+        $totalBiaya = 0;
+
+        $penjualanPerTanggal = $query->selectRaw('DATE(Tgl_Penjualan) as tanggal, SUM(TotalHarga) as total')
+            ->groupBy('tanggal')
+            ->orderBy('tanggal')
+            ->get();
+
+        $labels = $penjualanPerTanggal->pluck('tanggal');
+        $data = $penjualanPerTanggal->pluck('total');
+
+        // 2️⃣ FILTER MEMBER
+        $memberDataRaw = Member::selectRaw('MONTH(Created_At) as bulan, COUNT(*) as total')
+            ->whereDate('Created_At', '>=', $start_date)
+            ->whereDate('Created_At', '<=', $end_date)
+            ->groupBy('bulan')
+            ->pluck('total', 'bulan');
+
+        $memberLabels = collect(range(1, 12))->map(fn($m) => date('F', mktime(0, 0, 0, $m, 1)));
+        $memberData = $memberLabels->map(fn($_, $i) => $memberDataRaw[$i + 1] ?? 0);
+
+        // 3️⃣ STATUS STOK
+        $stokAman = Stok::where('Status', 'Aman')->count();
+        $stokMenipis = Stok::where('Status', 'Menipis')->count();
+        $stokHabis = Stok::where('Status', 'Habis')->count();
+
+        // 4️⃣ RETURN JSON
+        return response()->json([
+            'totalPenjualan' => number_format($totalPenjualan, 0, ',', '.'),
+            'jumlahTransaksi' => $jumlahTransaksi,
+            'rataRata' => number_format($rataRata, 0, ',', '.'),
+            'labaKotor' => number_format($labaKotor, 0, ',', '.'),
+            'totalBiaya' => number_format($totalBiaya, 0, ',', '.'),
+            'labels' => $labels,
+            'data' => $data,
+            'memberLabels' => $memberLabels,
+            'memberData' => $memberData,
+            'stok' => [
+                'Aman' => $stokAman,
+                'Menipis' => $stokMenipis,
+                'Habis' => $stokHabis,
+            ],
+        ]);
     }
 }

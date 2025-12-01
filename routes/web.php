@@ -33,12 +33,11 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 |
 | HARUS DILETAKKAN DI SINI SUPAYA TIDAK KENA REDIRECT LOGIN!
 | Jika Snap.js menerima HTML redirect login, akan muncul
-|  “Unexpected token < in JSON”.
+| “Unexpected token < in JSON”.
 |
 */
 Route::post('/payment/snap', [PaymentController::class, 'createSnap'])
     ->name('payment.snap');
-
 
 /*
 |--------------------------------------------------------------------------
@@ -47,10 +46,17 @@ Route::post('/payment/snap', [PaymentController::class, 'createSnap'])
 */
 Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
 
-    // Dashboard (semua role)
+    /*
+    |--------------------------------------------------------------------------
+    | DASHBOARD (Semua Role)
+    |--------------------------------------------------------------------------
+    */
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
+    // ✅ Route AJAX filter untuk dashboard
+    Route::post('/dashboard/filter/ajax', [DashboardController::class, 'filterAjax'])
+        ->name('dashboard.filter.ajax');
 
     /*
     |--------------------------------------------------------------------------
@@ -66,17 +72,13 @@ Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
         Route::delete('/pegawai/{id}', [PegawaiController::class, 'destroy'])->name('pegawai.destroy');
 
         // Stok
-        // Stok
         Route::get('/stok', [StokController::class, 'index'])->name('stok.index');
         Route::get('/stok/tambah', [StokController::class, 'create'])->name('stok.create');
         Route::post('/stok', [StokController::class, 'store'])->name('stok.store');
         Route::get('/stok/edit/{id}', [StokController::class, 'edit'])->name('stok.edit');
         Route::put('/stok/{id}', [StokController::class, 'update'])->name('stok.update');
         Route::delete('/stok/{id}', [StokController::class, 'destroy'])->name('stok.destroy');
-
-        // 💥 Tambahkan ini untuk export PDF
         Route::get('/stok/export/pdf', [StokController::class, 'exportPDF'])->name('stok.export.pdf');
-
 
         // Member
         Route::get('/member', [MemberController::class, 'index'])->name('member.index');
@@ -86,15 +88,14 @@ Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
         // Penjualan
         Route::get('/penjualan', [LaporanController::class, 'index'])->name('penjualan.index');
 
-        // Transaksi
+        // Transaksi Penjualan
         Route::post('/transaksi/store', [TransaksiPenjualanController::class, 'store'])
             ->name('transaksi.store');
     });
 
-
     /*
     |--------------------------------------------------------------------------
-    | PEGAWAI (Akses Kasir + Stok readonly)
+    | PEGAWAI
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:pegawai')->group(function () {
@@ -108,14 +109,12 @@ Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
         Route::get('/kasir/members/json', [MemberController::class, 'listForKasir'])
             ->name('kasir.members.json');
 
-        // Stok edit untuk pegawai
+        // Stok (readonly edit)
         Route::get('/stok', [StokController::class, 'index'])->name('stok.index');
         Route::get('/stok/edit/{id}', [StokController::class, 'edit'])->name('stok.edit');
         Route::put('/stok/{id}', [StokController::class, 'update'])->name('stok.update');
         Route::get('/stok/export/pdf', [StokController::class, 'exportPDF'])->name('stok.export.pdf');
-
     });
-
 
     /*
     |--------------------------------------------------------------------------
@@ -126,7 +125,6 @@ Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
         Route::get('/penjualan', [LaporanController::class, 'index'])
             ->name('penjualan.index');
     });
-
 
     /*
     |--------------------------------------------------------------------------
@@ -144,13 +142,11 @@ Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
             ->name('menu.bahan');
     });
 
-
     /*
     |--------------------------------------------------------------------------
     | IMPORT PENJUALAN
     |--------------------------------------------------------------------------
     */
-    // Tangani GET request (redirect atau show pending import)
     Route::get('/penjualan/import', [LaporanController::class, 'showImport'])
         ->name('penjualan.import.show');
 

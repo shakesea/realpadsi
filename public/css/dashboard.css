@@ -48,3 +48,43 @@ canvas {
   image-rendering: crisp-edges;
   image-rendering: pixelated;
 }
+
+
+.filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.chart-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    margin: 40px 0;
+}
+
+.chart-box-small {
+    flex: 1 1 45%;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    min-height: 380px;
+}
+
+.chart-box-small canvas {
+    width: 100% !important;
+    height: 300px !important;
+}
