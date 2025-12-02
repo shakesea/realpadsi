@@ -16,10 +16,24 @@
 @endif
 
 <div class="member-container">
-  <form method="GET" action="{{ route('member.index') }}" class="search-box">
-    <input type="text" name="q" placeholder="Cari nama / email..." value="{{ request('q') }}">
-    <button type="submit">Search</button>
+
+  <!-- 🔍 Form Search -->
+  <form method="GET" action="{{ route('member.index') }}" class="search-box" id="searchForm">
+    <input type="text" name="q" placeholder="Cari nama / email..." value="{{ request('q') }}" id="searchInput">
+    <button type="submit" id="searchButton">Search</button>
   </form>
+
+  <!-- 🔄 Loader -->
+  <div id="loadingIndicator" class="loading" style="display:none;">
+      🔄 Memuat data...
+  </div>
+
+  <!-- ⚠️ Pesan Jika Kosong -->
+  @if($members->isEmpty())
+    <p class="no-result">⚠️ Tidak ada member yang cocok dengan pencarian.</p>
+  @endif
+
+  <!-- 🧩 Grid Member -->
   <div class="member-grid">
     @foreach($members as $m)
       <div class="member-card green-card" onclick="openDeleteModal('{{ $m['id'] }}', '{{ $m['nama'] }}', '{{ $m['email'] }}')">
@@ -28,6 +42,7 @@
           <p>{{ \Carbon\Carbon::parse($m['tanggal'])->format('d/m/Y') }}</p>
           <p>{{ $m['email'] }}</p>
         </div>
+        
         <div class="member-footer">
           <p><strong>Total Points : {{ $m['poin'] }}</strong></p>
           <img src="{{ asset('img/NutaPOS_Logo.png') }}" alt="logo" class="member-badge">
@@ -53,11 +68,10 @@
         <input type="email" name="email" placeholder="Email" required>
         <input type="text" name="alamat" placeholder="Alamat">
         <div class="modal-buttons">
-        <button type="button" class="btn-cancel" onclick="closeModal()">Kembali</button>
-        <button type="submit" class="btn-green">Buat Baru</button>
-    </div>
+          <button type="button" class="btn-cancel" onclick="closeModal()">Kembali</button>
+          <button type="submit" class="btn-green">Buat Baru</button>
+        </div>
     </form>
-
   </div>
 </div>
 
@@ -77,12 +91,15 @@
   </div>
 </div>
 
+<!-- ======================= -->
+<!-- 💡 SCRIPT -->
+<!-- ======================= -->
 <script>
 function openAddModal() {
   document.getElementById('addMemberModal').style.display = 'flex';
 }
 
-function openDeleteModal(id, name, email) {
+function openDeleteModal(id) {
   document.getElementById('deleteMemberModal').style.display = 'flex';
   const form = document.getElementById('deleteMemberForm');
   form.action = `/member/${id}`;
@@ -92,5 +109,15 @@ function closeModal() {
   document.getElementById('addMemberModal').style.display = 'none';
   document.getElementById('deleteMemberModal').style.display = 'none';
 }
+
+// ======== Tampilkan loader saat search dijalankan ========
+document.getElementById('searchForm').addEventListener('submit', function() {
+  const loading = document.getElementById('loadingIndicator');
+  loading.style.display = 'block';
+  document.getElementById('searchButton').disabled = true;
+});
 </script>
+
+<link rel="stylesheet" href="{{ asset('css/member.css') }}">
+
 @endsection

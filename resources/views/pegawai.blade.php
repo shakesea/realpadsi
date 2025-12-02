@@ -31,8 +31,6 @@
                 </svg>
                 <input type="text" name="q" value="{{ $q ?? '' }}" placeholder="Cari Pelayan...">
             </form>
-
-            <p class="pegawai-sub">Tanpa Pelayan</p>
         </div>    
 
         <!-- Form Pegawai -->
