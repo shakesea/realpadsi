@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Menu;
 use App\Models\Stok;
 use App\Models\BahanPenyusun;
+use App\Models\Member;
 use Illuminate\Support\Facades\DB;
 
 class KasirController extends Controller
@@ -41,17 +42,14 @@ class KasirController extends Controller
 
         DB::beginTransaction();
         try {
-            // --- Simpan foto ---
             $fotoData = $request->hasFile('Foto')
                 ? file_get_contents($request->file('Foto')->getRealPath())
                 : null;
 
-            // --- Generate ID MENU ---
             $lastMenu = Menu::orderBy('ID_Menu', 'desc')->first();
             $lastNum = $lastMenu ? intval(substr($lastMenu->ID_Menu, 4)) : 0;
             $newId = 'MENU' . str_pad($lastNum + 1, 3, '0', STR_PAD_LEFT);
 
-            // --- Simpan ke tabel Menu ---
             Menu::create([
                 'ID_Menu' => $newId,
                 'Nama' => $request->Nama,
@@ -62,7 +60,6 @@ class KasirController extends Controller
                 'Updated_At' => now(),
             ]);
 
-            // --- Simpan ke tabel Bahan_Penyusun ---
             if ($request->has('bahan') && is_array($request->bahan)) {
                 $lastBP = BahanPenyusun::orderBy('ID_Penyusun', 'desc')->first();
                 $lastNumBP = $lastBP ? intval(substr($lastBP->ID_Penyusun, 2)) : 0;
@@ -120,16 +117,12 @@ class KasirController extends Controller
             $menu->Updated_At = now();
             $menu->save();
 
-            // Update bahan penyusun
             if ($request->has('bahan')) {
-                // Delete existing bahan
                 BahanPenyusun::where('ID_Menu', $id)->delete();
 
-                // Get last ID_Penyusun
                 $lastBP = BahanPenyusun::orderBy('ID_Penyusun', 'desc')->first();
                 $lastNumBP = $lastBP ? intval(substr($lastBP->ID_Penyusun, 2)) : 0;
 
-                // Add new bahan
                 foreach ($request->bahan as $i => $idBarang) {
                     if (!$idBarang) continue;
 
@@ -167,6 +160,29 @@ class KasirController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', '❌ Gagal menghapus produk!');
+        }
+    }
+
+    // ✅ 5️⃣ AMBIL DATA MEMBER (Untuk Modal Kasir)
+    public function getMembers()
+    {
+        try {
+            // Ambil sesuai nama kolom di database kamu (huruf besar semua)
+            $members = Member::select(
+                'ID_Member as id',
+                'Nama as nama',
+                'Email as email',
+                'No_Telepon as no_telp',
+                'Poin as poin'
+            )->get();
+
+            if ($members->isEmpty()) {
+                return response()->json([]);
+            }
+
+            return response()->json($members);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Gagal memuat data: ' . $e->getMessage()], 500);
         }
     }
 }

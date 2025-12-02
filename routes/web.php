@@ -105,6 +105,11 @@ Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
         Route::post('/transaksi/store', [TransaksiPenjualanController::class, 'store'])
             ->name('transaksi.store');
 
+        // ✅ Tambahkan ini: route JSON untuk ambil data member (fix error Route not defined)
+        Route::get('/kasir/members/json', [KasirController::class, 'getMembers'])
+            ->name('kasir.members.json');
+
+        // Member
         Route::get('/member', [MemberController::class, 'index'])
             ->name('member.index');
 
