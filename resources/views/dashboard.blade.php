@@ -12,8 +12,8 @@
         <!-- FILTER FORM -->
         <form method="POST" id="filterForm" action="{{ route('dashboard.filter.ajax') }}" class="filter-bar">
             @csrf
-            <input type="date" name="start_date" class="filter-btn" value="{{ date('Y-m-01') }}">
-            <input type="date" name="end_date" class="filter-btn" value="{{ date('Y-m-t') }}">
+            <input type="date" name="start_date" class="filter-btn" value="{{ request('start_date', $firstDate) }}">
+            <input type="date" name="end_date" class="filter-btn" value="{{ request('end_date', $today) }}">
             <button type="submit" class="filter-btn btn-filter" style="background:#33aa33;color:white;">
                 Terapkan Filter
             </button>

@@ -18,7 +18,11 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        // === 1️⃣ CARD SUMMARY ===
+        $firstDateRaw = TransaksiPenjualan::min('Tgl_Penjualan');
+        $firstDate = $firstDateRaw ? date('Y-m-d', strtotime($firstDateRaw)) : date('Y-m-d');
+        $today = date('Y-m-d');
+
+        // === CARD SUMMARY ===
         $totalPenjualan = TransaksiPenjualan::sum('TotalHarga');
         $jumlahTransaksi = TransaksiPenjualan::count();
         $rataRata = TransaksiPenjualan::avg('TotalHarga');
@@ -26,7 +30,7 @@ class DashboardController extends Controller
         $labaKotor = $totalPenjualan * 0.3;
         $totalMember = Member::count();
 
-        // === 2️⃣ GRAFIK PENJUALAN ===
+        // === GRAFIK PENJUALAN ===
         $penjualanPerTanggal = TransaksiPenjualan::select(
             DB::raw('DATE(Tgl_Penjualan) as tanggal'),
             DB::raw('SUM(TotalHarga) as total')
@@ -38,12 +42,12 @@ class DashboardController extends Controller
         $labels = $penjualanPerTanggal->pluck('tanggal');
         $data = $penjualanPerTanggal->pluck('total');
 
-        // === 3️⃣ STATUS STOK ===
+        // === STATUS STOK ===
         $stokAman = Stok::where('Status', 'Aman')->count();
         $stokMenipis = Stok::where('Status', 'Menipis')->count();
         $stokHabis = Stok::where('Status', 'Habis')->count();
 
-        // === 4️⃣ MEMBER BAR CHART ===
+        // === MEMBER BAR CHART ===
         $membersPerMonth = Member::selectRaw('MONTH(Created_At) as month, COUNT(*) as total')
             ->whereYear('Created_At', date('Y'))
             ->groupBy('month')
@@ -58,14 +62,14 @@ class DashboardController extends Controller
             $memberData[] = $membersPerMonth->firstWhere('month', $i)->total ?? 0;
         }
 
-        // === 5️⃣ TOP MEMBER ===
+        // === TOP MEMBER ===
         $topMembers = Member::orderBy('Poin', 'desc')->take(5)->get();
         $topMemberNames = $topMembers->pluck('Nama');
         $topMemberPoints = $topMembers->pluck('Poin');
 
-        // === 6️⃣ TOP STOK SERING DIGUNAKAN ===
+        // === TOP STOK ===
         $topStok = Stok::select('Nama', 'Jumlah_Item')
-            ->orderBy('Jumlah_Item', 'asc') // stok paling sedikit berarti paling sering digunakan
+            ->orderBy('Jumlah_Item', 'asc')
             ->limit(10)
             ->get();
 
@@ -89,9 +93,12 @@ class DashboardController extends Controller
             'topMemberNames',
             'topMemberPoints',
             'topStokNames',
-            'topStokCounts'
+            'topStokCounts',
+            'firstDate',
+            'today'
         ));
     }
+
 
     /**
      * ===============================
@@ -100,8 +107,8 @@ class DashboardController extends Controller
      */
     public function filterAjax(Request $request)
     {
-        $start_date = $request->input('start_date', date('Y-m-01'));
-        $end_date = $request->input('end_date', date('Y-m-t'));
+        $start_date = $request->input('start_date', TransaksiPenjualan::min('Tgl_Penjualan'));
+        $end_date   = $request->input('end_date', date('Y-m-d'));
 
         // === PENJUALAN ===
         $query = TransaksiPenjualan::whereBetween('Tgl_Penjualan', [$start_date, $end_date]);
@@ -111,6 +118,8 @@ class DashboardController extends Controller
         $rataRata = $jumlahTransaksi > 0 ? $totalPenjualan / $jumlahTransaksi : 0;
         $labaKotor = $totalPenjualan * 0.3;
         $totalBiaya = 0;
+        $totalMember = Member::whereBetween('Created_At', [$start_date, $end_date])->count();
+
 
         $penjualanPerTanggal = $query->selectRaw('DATE(Tgl_Penjualan) as tanggal, SUM(TotalHarga) as total')
             ->groupBy('tanggal')
@@ -135,7 +144,6 @@ class DashboardController extends Controller
         $stokHabis = Stok::where('Status', 'Habis')->count();
 
         // === TOP MEMBER & STOK ===
-        $totalMember = Member::count();
         $topMembers = Member::orderBy('Poin', 'desc')->take(5)->get();
         $topMemberNames = $topMembers->pluck('Nama');
         $topMemberPoints = $topMembers->pluck('Poin');
