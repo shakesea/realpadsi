@@ -31,8 +31,6 @@
     </div>
 
     <div class="right-section">
-        <button class="icon">📄</button>
-
         <div class="profile" id="profileToggle">
             @php
                 $username = Session::get('user.username', 'User');
