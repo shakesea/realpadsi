@@ -105,9 +105,8 @@ Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
         Route::post('/transaksi/store', [TransaksiPenjualanController::class, 'store'])
             ->name('transaksi.store');
 
-        // Member dropdown JSON untuk kasir
-        Route::get('/kasir/members/json', [MemberController::class, 'listForKasir'])
-            ->name('kasir.members.json');
+        Route::get('/member', [MemberController::class, 'index'])
+            ->name('member.index');
 
         // Stok (readonly edit)
         Route::get('/stok', [StokController::class, 'index'])->name('stok.index');
