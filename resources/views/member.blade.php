@@ -16,6 +16,10 @@
 @endif
 
 <div class="member-container">
+  <form method="GET" action="{{ route('member.index') }}" class="search-box">
+    <input type="text" name="q" placeholder="Cari nama / email..." value="{{ request('q') }}">
+    <button type="submit">Search</button>
+  </form>
   <div class="member-grid">
     @foreach($members as $m)
       <div class="member-card green-card" onclick="openDeleteModal('{{ $m['id'] }}', '{{ $m['nama'] }}', '{{ $m['email'] }}')">
