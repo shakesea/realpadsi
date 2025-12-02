@@ -3,7 +3,6 @@
 
 @section('content')
 
-{{-- ✅ Flash Notifikasi --}}
 @if(session('success'))
 <div class="flash-alert flash-success">
     {{ session('success') }}

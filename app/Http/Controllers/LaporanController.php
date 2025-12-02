@@ -245,7 +245,7 @@ class LaporanController extends Controller
         session()->forget(['pending_import_rows', 'pending_import_current_index', 'autoFillMenu']);
 
         Log::info("✅ Import selesai: {$successCount} transaksi berhasil disimpan ke database");
-        return back()->with('success', "✅ Import berhasil! {$successCount} transaksi telah disimpan ke database dan akan muncul di riwayat penjualan.");
+        return back()->with('success', "Import berhasil dengan jumlah {$successCount} transaksi");
     }
 
     /**

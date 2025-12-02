@@ -97,9 +97,6 @@
                 <a href="/member"><i class="icon fas fa-user"></i>Member</a>
             </li>
             @endif
-
-            <li><a href="/"><i class="icon fas fa-store"></i>Tutup Outlet</a></li>
-            <li><a href="/"><i class="icon fas fa-cog"></i>Pengaturan</a></li>
         </ul>
     </aside>
 </header>

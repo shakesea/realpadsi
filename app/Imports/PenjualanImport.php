@@ -69,8 +69,9 @@ class PenjualanImport
             }
         }
 
-        // 5️⃣ Buat transaksi jika belum ada
-        $penjualan = TransaksiPenjualan::firstOrCreate(
+        DetailPenjualan::where('ID_Penjualan', $row['id_penjualan'])->delete();
+
+        $penjualan = TransaksiPenjualan::updateOrCreate(
             ['ID_Penjualan' => $row['id_penjualan']],
             [
                 'Tgl_Penjualan'     => Carbon::parse($row['tgl_penjualan']),
