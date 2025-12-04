@@ -19,10 +19,6 @@
   transition: all 0.2s ease;
 }
 
-.filter-btn:hover {
-  background: #f5f5f5;
-}
-
 .btn-filter {
   background: #33aa33;
   color: white;
