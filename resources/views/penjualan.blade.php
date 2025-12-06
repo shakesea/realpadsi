@@ -15,6 +15,12 @@
 </div>
 @endif
 
+@if(session('error'))
+    <div class="flash-alert flash-error">
+        {{ session('error') }}
+    </div>
+@endif
+
 
 
 <div class="laporan-container">

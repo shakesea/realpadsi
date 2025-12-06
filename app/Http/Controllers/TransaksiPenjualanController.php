@@ -178,4 +178,13 @@ class TransaksiPenjualanController extends Controller
             ], 500);
         }
     }
+    public function import(Request $request)
+    {
+        try {
+            Excel::import(new PenjualanImport, $request->file('file'));
+            return back()->with('success', '✔️ Import berhasil!');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
 }

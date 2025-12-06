@@ -69,23 +69,28 @@ class PenjualanImport
             }
         }
 
-        DetailPenjualan::where('ID_Penjualan', $row['id_penjualan'])->delete();
+        // Cek apakah ID_Penjualan sudah ada
+        $existing = TransaksiPenjualan::where('ID_Penjualan', $row['id_penjualan'])->first();
 
-        $penjualan = TransaksiPenjualan::updateOrCreate(
-            ['ID_Penjualan' => $row['id_penjualan']],
-            [
-                'Tgl_Penjualan'     => Carbon::parse($row['tgl_penjualan']),
-                'ID_Pegawai'        => $idPegawai,
-                'ID_Manager'        => $idManager,
-                'ID_Member'         => $idMember,
-                'Metode_Pembayaran' => $row['metode_pembayaran'] ?? 'Tunai',
-                'TotalHarga'        => $row['totalharga'] ?? 0,
-                'Jumlah_Item'       => $row['jumlah_item'] ?? 0,
-                'Status'            => $row['status'] ?? 'Selesai',
-                'Poin_Digunakan'    => $row['poin_digunakan'] ?? 0,
-                'Poin_Didapat'      => $row['poin_didapat'] ?? 0,
-            ]
-        );
+        if ($existing) {
+           throw new \Exception("Transaksi dengan ID tersebut sudah ada. Import dibatalkan.");
+        }
+
+        // Jika belum ada → buat baru
+        $penjualan = TransaksiPenjualan::create([
+            'ID_Penjualan'     => $row['id_penjualan'],
+            'Tgl_Penjualan'     => Carbon::parse($row['tgl_penjualan']),
+            'ID_Pegawai'        => $idPegawai,
+            'ID_Manager'        => $idManager,
+            'ID_Member'         => $idMember,
+            'Metode_Pembayaran' => $row['metode_pembayaran'] ?? 'Tunai',
+            'TotalHarga'        => $row['totalharga'] ?? 0,
+            'Jumlah_Item'       => $row['jumlah_item'] ?? 0,
+            'Status'            => $row['status'] ?? 'Selesai',
+            'Poin_Digunakan'    => $row['poin_digunakan'] ?? 0,
+            'Poin_Didapat'      => $row['poin_didapat'] ?? 0,
+        ]);
+
 
         // 6️⃣ Update poin member
         if (!empty($row['id_member'])) {
@@ -141,7 +146,6 @@ class PenjualanImport
                 $stok->save();
             }
         }
-
         return $penjualan;
     }
 }

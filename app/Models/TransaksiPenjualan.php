@@ -19,7 +19,7 @@ class TransaksiPenjualan extends Model
         'ID_Manager',
         'ID_Member',
         'Tgl_Penjualan',
-        'Metode_Pembayaran',  // ✅ tambahkan untuk metode pembayaran
+        'Metode_Pembayaran',
         'TotalHarga',
         'Jumlah_Item',
         'Status',
@@ -48,4 +48,5 @@ class TransaksiPenjualan extends Model
     {
         return $this->hasMany(DetailPenjualan::class, 'ID_Penjualan', 'ID_Penjualan');
     }
+    
 }

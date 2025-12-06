@@ -236,7 +236,7 @@ class LaporanController extends Controller
             } catch (\Exception $e) {
                 // Simpan error ke session
                 Log::error("❌ Import baris {$rowNo} gagal: " . $e->getMessage());
-                session()->flash('error', '❌ Error pada baris ' . $rowNo . ': ' . $e->getMessage());
+                session()->flash('error', ' Error pada baris ' . $rowNo . ': ' . $e->getMessage());
                 return back();
             }
         }
