@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -18,8 +20,18 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+
+    public function boot()
     {
-        DB::connection()->getPdo()->exec("SET time_zone = '+07:00'");
+        date_default_timezone_set('Asia/Jakarta');
+
+        try {
+            DB::connection()->statement("SET time_zone = '+07:00'");
+        } catch (\Exception $e) {
+            // boleh dikosongkan
+        }
     }
+
+
+
 }
