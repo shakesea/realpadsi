@@ -630,7 +630,7 @@ body.sidebar-hidden .menu-container {
 #memberModal td:first-child {
   width: 60px;
   text-align: center;
-  color: #555;
+  color: #fff;
 }
 
 #memberModal th:nth-child(5),
@@ -638,7 +638,7 @@ body.sidebar-hidden .menu-container {
   width: 130px;
   text-align: right;
   font-weight: 600;
-  color: #1b5e20;
+  color: #fff;
 }
 
 #memberModal th:nth-child(6),
