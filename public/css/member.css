@@ -5,6 +5,13 @@
   padding: 30px;
   width: auto;
   margin-left: 220px;
+  width: calc(95vw - 260px);
+  transition: margin-left .3s ease, width .3s ease;
+}
+
+body.sidebar-hidden .member-container {
+    margin-left: 60px;    /* Jarak kiri setelah sidebar ditutup */
+    width: calc(95vw - 40px);
 }
 
 /* Grid layout */

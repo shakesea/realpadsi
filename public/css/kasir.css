@@ -240,6 +240,20 @@
 
 .produk-card:hover { transform: translateY(-2px); }
 
+.menu-container {
+  padding: 30px;
+  width: auto;
+  margin-left: 220px;
+  width: calc(95vw - 260px);
+  transition: margin-left .3s ease, width .3s ease;
+}
+
+body.sidebar-hidden .menu-container {
+    margin-left: 60px;    /* Jarak kiri setelah sidebar ditutup */
+    width: calc(95vw - 40px);
+}
+
+
 .produk-card img {
   width: 80px;
   height: 80px;

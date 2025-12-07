@@ -6,6 +6,13 @@
   font-family: 'Source Sans 3', sans-serif;
   width: auto;
   margin-left: 250px;
+  width: calc(95vw - 260px);
+  transition: margin-left .3s ease, width .3s ease;
+}
+
+body.sidebar-hidden .laporan-container {
+    margin-left: 60px;    /* Jarak kiri setelah sidebar ditutup */
+    width: calc(95vw - 40px);
 }
 
 .laporan-header {
