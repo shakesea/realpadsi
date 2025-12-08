@@ -42,7 +42,7 @@
                     <option value="25" {{ request('entries') == 25 ? 'selected' : '' }}>25</option>
                     <option value="50" {{ request('entries') == 50 ? 'selected' : '' }}>50</option>
                 </select>
-            Entries</label>
+            Entriessd</label>
             <input type="hidden" name="start" value="{{ request('start') }}">
             <input type="hidden" name="end" value="{{ request('end') }}">
         </form>
