@@ -89,13 +89,11 @@ class LaporanController extends Controller
 
     public function index(Request $request)
     {
-        $entries = $request->get('entries', 10); // default 10
+        $entries = $request->get('entries', 10); 
 
-        // Default tanggal (7 hari terakhir)
-        $start = $request->get('start') ?? Carbon::now()->subDa(7)->format('Y-m-d');
+        $start = $request->get('start') ?? Carbon::now()->subDays(7)->format('Y-m-d');
         $end   = $request->get('end') ?? Carbon::now()->format('Y-m-d');
 
-        // Ambil data transaksi berdasarkan periode
         $laporan = $this->getLaporanData($start, $end, $entries);
 
         // Jika user minta export PDF
@@ -110,11 +108,11 @@ class LaporanController extends Controller
                     Carbon::parse($end)->format('d-m-Y') .
                     '.pdf';
 
-                // ✅ Berhasil export PDF
-                session()->flash('success', '✅ Laporan berhasil diekspor ke PDF!');
+                //  Berhasil export PDF
+                session()->flash('success', ' Laporan berhasil diekspor ke PDF!');
                 return $pdf->download($filename);
             } catch (\Exception $e) {
-                return back()->withErrors(['error' => '❌ Gagal menghasilkan PDF. Silakan coba lagi.']);
+                return back()->withErrors('error', ' Gagal export PDF. Silakan coba lagi.');
             }
         }
 
@@ -123,10 +121,6 @@ class LaporanController extends Controller
             ->with('success', '✅ Laporan berhasil ditampilkan!');
     }
 
-    /**
-     * Handle GET request ke /penjualan/import
-     * Cek apakah ada pending import, jika ada tampilkan modal, jika tidak redirect ke penjualan
-     */
     public function showImport(Request $request)
     {
         // Cek apakah ada pending import

@@ -43,7 +43,6 @@
                     <option value="50" {{ request('entries') == 50 ? 'selected' : '' }}>50</option>
                 </select>
             Entries</label>
-
             <input type="hidden" name="start" value="{{ request('start') }}">
             <input type="hidden" name="end" value="{{ request('end') }}">
         </form>
