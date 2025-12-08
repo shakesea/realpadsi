@@ -23,6 +23,13 @@ body.sidebar-hidden .laporan-container {
   font-size: 14px;
 }
 
+.laporan-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Show entries kiri, tombol kanan */
+    gap: 5px;
+}
+
 .laporan-controls select {
   border: 1px solid #ccc;
   border-radius: 4px;

@@ -625,30 +625,46 @@ body.sidebar-hidden .menu-container {
   transition: background 0.2s ease;
 }
 
-/* Kolom khusus */
-#memberModal th:first-child,
-#memberModal td:first-child {
+
+/* HEADER kolom NO */
+#memberModal thead th:first-child {
   width: 60px;
   text-align: center;
-  color: #fff;
+  color: #fff !important;
 }
 
-#memberModal th:nth-child(5),
-#memberModal td:nth-child(5) {
+/* ISI kolom NO (01, 02, 03...) */
+#memberModal tbody td:first-child {
+  width: 60px;
+  text-align: center;
+  color: #333 !important;
+  font-weight: 600;
+}
+
+/* HEADER kolom TOTAL POIN */
+#memberModal thead th:nth-child(5) {
   width: 130px;
   text-align: right;
+  color: #fff !important;
   font-weight: 600;
-  color: #fff;
 }
 
+/* ISI kolom TOTAL POIN */
+#memberModal tbody td:nth-child(5) {
+  width: 130px;
+  text-align: right;
+  color: #333 !important;
+  font-weight: 600;
+}
 
+/* Kolom PILIH */
 #memberModal th:nth-child(6),
 #memberModal td:nth-child(6) {
   width: 90px;
   text-align: center;
 }
 
-/* Tombol radio */
+/* Radio button */
 #memberModal input[type="radio"] {
   width: 18px;
   height: 18px;
@@ -656,106 +672,11 @@ body.sidebar-hidden .menu-container {
   accent-color: #22c55e;
 }
 
-/* --- Headline Modal --- */
-#memberModal .modal-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #16a34a;
-  margin-bottom: 8px;
-  text-align: center;
-}
 
-/* --- Garis pembatas --- */
-#memberModal hr {
-  border: none;
-  border-top: 1px solid #e5eaee;
-  margin: 15px 0;
-}
+/* =======================================================
+   MOBILE RESPONSIVE
+   ======================================================= */
 
-/* --- Form detail member bawah tabel --- */
-#memberModal .mmx-formgrid {
-  background: #f9fafb;
-  border: 1px solid #e5eaee;
-  border-radius: 12px;
-  padding: 15px;
-  margin-top: 10px;
-}
-
-#memberModal .mmx-field label {
-  font-size: 13px;
-  font-weight: 700;
-  color: #374151;
-}
-
-#memberModal .mmx-inputwrap {
-  background: #fff;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 8px 12px 8px 36px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-#memberModal .mmx-inputwrap:focus-within {
-  border-color: #16a34a;
-  box-shadow: 0 0 0 3px rgba(22,163,74,0.15);
-}
-
-#memberModal .mmx-inputwrap i {
-  position: absolute;
-  left: 12px;
-  color: #6b7280;
-}
-
-#memberModal .mmx-input {
-  font-size: 14px;
-  color: #111827;
-}
-
-.mmx-input[readonly]{
-  background:#fff; /* Putih bersih tanpa abu */
-  color:#374151;
-  border-radius:8px;
-}
-
-#memberModal .mmx-muted {
-  color: #6b7280;
-  font-size: 12px;
-  margin-top: 3px;
-}
-
-/* --- Footer modal --- */
-#memberModal .modal-footer {
-  margin-top: 15px;
-  border-top: 1px solid #e5eaee;
-  padding-top: 10px;
-}
-
-#memberModal .btn-green {
-  background: #22c55e;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
-  font-weight: 600;
-  color: white;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-#memberModal .btn-green:hover {
-  background: #16a34a;
-}
-
-#memberModal .modal-cancel {
-  color: #16a34a;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.2s ease;
-}
-#memberModal .modal-cancel:hover {
-  color: #0f7a2e;
-  text-decoration: underline;
-}
-
-/* --- Responsif (agar tabel tetap terbaca di mobile) --- */
 @media (max-width: 768px) {
   #memberModal table {
     font-size: 12px;

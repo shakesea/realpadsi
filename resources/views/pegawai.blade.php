@@ -17,7 +17,6 @@
 </div>
 @endif
 
-
 <div class="pegawai-container">
     <div class="pegawai-card">
         <div class="pilih-pelayan">
@@ -44,8 +43,8 @@
                 </div>
 
                 <div class="pegawai-actions">
-                    <!-- Tombol delete -->
-                    <form method="POST" action="{{ route('pegawai.destroy', $p->ID) }}" onsubmit="return confirm('Hapus {{ $p->Username }}?')">
+                    <!-- Tombol delete (TANPA confirm bawaan) -->
+                    <form method="POST" action="{{ route('pegawai.destroy', $p->ID) }}" class="form-delete">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="pegawai-btn delete" title="Hapus">
@@ -64,4 +63,51 @@
         <a href="{{ route('pegawai.create') }}" class="pegawai-add">+ Buat Baru</a>
     </div>
 </div>
+
+<!-- ========================== -->
+<!-- MODAL KONFIRMASI HAPUS     -->
+<!-- ========================== -->
+<div id="deleteModal" class="pegawai-modal-overlay" style="display:none;">
+    <div class="pegawai-modal-box">
+        <h2 class="pegawai-modal-title">Hapus Pegawai?</h2>
+        <p id="deleteText" class="pegawai-modal-text">Anda yakin ingin menghapus pegawai ini?</p>
+
+        <div class="pegawai-modal-buttons">
+            <button id="cancelDelete" class="pegawai-modal-btn-cancel">Batal</button>
+            <button id="confirmDelete" class="pegawai-modal-btn-delete">Hapus</button>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT untuk modal hapus -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    let targetForm = null;
+
+    document.querySelectorAll(".form-delete").forEach(form => {
+        form.addEventListener("submit", function(e){
+            e.preventDefault();
+            targetForm = this;
+
+            const name = this.closest(".pegawai-item")
+                            .querySelector(".pegawai-name").textContent;
+
+            document.getElementById("deleteText").textContent =
+                "Yakin ingin menghapus pegawai \"" + name + "\"?";
+
+            document.getElementById("deleteModal").style.display = "flex";
+        });
+    });
+
+    document.getElementById("cancelDelete").addEventListener("click", () => {
+        document.getElementById("deleteModal").style.display = "none";
+        targetForm = null;
+    });
+
+    document.getElementById("confirmDelete").addEventListener("click", () => {
+        if (targetForm) targetForm.submit();
+    });
+});
+</script>
+
 @endsection

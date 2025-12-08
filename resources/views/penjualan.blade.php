@@ -35,14 +35,20 @@
         </form>
 
         <div class="laporan-controls">
+        <form method="GET" action="{{ route('penjualan.index') }}" id="entries-form">
             <label>Show
-                <select>
-                    <option>10</option>
-                    <option>25</option>
-                    <option>50</option>
-                </select> Entries
-            </label>
-            <span> | </span>
+                <select name="entries" onchange="document.getElementById('entries-form').submit()">
+                    <option value="10" {{ request('entries') == 10 ? 'selected' : '' }}>10</option>
+                    <option value="25" {{ request('entries') == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ request('entries') == 50 ? 'selected' : '' }}>50</option>
+                </select>
+            Entries</label>
+
+            <input type="hidden" name="start" value="{{ request('start') }}">
+            <input type="hidden" name="end" value="{{ request('end') }}">
+        </form>
+
+            <span> </span>
 
             {{-- Tombol Ekspor PDF --}}
             <form action="{{ route('penjualan.index') }}" method="GET" style="display:inline;">

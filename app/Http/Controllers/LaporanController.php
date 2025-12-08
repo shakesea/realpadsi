@@ -17,31 +17,22 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class LaporanController extends Controller
 {
-    private function getLaporanData($start, $end)
+    private function getLaporanData($start, $end, $entries)
     {
         return TransaksiPenjualan::with(['detailPenjualan.menu', 'member'])
             ->whereDate('Tgl_Penjualan', '>=', $start)
             ->whereDate('Tgl_Penjualan', '<=', $end)
             ->orderBy('Tgl_Penjualan', 'desc')
-            ->get()
-            ->map(function ($trx) {
+            ->paginate($entries)
+            ->through(function ($trx) {
 
                 // 🧾 Dapatkan nama kasir (manager / pegawai)
                 if ($trx->ID_Manager) {
                     $manager = Manager::where('ID_Manager', $trx->ID_Manager)->first();
-                    // Prefer a human-friendly name field if available, fallback to username/email
-                    if ($manager) {
-                        $nama = $manager->Nama_Manager ?? $manager->Username ?? $manager->Email ?? 'Manager Tidak Dikenal';
-                    } else {
-                        $nama = 'Manager Tidak Dikenal';
-                    }
+                    $nama = $manager->Nama_Manager ?? $manager->Username ?? $manager->Email ?? 'Manager Tidak Dikenal';
                 } elseif ($trx->ID_Pegawai) {
                     $pegawai = Pegawai::where('ID_Pegawai', $trx->ID_Pegawai)->first();
-                    if ($pegawai) {
-                        $nama = $pegawai->Nama_Pegawai ?? $pegawai->Username ?? $pegawai->Email ?? 'Pegawai Tidak Dikenal';
-                    } else {
-                        $nama = 'Pegawai Tidak Dikenal';
-                    }
+                    $nama = $pegawai->Nama_Pegawai ?? $pegawai->Username ?? $pegawai->Email ?? 'Pegawai Tidak Dikenal';
                 } else {
                     $nama = 'Tidak Diketahui';
                 }
@@ -55,10 +46,9 @@ class LaporanController extends Controller
                         return [
                             'items' => $details->map(function ($detail) {
                                 $menu = $detail->menu;
-                                // prefer harga recorded in detail, else fallback to menu price
                                 $harga = $detail->Harga ?? ($menu ? $menu->Harga : 0);
                                 $qty = $detail->Quantity ?? 0;
-                                $subtotal = ($detail->Subtotal ?? null) ?: ($qty * $harga);
+                                $subtotal = $detail->Subtotal ?? ($qty * $harga);
 
                                 return [
                                     'nama' => $menu ? $menu->Nama : 'Menu Tidak Ditemukan',
@@ -71,12 +61,13 @@ class LaporanController extends Controller
                             'total_amount' => $details->sum(function ($detail) {
                                 $harga = $detail->Harga ?? ($detail->menu ? $detail->menu->Harga : 0);
                                 $qty = $detail->Quantity ?? 0;
-                                return ($detail->Subtotal ?? null) ?: ($qty * $harga);
+                                return $detail->Subtotal ?? ($qty * $harga);
                             }),
                         ];
-                    })->toArray();
+                    })
+                    ->toArray();
 
-                // 📋 Return hasil laporan per transaksi
+                // 📋 Return hasil laporan
                 return [
                     'nama' => $nama,
                     'total' => $trx->TotalHarga,
@@ -95,14 +86,17 @@ class LaporanController extends Controller
     }
 
 
+
     public function index(Request $request)
     {
+        $entries = $request->get('entries', 10); // default 10
+
         // Default tanggal (7 hari terakhir)
-        $start = $request->get('start') ?? Carbon::now()->subDays(7)->format('Y-m-d');
+        $start = $request->get('start') ?? Carbon::now()->subDa(7)->format('Y-m-d');
         $end   = $request->get('end') ?? Carbon::now()->format('Y-m-d');
 
         // Ambil data transaksi berdasarkan periode
-        $laporan = $this->getLaporanData($start, $end);
+        $laporan = $this->getLaporanData($start, $end, $entries);
 
         // Jika user minta export PDF
         if ($request->get('export') === 'pdf') {
@@ -125,7 +119,7 @@ class LaporanController extends Controller
         }
 
         // ✅ Berhasil menampilkan laporan di halaman
-        return view('penjualan', compact('laporan', 'start', 'end'))
+        return view('penjualan', compact('laporan', 'start', 'end', 'entries'))
             ->with('success', '✅ Laporan berhasil ditampilkan!');
     }
 
