@@ -143,6 +143,10 @@
             <h4>Total Pendapatan</h4>
             <div class="value">Rp {{ number_format($laporan->sum('total'), 0, ',', '.') }}</div>
         </div>
+        <div class="summary-box">
+            <h4>Total Member</h4>
+            <div class="value">{{ number_format($totalMember, 0, ',', '.') }} Member</div>
+        </div>
     </div>
     @endif
 

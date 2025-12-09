@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(() => alert('❌ Gagal memuat data filter!'))
         .finally(() => {
-            btn.innerText = 'Terapkan Filter';
+            btn.innerText = 'Terapkan';
             btn.disabled = false;
             loader.style.display = 'none';
         });

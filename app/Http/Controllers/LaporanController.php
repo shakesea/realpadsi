@@ -95,11 +95,15 @@ class LaporanController extends Controller
         $end   = $request->get('end') ?? Carbon::now()->format('Y-m-d');
 
         $laporan = $this->getLaporanData($start, $end, $entries);
+        $totalMember = \App\Models\Member::whereDate('created_at', '>=', $start)
+            ->whereDate('created_at', '<=', $end)
+            ->count();
+
 
         // Jika user minta export PDF
         if ($request->get('export') === 'pdf') {
             try {
-                $pdf = PDF::loadView('exports.penjualan-pdf', compact('laporan', 'start', 'end'));
+                $pdf = PDF::loadView('exports.penjualan-pdf', compact('laporan', 'start', 'end', 'totalMember'));
                 $pdf->setPaper('a4');
 
                 $filename = 'laporan-penjualan-' .
@@ -227,7 +231,7 @@ class LaporanController extends Controller
                 session()->flash('error', ' Error pada baris ' . $rowNo . 'di Excel : ' . $e->getMessage());
                 return back();
             }
-        }
+        } 
 
         // CLEAR SESSION SETELAH IMPORT SELESAI
         session()->forget(['pending_import_rows', 'pending_import_current_index', 'autoFillMenu']);
