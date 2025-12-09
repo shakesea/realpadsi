@@ -26,9 +26,18 @@ class DashboardController extends Controller
         $totalPenjualan = TransaksiPenjualan::sum('TotalHarga');
         $jumlahTransaksi = TransaksiPenjualan::count();
         $rataRata = TransaksiPenjualan::avg('TotalHarga');
-        $totalBiaya = 0;
         $labaKotor = $totalPenjualan * 0.3;
         $totalMember = Member::count();
+
+        // === MENU PALING LARIS ===
+        $menuTerlaris = DB::table('Detail_Penjualan')
+            ->join('Menu', 'Detail_Penjualan.ID_Menu', '=', 'Menu.ID_Menu')
+            ->select('Menu.Nama', DB::raw('SUM(Detail_Penjualan.Quantity) as total_jual'))
+            ->groupBy('Menu.Nama')
+            ->orderByDesc('total_jual')
+            ->first();
+
+        $menuPalingLaris = $menuTerlaris ? $menuTerlaris->Nama : '-';
 
         // === GRAFIK PENJUALAN ===
         $penjualanPerTanggal = TransaksiPenjualan::select(
@@ -81,7 +90,7 @@ class DashboardController extends Controller
             'jumlahTransaksi',
             'rataRata',
             'labaKotor',
-            'totalBiaya',
+            'menuPalingLaris',
             'totalMember',
             'labels',
             'data',
@@ -98,7 +107,6 @@ class DashboardController extends Controller
             'today'
         ));
     }
-
 
     /**
      * ===============================
@@ -117,10 +125,21 @@ class DashboardController extends Controller
         $jumlahTransaksi = $query->count();
         $rataRata = $jumlahTransaksi > 0 ? $totalPenjualan / $jumlahTransaksi : 0;
         $labaKotor = $totalPenjualan * 0.3;
-        $totalBiaya = 0;
         $totalMember = Member::whereBetween('Created_At', [$start_date, $end_date])->count();
 
+        // === MENU PALING LARIS (FILTERED) ===
+        $menuTerlaris = DB::table('Detail_Penjualan')
+            ->join('Menu', 'Detail_Penjualan.ID_Menu', '=', 'Menu.ID_Menu')
+            ->join('TransaksiPenjualan', 'Detail_Penjualan.ID_Penjualan', '=', 'TransaksiPenjualan.ID_Penjualan')
+            ->whereBetween('TransaksiPenjualan.Tgl_Penjualan', [$start_date, $end_date])
+            ->select('Menu.Nama', DB::raw('SUM(Detail_Penjualan.Quantity) as total_jual'))
+            ->groupBy('Menu.Nama')
+            ->orderByDesc('total_jual')
+            ->first();
 
+        $menuPalingLaris = $menuTerlaris ? $menuTerlaris->Nama : '-';
+
+        // === PENJUALAN PER TANGGAL ===
         $penjualanPerTanggal = $query->selectRaw('DATE(Tgl_Penjualan) as tanggal, SUM(TotalHarga) as total')
             ->groupBy('tanggal')
             ->orderBy('tanggal')
@@ -156,12 +175,13 @@ class DashboardController extends Controller
         $topStokNames = $topStok->pluck('Nama');
         $topStokCounts = $topStok->pluck('Jumlah_Item');
 
+        // === RETURN JSON KE DASHBOARD (AJAX) ===
         return response()->json([
             'totalPenjualan' => number_format($totalPenjualan, 0, ',', '.'),
             'jumlahTransaksi' => $jumlahTransaksi,
             'rataRata' => number_format($rataRata, 0, ',', '.'),
             'labaKotor' => number_format($labaKotor, 0, ',', '.'),
-            'totalBiaya' => number_format($totalBiaya, 0, ',', '.'),
+            'menuPalingLaris' => $menuPalingLaris,
             'totalMember' => $totalMember,
             'labels' => $labels,
             'data' => $data,

@@ -21,12 +21,30 @@
 
         <!-- CARD SUMMARY -->
         <div class="cards">
-            <div class="card card-large"><p>Total Penjualan</p><h3 id="card-total">Rp {{ number_format($totalPenjualan,0,',','.') }}</h3></div>
-            <div class="card"><p>Jumlah Transaksi</p><h3 id="card-transaksi">{{ $jumlahTransaksi }} transaksi</h3></div>
-            <div class="card"><p>Rata-rata Transaksi</p><h3 id="card-rata">Rp {{ number_format($rataRata,0,',','.') }}</h3></div>
-            <div class="card"><p>Laba Kotor</p><h3 id="card-laba">Rp {{ number_format($labaKotor,0,',','.') }}</h3></div>
-            <div class="card"><p>Total Biaya</p><h3 id="card-biaya">Rp {{ number_format($totalBiaya,0,',','.') }}</h3></div>
-            <div class="card"><p>Total Member</p><h3 id="card-member">{{ $totalMember }}</h3></div>
+            <div class="card card-large">
+                <p>Total Penjualan</p>
+                <h3 id="card-total">Rp {{ number_format($totalPenjualan,0,',','.') }}</h3>
+            </div>
+            <div class="card">
+                <p>Jumlah Transaksi</p>
+                <h3 id="card-transaksi">{{ $jumlahTransaksi }} transaksi</h3>
+            </div>
+            <div class="card">
+                <p>Rata-rata Transaksi</p>
+                <h3 id="card-rata">Rp {{ number_format($rataRata,0,',','.') }}</h3>
+            </div>
+            <div class="card">
+                <p>Laba Kotor</p>
+                <h3 id="card-laba">Rp {{ number_format($labaKotor,0,',','.') }}</h3>
+            </div>
+            <div class="card">
+                <p>Menu Paling Laris</p>
+                <h3 id="card-menu">{{ $menuPalingLaris }}</h3>
+            </div>
+            <div class="card">
+                <p>Total Member</p>
+                <h3 id="card-member">{{ $totalMember }}</h3>
+            </div>
         </div>
 
         <!-- LINE GRAFIK PENJUALAN -->
@@ -38,14 +56,26 @@
 
         <!-- GRAFIK STOK -->
         <div class="chart-row">
-            <div class="chart-box-small"><h4 class="text-center">Top 10 Stok Sering Digunakan</h4><canvas id="topStokChart"></canvas></div>
-            <div class="chart-box-small"><h4 class="text-center">Distribusi Status Stok</h4><canvas id="stokChart"></canvas></div>
+            <div class="chart-box-small">
+                <h4 class="text-center">Top 10 Stok Sering Digunakan</h4>
+                <canvas id="topStokChart"></canvas>
+            </div>
+            <div class="chart-box-small">
+                <h4 class="text-center">Distribusi Status Stok</h4>
+                <canvas id="stokChart"></canvas>
+            </div>
         </div>
 
         <!-- GRAFIK MEMBER -->
         <div class="chart-row">
-            <div class="chart-box-small"><h4 class="text-center">Jumlah Member Baru</h4><canvas id="memberChart"></canvas></div>
-            <div class="chart-box-small"><h4 class="text-center">Top 5 Member Paling Aktif (Poin)</h4><canvas id="topMemberChart"></canvas></div>
+            <div class="chart-box-small">
+                <h4 class="text-center">Jumlah Member Baru</h4>
+                <canvas id="memberChart"></canvas>
+            </div>
+            <div class="chart-box-small">
+                <h4 class="text-center">Top 5 Member Paling Aktif (Poin)</h4>
+                <canvas id="topMemberChart"></canvas>
+            </div>
         </div>
 
     </div>
@@ -100,8 +130,8 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             datasets: {
                 bar: {
-                    categoryPercentage: 0.6, // 🔹 atur jarak antar bar
-                    barPercentage: 0.8       // 🔹 tebal bar proporsional
+                    categoryPercentage: 0.6,
+                    barPercentage: 0.8
                 }
             }
         }
@@ -178,13 +208,15 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(res => res.json())
         .then(data => {
+            // Update card summary
             document.getElementById('card-total').innerText = 'Rp ' + data.totalPenjualan;
             document.getElementById('card-transaksi').innerText = data.jumlahTransaksi + ' transaksi';
             document.getElementById('card-rata').innerText = 'Rp ' + data.rataRata;
             document.getElementById('card-laba').innerText = 'Rp ' + data.labaKotor;
-            document.getElementById('card-biaya').innerText = 'Rp ' + data.totalBiaya;
+            document.getElementById('card-menu').innerText = data.menuPalingLaris;
             document.getElementById('card-member').innerText = data.totalMember;
 
+            // Update chart data
             salesChart.data.labels = data.labels;
             salesChart.data.datasets[0].data = data.data;
             salesChart.update();
