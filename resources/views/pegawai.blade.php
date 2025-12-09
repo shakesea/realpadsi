@@ -44,7 +44,7 @@
 
                 <div class="pegawai-actions">
                     <!-- Tombol delete (TANPA confirm bawaan) -->
-                    <form method="POST" action="{{ route('pegawai.destroy', $p->ID) }}" class="form-delete">
+                    <form method="POST" action="{{ route('pegawai.destroy', $p->ID_Pegawai) }}" class="form-delete">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="pegawai-btn delete" title="Hapus">
