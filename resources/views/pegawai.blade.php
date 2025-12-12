@@ -44,7 +44,7 @@
 
                 <div class="pegawai-actions">
                     <!-- Tombol delete (TANPA confirm bawaan) -->
-                    <form method="POST" action="{{ route('pegawai.destroy', $p->ID_Pegawai) }}" class="form-delete">
+                    <form method="POST" action="{{ route('pegawai.destroy', $p->ID) }}" class="form-delete">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="pegawai-btn delete" title="Hapus">
@@ -78,7 +78,17 @@
         </div>
     </div>
 </div>
-
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const flashMessages = document.querySelectorAll(".flash-success, .flash-error");
+    flashMessages.forEach(msg => {
+        setTimeout(() => {
+            msg.style.opacity = "0";
+            setTimeout(() => msg.remove(), 500);
+        }, 3000);
+    });
+});
+</script>
 <!-- SCRIPT untuk modal hapus -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {

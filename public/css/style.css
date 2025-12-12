@@ -940,6 +940,7 @@ body.sidebar-hidden .main {
   color: #16723e;
   border: 1px solid #1fb058;
   box-shadow: 0 0 6px rgba(31,176,88,0.2);
+  animation: fadeIn 0.3s ease
 }
 
 .flash-error {
@@ -947,6 +948,7 @@ body.sidebar-hidden .main {
   color: #b21f2d;
   border: 1px solid #f5c2c7;
   box-shadow: 0 0 6px rgba(178,31,45,0.2);
+  animation: fadeIn 0.3s ease
 }
 
 @keyframes fadeIn {
