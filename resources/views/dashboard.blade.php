@@ -65,7 +65,7 @@
                 <canvas id="stokChart"></canvas>
             </div>
         </div>
-        
+
         <!-- GRAFIK MEMBER -->
         <div class="chart-row">
             <div class="chart-box-small">
@@ -108,6 +108,47 @@ document.addEventListener('DOMContentLoaded', function () {
         options: { responsive: true, maintainAspectRatio: false }
     });
 
+    // ======== BAR CHART (TOP 10 STOK SERING DIGUNAKAN) ========
+    let topStokChart = new Chart(ctx('topStokChart'), {
+        type: 'bar',
+        data: { 
+            labels: {!! json_encode($topStokNames) !!},
+            datasets: [{
+                label: 'Jumlah Item Tersisa',
+                data: {!! json_encode($topStokCounts) !!},
+                backgroundColor: 'rgba(52,152,219,0.6)',
+                borderColor: '#2980b9',
+                borderWidth: 1
+            }]
+        },
+        options: { 
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { 
+                x: { grid: { display: false } },
+                y: { beginAtZero: true } 
+            },
+            datasets: {
+                bar: {
+                    categoryPercentage: 0.6,
+                    barPercentage: 0.8
+                }
+            }
+        }
+    });
+
+    // ======== PIE CHART (DISTRIBUSI STOK) ========
+    let stokChart = new Chart(ctx('stokChart'), {
+        type: 'doughnut',
+        data: { 
+            labels: ['Aman','Menipis','Habis'], 
+            datasets: [{
+                data: [{{ $stokAman }}, {{ $stokMenipis }}, {{ $stokHabis }}],
+                backgroundColor: ['#2ECC71','#F1C40F','#E74C3C']
+            }] 
+        },
+        options: { plugins: { legend: { position: 'bottom' } } }
+    });
 
     // ======== BAR CHART (JUMLAH MEMBER BARU) ========
     let memberChart = new Chart(ctx('memberChart'), {
