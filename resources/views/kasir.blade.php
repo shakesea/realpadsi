@@ -52,7 +52,8 @@
           data-id="{{ $menu->ID_Menu }}"
           data-nama="{{ $menu->Nama }}"
           data-harga="{{ $menu->Harga }}"
-          data-kategori="{{ $menu->Kategori }}">
+          data-kategori="{{ $menu->Kategori }}"
+          data-deskripsi="{{ $menu->Deskripsi ?? '' }}">
           <img src="{{ $menu->Foto ? 'data:image/jpeg;base64,'.base64_encode($menu->Foto) : asset('img/sample-product.png') }}"
             alt="{{ $menu->Nama }}">
           <div class="produk-name">{{ $menu->Nama }}</div>
@@ -203,6 +204,19 @@
     overflow:hidden;">
   <button id="btnEdit" style="display:block;width:100%;padding:8px;border:none;background:white;cursor:pointer;">✏ Edit</button>
   <button id="btnDelete" style="display:block;width:100%;padding:8px;border:none;background:white;color:red;cursor:pointer;">🗑 Hapus</button>
+</div>
+
+<!-- 🔴 MODAL HAPUS MENU -->
+<div id="deleteMenuModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card delete-modal">
+    <h2 class="delete-title">Hapus Menu</h2>
+    <p class="delete-text">Apakah Anda yakin ingin menghapus menu ini?</p>
+
+    <div class="modal-footer delete-footer">
+      <button type="button" class="btn-gray" onclick="closeDeleteMenuModal()">Tidak</button>
+      <button type="button" class="btn-red" id="btnConfirmDeleteMenu">Ya, Hapus</button>
+    </div>
+  </div>
 </div>
 
 <!-- Modal Pembayaran -->
@@ -577,7 +591,9 @@
       // Set basic info
       document.getElementById('editNama').value = card.dataset.nama;
       document.getElementById('editHarga').value = card.dataset.harga;
-
+      document.getElementById('editDeskripsi').value = card.dataset.deskripsi; // ✅ FIX BEKERJA
+      document.getElementById('editForm').action = `/menu/${currentCardId}`;
+      document.getElementById('edit-foto-img').src = card.querySelector('img').src;
       // Set kategori dengan support custom kategori
       const kategoriValue = card.dataset.kategori;
       const editKategoriSelect = document.getElementById('edit-kategori-select');
@@ -623,16 +639,11 @@
 
       openModal('editModal');
     });
+
+
     document.getElementById('btnDelete').addEventListener('click', () => {
       contextMenu.style.display = 'none';
-      if (confirm('Yakin ingin menghapus produk ini?')) {
-        fetch(`/menu/${currentCardId}`, {
-          method: 'DELETE',
-          headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-          }
-        }).then(() => window.location.reload());
-      }
+      openDeleteMenuModal(currentCardId);
     });
 
     window.setPayment = function(amount) {
@@ -711,7 +722,7 @@
                 window.showNotification('error', 'Menunggu pembayaran…');
               },
               onError: function(result) {
-                winddow.showNotification('error', 'Pembayaran gagal!');
+                window.showNotification('error', 'Pembayaran gagal!');
               }
             });
           })
@@ -918,4 +929,48 @@
     } [c]));
   }
 </script>
+<script>
+  // =============================
+  // 🔴 MODAL HAPUS MENU (FINAL)
+  // =============================
+
+  let menuIdToDelete = null;
+
+  function openDeleteMenuModal(menuId) {
+    menuIdToDelete = menuId;
+    document.getElementById('deleteMenuModal').style.display = 'flex';
+  }
+
+  function closeDeleteMenuModal() {
+    document.getElementById('deleteMenuModal').style.display = 'none';
+    menuIdToDelete = null;
+  }
+
+  document.getElementById('btnConfirmDeleteMenu').addEventListener('click', () => {
+    if (!menuIdToDelete) return;
+
+    fetch(`/menu/${menuIdToDelete}`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+      }
+    })
+    .then(res => {
+      if (!res.ok) throw new Error();
+      return res.text();
+    })
+    .then(() => {
+      closeDeleteMenuModal();
+      showFlash('success', '✅ Menu berhasil dihapus!');
+      setTimeout(() => location.reload(), 700);
+    })
+    .catch(() => {
+      showFlash('error', '❌ Gagal menghapus menu!');
+    });
+  });
+</script>
+
 @endsection
+
+
+\

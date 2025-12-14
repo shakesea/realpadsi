@@ -14,9 +14,7 @@
             @csrf
             <input type="date" name="start_date" class="filter-btn" value="{{ request('start_date', $firstDate) }}">
             <input type="date" name="end_date" class="filter-btn" value="{{ request('end_date', $today) }}">
-            <button type="submit" class="filter-btn btn-filter">
-                Terapkan Filter
-            </button>
+            <button type="submit" class="filter-btn btn-filter">Terapkan Filter</button>
         </form>
 
         <!-- CARD SUMMARY -->
@@ -47,14 +45,14 @@
             </div>
         </div>
 
-        <!-- LINE GRAFIK PENJUALAN -->
+        <!-- LINE CHART -->
         <h2 class="subtitle">Grafik Penjualan</h2>
         <div class="chart-box" style="height:400px;position:relative;">
-            <div id="chart-loader" class="chart-loader">⏳ Memuat data...</div>
+            <div id="chart-loader" class="chart-loader" style="display:none">⏳ Memuat data...</div>
             <canvas id="salesChart"></canvas>
         </div>
 
-                <!-- GRAFIK STOK -->
+        <!-- STOK -->
         <div class="chart-row">
             <div class="chart-box-small">
                 <h4 class="text-center">Top 10 Stok Sering Digunakan</h4>
@@ -66,7 +64,7 @@
             </div>
         </div>
 
-        <!-- GRAFIK MEMBER -->
+        <!-- MEMBER -->
         <div class="chart-row">
             <div class="chart-box-small">
                 <h4 class="text-center">Jumlah Member Baru</h4>
@@ -81,21 +79,26 @@
     </div>
 </div>
 
-<!-- Chart.js -->
+<!-- CHART JS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
 <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+    Chart.register(ChartDataLabels);
+
+    const ctx = id => document.getElementById(id);
     const form = document.getElementById('filterForm');
     const loader = document.getElementById('chart-loader');
-    const ctx = id => document.getElementById(id);
 
-    // ======== LINE CHART (PENJUALAN) ========
+    // LINE CHART
     let salesChart = new Chart(ctx('salesChart'), {
         type: 'line',
-        data: { 
-            labels: {!! json_encode($labels) !!}, 
+        data: {
+            labels: {!! json_encode($labels) !!},
             datasets: [{
                 label: 'Total Penjualan',
                 data: {!! json_encode($data) !!},
@@ -105,144 +108,126 @@ document.addEventListener('DOMContentLoaded', function () {
                 tension: 0.4
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { responsive:true, maintainAspectRatio:false }
     });
 
-    // ======== BAR CHART (TOP 10 STOK SERING DIGUNAKAN) ========
+    // BAR TOP STOK
     let topStokChart = new Chart(ctx('topStokChart'), {
         type: 'bar',
-        data: { 
+        data: {
             labels: {!! json_encode($topStokNames) !!},
             datasets: [{
                 label: 'Jumlah Item Tersisa',
                 data: {!! json_encode($topStokCounts) !!},
-                backgroundColor: 'rgba(52,152,219,0.6)',
-                borderColor: '#2980b9',
-                borderWidth: 1
+                backgroundColor: 'rgba(52,152,219,0.6)'
             }]
         },
-        options: { 
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: { 
-                x: { grid: { display: false } },
-                y: { beginAtZero: true } 
-            },
-            datasets: {
-                bar: {
-                    categoryPercentage: 0.6,
-                    barPercentage: 0.8
+        options: { responsive:true }
+    });
+
+    // DOUGHNUT STOK (DENGAN LABEL)
+    let stokChart = new Chart(ctx('stokChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Aman','Menipis','Habis'],
+            datasets: [{
+                data: [{{ $stokAman }}, {{ $stokMenipis }}, {{ $stokHabis }}],
+                backgroundColor: ['#2ECC71','#F1C40F','#E74C3C']
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { position:'bottom' },
+                datalabels: {
+                    color:'#000',
+                    font:{ weight:'bold', size:13 },
+                    formatter:(value,ctx)=>{
+                        return ctx.chart.data.labels[ctx.dataIndex] + "\n" + value;
+                    }
                 }
             }
         }
     });
 
-    // ======== PIE CHART (DISTRIBUSI STOK) ========
-    let stokChart = new Chart(ctx('stokChart'), {
-        type: 'doughnut',
-        data: { 
-            labels: ['Aman','Menipis','Habis'], 
-            datasets: [{
-                data: [{{ $stokAman }}, {{ $stokMenipis }}, {{ $stokHabis }}],
-                backgroundColor: ['#2ECC71','#F1C40F','#E74C3C']
-            }] 
-        },
-        options: { plugins: { legend: { position: 'bottom' } } }
-    });
-
-    // ======== BAR CHART (JUMLAH MEMBER BARU) ========
+    // BAR MEMBER
     let memberChart = new Chart(ctx('memberChart'), {
         type: 'bar',
-        data: { 
+        data: {
             labels: {!! json_encode($memberLabels) !!},
             datasets: [{
                 label: 'Member Baru',
                 data: {!! json_encode($memberData) !!},
-                backgroundColor: 'rgba(46,204,113,0.6)', 
-                borderColor: '#27AE60',
-                borderWidth: 1
+                backgroundColor: 'rgba(46,204,113,0.6)'
             }]
         },
-        options: { 
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: { 
-                x: { grid: { display: false } },
-                y: { beginAtZero: true } 
-            },
-            datasets: {
-                bar: {
-                    categoryPercentage: 0.6,
-                    barPercentage: 0.8
+        options:{ responsive:true }
+    });
+
+    // PIE TOP MEMBER (DENGAN LABEL)
+    let topMemberChart = new Chart(ctx('topMemberChart'), {
+        type: 'pie',
+        data: {
+            labels: {!! json_encode($topMemberNames) !!},
+            datasets: [{
+                data: {!! json_encode($topMemberPoints) !!},
+                backgroundColor:['#1abc9c','#3498db','#9b59b6','#f1c40f','#e74c3c']
+            }]
+        },
+        options: {
+            plugins:{
+                legend:{ position:'bottom' },
+                datalabels:{
+                    color:'#000',
+                    font:{ weight:'bold', size:12 },
+                    formatter:(value,ctx)=>{
+                        return ctx.chart.data.labels[ctx.dataIndex] + "\n" + value + " poin";
+                    }
                 }
             }
         }
     });
 
-    // ======== PIE CHART (TOP 5 MEMBER PALING AKTIF) ========
-    let topMemberChart = new Chart(ctx('topMemberChart'), {
-        type: 'pie',
-        data: { 
-            labels: {!! json_encode($topMemberNames) !!}, 
-            datasets: [{
-                data: {!! json_encode($topMemberPoints) !!}, 
-                backgroundColor: ['#1abc9c','#3498db','#9b59b6','#f1c40f','#e74c3c']
-            }]
-        },
-        options: { plugins: { legend: { position: 'bottom' } } }
-    });
-
-    // ======== AJAX FILTER ========
-    form.addEventListener('submit', function (e) {
+    // AJAX FILTER
+    form.addEventListener('submit',function(e){
         e.preventDefault();
-        const formData = new FormData(form);
-        const btn = form.querySelector('button');
-        btn.innerText = '⏳ Memuat...';
-        btn.disabled = true;
-        loader.style.display = 'block';
+        loader.style.display='block';
 
-        fetch(form.action, {
-            method: "POST",
-            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-            body: formData
+        fetch(form.action,{
+            method:'POST',
+            headers:{ 'X-CSRF-TOKEN':'{{ csrf_token() }}' },
+            body:new FormData(form)
         })
-        .then(res => res.json())
-        .then(data => {
-            // Update card summary
-            document.getElementById('card-total').innerText = 'Rp ' + data.totalPenjualan;
-            document.getElementById('card-transaksi').innerText = data.jumlahTransaksi + ' transaksi';
-            document.getElementById('card-rata').innerText = 'Rp ' + data.rataRata;
-            document.getElementById('card-laba').innerText = 'Rp ' + data.labaKotor;
-            document.getElementById('card-menu').innerText = data.menuPalingLaris;
-            document.getElementById('card-member').innerText = data.totalMember;
+        .then(r=>r.json())
+        .then(d=>{
+            document.getElementById('card-total').innerText='Rp '+d.totalPenjualan;
+            document.getElementById('card-transaksi').innerText=d.jumlahTransaksi+' transaksi';
+            document.getElementById('card-rata').innerText='Rp '+d.rataRata;
+            document.getElementById('card-laba').innerText='Rp '+d.labaKotor;
+            document.getElementById('card-menu').innerText=d.menuPalingLaris;
+            document.getElementById('card-member').innerText=d.totalMember;
 
-            // Update chart data
-            salesChart.data.labels = data.labels;
-            salesChart.data.datasets[0].data = data.data;
+            salesChart.data.labels=d.labels;
+            salesChart.data.datasets[0].data=d.data;
             salesChart.update();
 
-            topStokChart.data.labels = data.topStokNames;
-            topStokChart.data.datasets[0].data = data.topStokCounts;
+            topStokChart.data.labels=d.topStokNames;
+            topStokChart.data.datasets[0].data=d.topStokCounts;
             topStokChart.update();
 
-            stokChart.data.datasets[0].data = [data.stok.Aman, data.stok.Menipis, data.stok.Habis];
+            stokChart.data.datasets[0].data=[d.stok.Aman,d.stok.Menipis,d.stok.Habis];
             stokChart.update();
 
-            memberChart.data.labels = data.memberLabels;
-            memberChart.data.datasets[0].data = data.memberData;
+            memberChart.data.labels=d.memberLabels;
+            memberChart.data.datasets[0].data=d.memberData;
             memberChart.update();
 
-            topMemberChart.data.labels = data.topMemberNames;
-            topMemberChart.data.datasets[0].data = data.topMemberPoints;
+            topMemberChart.data.labels=d.topMemberNames;
+            topMemberChart.data.datasets[0].data=d.topMemberPoints;
             topMemberChart.update();
         })
-        .catch(() => alert('❌ Gagal memuat data filter!'))
-        .finally(() => {
-            btn.innerText = 'Terapkan';
-            btn.disabled = false;
-            loader.style.display = 'none';
-        });
+        .finally(()=>loader.style.display='none');
     });
+
 });
 </script>
 
