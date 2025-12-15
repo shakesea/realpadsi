@@ -773,3 +773,17 @@ body.sidebar-hidden .menu-container {
 .btn-gray:hover {
   background: #cfcfcf;
 }
+
+/* ===============================
+   FIX HEADER AGAR TIDAK BERGESER
+   =============================== */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  z-index: 1200;
+  background: #fff;
+}
+

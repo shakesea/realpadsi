@@ -932,28 +932,51 @@ body.sidebar-hidden .main {
   font-weight: 500;
   font-size: 15px;
   text-align: center;
-  animation: fadeIn 0.3s ease;
+
+  /* Animasi */
+  opacity: 0;
+  transform: translateY(-10px);
+  animation: flashFadeIn 10s ease forwards,
+             flashFadeOut 10s ease forwards;
+  animation-delay: 0s, 10.2s; /* fadeOut setelah 4.6 detik */
 }
 
+/* SUCCESS */
 .flash-success {
   background-color: #e6f9ec;
   color: #16723e;
   border: 1px solid #1fb058;
   box-shadow: 0 0 6px rgba(31,176,88,0.2);
-  animation: fadeIn 0.3s ease
 }
 
+/* ERROR (jika ada) */
 .flash-error {
   background-color: #fdecea;
-  color: #b21f2d;
-  border: 1px solid #f5c2c7;
-  box-shadow: 0 0 6px rgba(178,31,45,0.2);
-  animation: fadeIn 0.3s ease
+  color: #8a1c1c;
+  border: 1px solid #e55353;
+  box-shadow: 0 0 6px rgba(229,83,83,0.2);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ===================== */
+/* KEYFRAMES ANIMATION */
+/* ===================== */
+
+@keyframes flashFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes flashFadeOut {
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }
 
 /* Ketika sidebar disembunyikan */

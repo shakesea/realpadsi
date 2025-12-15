@@ -1023,7 +1023,33 @@
   });
 </script>
 
+{{-- ================= FLASH SESSION HANDLER (FINAL & AMAN) ================= --}}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+
+    @if (session('flash_success'))
+      if (typeof window.showFlash === 'function') {
+        window.showFlash(
+          'success',
+          @json(session('flash_success')),
+          6000
+        );
+      }
+    @endif
+
+    @if (session('flash_error'))
+      if (typeof window.showFlash === 'function') {
+        window.showFlash(
+          'error',
+          @json(session('flash_error')),
+          7000
+        );
+      }
+    @endif
+
+  });
+</script>
+{{-- ====================================================================== --}}
+
 @endsection
 
-
-\
