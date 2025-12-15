@@ -192,18 +192,25 @@
   </div>
 </div>
 
-<!-- Context Dropdown untuk Edit & Hapus -->
-<div id="contextMenu" style="
-    position:absolute;
-    display:none;
-    background:white;
-    border:1px solid #ccc;
-    border-radius:6px;
-    box-shadow:0 2px 10px rgba(0,0,0,0.2);
-    z-index:9999;
-    overflow:hidden;">
-  <button id="btnEdit" style="display:block;width:100%;padding:8px;border:none;background:white;cursor:pointer;">✏ Edit</button>
-  <button id="btnDelete" style="display:block;width:100%;padding:8px;border:none;background:white;color:red;cursor:pointer;">🗑 Hapus</button>
+<!-- Context Menu (improved) -->
+<div id="contextMenu" role="menu" aria-hidden="true" style="
+    position:absolute; display:none; min-width:180px; background:#fff;
+    border:1px solid #e5e7eb; border-radius:10px; box-shadow:0 12px 28px rgba(0,0,0,0.18);
+    z-index:9999; overflow:hidden">
+  <ul style="list-style:none;margin:0;padding:6px">
+    <li>
+      <button id="btnEdit" role="menuitem" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border:none;background:transparent;cursor:pointer;border-radius:8px">
+        <span style="font-size:14px">✏</span>
+        <span style="font-size:14px">Edit menu</span>
+      </button>
+    </li>
+    <li>
+      <button id="btnDelete" role="menuitem" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border:none;background:transparent;cursor:pointer;border-radius:8px;color:#ef4444">
+        <span style="font-size:14px">🗑</span>
+        <span style="font-size:14px">Hapus menu</span>
+      </button>
+    </li>
+  </ul>
 </div>
 
 <!-- 🔴 MODAL HAPUS MENU -->
@@ -536,17 +543,50 @@
       const nama = card.dataset.nama;
       const harga = parseInt(card.dataset.harga);
       card.addEventListener('click', () => addToCart(id, nama, harga));
+
+      // Right-click context menu
       card.addEventListener('contextmenu', e => {
         e.preventDefault();
         currentCardId = card.dataset.id;
-        contextMenu.style.top = `${e.clientY}px`;
-        contextMenu.style.left = `${e.clientX}px`;
-        contextMenu.style.display = 'block';
+        openContextMenu(e.clientX, e.clientY);
       });
+
+      // Touch long-press for mobile
+      let pressTimer;
+      card.addEventListener('touchstart', e => {
+        const touch = e.touches[0];
+        pressTimer = setTimeout(() => {
+          currentCardId = card.dataset.id;
+          openContextMenu(touch.clientX, touch.clientY);
+        }, 500);
+      });
+      card.addEventListener('touchend', () => clearTimeout(pressTimer));
+      card.addEventListener('touchmove', () => clearTimeout(pressTimer));
     });
 
+    function openContextMenu(x, y) {
+      const padding = 8;
+      const menuRect = {
+        width: 200,
+        height: 120
+      };
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      let left = x,
+        top = y;
+      if (x + menuRect.width + padding > vw) left = vw - menuRect.width - padding;
+      if (y + menuRect.height + padding > vh) top = vh - menuRect.height - padding;
+      contextMenu.style.left = `${left}px`;
+      contextMenu.style.top = `${top}px`;
+      contextMenu.style.display = 'block';
+      contextMenu.setAttribute('aria-hidden', 'false');
+    }
+
     document.addEventListener('click', e => {
-      if (!contextMenu.contains(e.target)) contextMenu.style.display = 'none';
+      if (!contextMenu.contains(e.target)) {
+        contextMenu.style.display = 'none';
+        contextMenu.setAttribute('aria-hidden', 'true');
+      }
       // 🔁 Reset transaksi
       window.resetTransaksi = function(isAfterPayment = false) {
         const pelangganList = document.querySelector('.pelanggan-list');
@@ -585,6 +625,7 @@
 
     document.getElementById('btnEdit').addEventListener('click', async () => {
       contextMenu.style.display = 'none';
+      contextMenu.setAttribute('aria-hidden', 'true');
       const card = document.querySelector(`.produk-card[data-id="${currentCardId}"]`);
       if (!card) return;
 
@@ -643,6 +684,7 @@
 
     document.getElementById('btnDelete').addEventListener('click', () => {
       contextMenu.style.display = 'none';
+      contextMenu.setAttribute('aria-hidden', 'true');
       openDeleteMenuModal(currentCardId);
     });
 
@@ -733,8 +775,9 @@
       }
     }
 
-    function saveTransaksiKeDatabase(cart, total, metode) {
-      fetch('{{ route("transaksi.store") }}', {
+    async function saveTransaksiKeDatabase(cart, total, metode) {
+      try {
+        const res = await fetch('{{ route("transaksi.store") }}', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -748,15 +791,25 @@
             total: total,
             metode: metode
           })
-        })
-        .then(res => res.json())
-        .then(data => {
-          showNotification('success', 'Transaksi berhasil disimpan!');
-          resetTransaksi(true);
-        })
-        .catch(err => {
-          showNotification('error', 'Gagal menyimpan transaksi!');
         });
+
+        let data = null;
+        try {
+          data = await res.json();
+        } catch (e) {}
+
+        if (!res.ok || (data && data.status === 'error')) {
+          const msg = (data && data.message) ? data.message : 'Gagal menyimpan transaksi!';
+          window.showFlash('error', msg);
+          return;
+        }
+
+        window.showFlash('success', 'Transaksi berhasil disimpan!');
+        resetTransaksi(true);
+      } catch (err) {
+        console.error(err);
+        window.showFlash('error', 'Gagal menyimpan transaksi!');
+      }
     }
 
     window.filterProduk = function() {
@@ -950,23 +1003,23 @@
     if (!menuIdToDelete) return;
 
     fetch(`/menu/${menuIdToDelete}`, {
-      method: 'DELETE',
-      headers: {
-        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-      }
-    })
-    .then(res => {
-      if (!res.ok) throw new Error();
-      return res.text();
-    })
-    .then(() => {
-      closeDeleteMenuModal();
-      showFlash('success', '✅ Menu berhasil dihapus!');
-      setTimeout(() => location.reload(), 700);
-    })
-    .catch(() => {
-      showFlash('error', '❌ Gagal menghapus menu!');
-    });
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error();
+        return res.text();
+      })
+      .then(() => {
+        closeDeleteMenuModal();
+        showFlash('success', '✅ Menu berhasil dihapus!');
+        setTimeout(() => location.reload(), 700);
+      })
+      .catch(() => {
+        showFlash('error', '❌ Gagal menghapus menu!');
+      });
   });
 </script>
 

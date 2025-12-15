@@ -38,10 +38,15 @@ class MenuController extends Controller
             // Gunakan ID dari import (CSV)
             $newId = $request->ID_Menu;
         } else {
-            // Generate ID baru otomatis
+            // Generate ID baru otomatis dengan pengecekan duplikasi
             $lastMenu = Menu::orderBy('ID_Menu', 'desc')->first();
             $lastNum = $lastMenu ? intval(substr($lastMenu->ID_Menu, 4)) : 0;
-            $newId = 'MENU' . str_pad($lastNum + 1, 3, '0', STR_PAD_LEFT);
+
+            // Cari ID yang belum digunakan
+            do {
+                $lastNum++;
+                $newId = 'MENU' . $lastNum;
+            } while (Menu::where('ID_Menu', $newId)->exists());
         }
 
         $menu = new Menu();
@@ -122,50 +127,41 @@ class MenuController extends Controller
 
             $menu->save();
 
-            // 🔹 2. Ambil bahan lama dari DB
-            $existing = BahanPenyusun::where('ID_Menu', $id)->get()->keyBy('ID_Penyusun');
+            // 🔹 2. Hapus semua bahan lama
+            BahanPenyusun::where('ID_Menu', $id)->delete();
 
-            $handledIds = []; // untuk track yang masih dipakai
+            // 🔹 3. Tambahkan bahan baru dari form
+            if ($request->has('bahan') && is_array($request->bahan)) {
+                // Ambil ID terakhir untuk generate ID baru
+                $lastBP = BahanPenyusun::orderBy('ID_Penyusun', 'desc')->first();
+                $lastNum = $lastBP ? intval(substr($lastBP->ID_Penyusun, 2)) : 0;
 
-            if ($request->has('bahan')) {
                 foreach ($request->bahan as $i => $idBarang) {
-                    if (!$idBarang) continue;
+                    // Skip jika bahan kosong
+                    if (empty($idBarang)) continue;
 
                     $jumlah = $request->jumlah_digunakan[$i] ?? 1;
-                    $existingItem = $existing->values()->get($i); // ambil baris sesuai urutan
 
-                    if ($existingItem) {
-                        // 🔸 Update bahan lama
-                        $existingItem->update([
-                            'ID_Barang' => $idBarang,
-                            'Jumlah_Digunakan' => $jumlah,
-                            'Kategori' => $menu->Kategori,
-                            'Updated_At' => now()
-                        ]);
-                        $handledIds[] = $existingItem->ID_Penyusun;
-                    } else {
-                        // 🔹 Tambah bahan baru
-                        $lastBP = BahanPenyusun::orderBy('ID_Penyusun', 'desc')->first();
-                        $lastNum = $lastBP ? intval(substr($lastBP->ID_Penyusun, 2)) : 0;
-                        $newId = 'BP' . str_pad($lastNum + 1, 3, '0', STR_PAD_LEFT);
+                    // Skip jika jumlah kosong atau tidak valid
+                    if (empty($jumlah) || $jumlah <= 0) continue;
 
-                        BahanPenyusun::create([
-                            'ID_Penyusun' => $newId,
-                            'ID_Menu' => $id,
-                            'ID_Barang' => $idBarang,
-                            'Jumlah_Digunakan' => $jumlah,
-                            'Kategori' => $menu->Kategori,
-                            'Created_At' => now(),
-                            'Updated_At' => now()
-                        ]);
-                    }
+                    // Generate ID baru dengan pengecekan duplikasi
+                    do {
+                        $lastNum++;
+                        $newId = 'BP' . $lastNum;
+                    } while (BahanPenyusun::where('ID_Penyusun', $newId)->exists());
+
+                    BahanPenyusun::create([
+                        'ID_Penyusun' => $newId,
+                        'ID_Menu' => $id,
+                        'ID_Barang' => $idBarang,
+                        'Jumlah_Digunakan' => $jumlah,
+                        'Kategori' => $menu->Kategori,
+                        'Created_At' => now(),
+                        'Updated_At' => now()
+                    ]);
                 }
             }
-
-            // 🔻 3. Hapus bahan lama yang sudah tidak ada di form
-            BahanPenyusun::where('ID_Menu', $id)
-                ->whereNotIn('ID_Penyusun', $handledIds)
-                ->delete();
 
             DB::commit();
             return redirect()->back()->with('success', '✅ Menu dan bahan penyusun berhasil diperbarui!');

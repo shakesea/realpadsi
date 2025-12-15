@@ -35,7 +35,7 @@
             {{-- Jumlah Item --}}
             <div class="form-group">
                 <label for="jumlah">Jumlah Item</label>
-                <input type="number" id="jumlah" name="jumlah" value="{{ $stokItem->Jumlah_Item }}" required>
+                <input type="number" id="jumlah" name="jumlah" value="{{ $stokItem->Jumlah_Item }}" min="0">
             </div>
 
             {{-- Kategori (mengganti posisi Satuan sebelumnya) --}}
