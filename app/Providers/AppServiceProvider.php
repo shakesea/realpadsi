@@ -30,6 +30,15 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Exception $e) {
             // boleh dikosongkan
         }
+
+        // Bind public path for shared hosting (e.g., Hostinger)
+        // Allows libraries like DomPDF to correctly resolve assets
+        $customPublic = env('APP_PUBLIC_PATH');
+        if (!empty($customPublic)) {
+            $this->app->bind('path.public', function () use ($customPublic) {
+                return base_path($customPublic);
+            });
+        }
     }
 
 

@@ -9,6 +9,8 @@ return [
         'DOMPDF_FONT_FAMILY' => 'sans-serif',
         'DOMPDF_ENABLE_CSS_FLOAT' => true,
         'DOMPDF_ENABLE_JAVASCRIPT' => false,
+        'DOMPDF_CHROOT' => public_path(),
+        'DOMPDF_ENABLE_REMOTE' => true,
     ],
     'show_warnings' => false,
     'orientation' => 'portrait',
