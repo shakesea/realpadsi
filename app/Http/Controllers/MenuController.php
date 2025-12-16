@@ -46,13 +46,12 @@ class MenuController extends Controller
         }
 
         // ================= GENERATE ID MENU =================
-        $lastMenu = Menu::orderBy('ID_Menu', 'desc')->first();
-        $lastNum = $lastMenu ? intval(substr($lastMenu->ID_Menu, 4)) : 0;
-
-        do {
-            $lastNum++;
-            $newId = 'MENU' . $lastNum;
-        } while (Menu::where('ID_Menu', $newId)->exists());
+        $lastMenu = DB::table('Menu')
+            ->selectRaw("CAST(SUBSTRING(ID_Menu, 3) AS UNSIGNED) as num")
+            ->orderByDesc('num')
+            ->first();
+        $lastNum = $lastMenu ? $lastMenu->num : 0;
+        $newId = 'MN' . str_pad($lastNum + 1, 3, '0', STR_PAD_LEFT);
 
         // ================= SIMPAN MENU =================
         $menu = new Menu();
@@ -72,8 +71,11 @@ class MenuController extends Controller
 
         // ================= SIMPAN BAHAN =================
         if ($request->has('bahan') && $request->has('jumlah_digunakan')) {
-            $lastBP = BahanPenyusun::orderBy('ID_Penyusun', 'desc')->first();
-            $lastNumBP = $lastBP ? intval(substr($lastBP->ID_Penyusun, 2)) : 0;
+            $lastBP = DB::table('Bahan_Penyusun')
+                ->selectRaw("CAST(SUBSTRING(ID_Penyusun, 3) AS UNSIGNED) as num")
+                ->orderByDesc('num')
+                ->first();
+            $lastNumBP = $lastBP ? $lastBP->num : 0;
 
             foreach ($request->bahan as $i => $idBarang) {
                 if (empty($idBarang)) continue;
@@ -81,10 +83,8 @@ class MenuController extends Controller
                 $jumlah = $request->jumlah_digunakan[$i] ?? 0;
                 if ($jumlah <= 0) continue;
 
-                do {
-                    $lastNumBP++;
-                    $newBP = 'BP' . $lastNumBP;
-                } while (BahanPenyusun::where('ID_Penyusun', $newBP)->exists());
+                $lastNumBP++;
+                $newBP = 'BP' . str_pad($lastNumBP, 3, '0', STR_PAD_LEFT);
 
                 BahanPenyusun::create([
                     'ID_Penyusun' => $newBP,
@@ -122,8 +122,11 @@ class MenuController extends Controller
             BahanPenyusun::where('ID_Menu', $id)->delete();
 
             if ($request->has('bahan')) {
-                $lastBP = BahanPenyusun::orderBy('ID_Penyusun', 'desc')->first();
-                $lastNum = $lastBP ? intval(substr($lastBP->ID_Penyusun, 2)) : 0;
+                $lastBP = DB::table('Bahan_Penyusun')
+                    ->selectRaw("CAST(SUBSTRING(ID_Penyusun, 3) AS UNSIGNED) as num")
+                    ->orderByDesc('num')
+                    ->first();
+                $lastNum = $lastBP ? $lastBP->num : 0;
 
                 foreach ($request->bahan as $i => $idBarang) {
                     if (empty($idBarang)) continue;
@@ -131,10 +134,8 @@ class MenuController extends Controller
                     $jumlah = $request->jumlah_digunakan[$i] ?? 0;
                     if ($jumlah <= 0) continue;
 
-                    do {
-                        $lastNum++;
-                        $newId = 'BP' . $lastNum;
-                    } while (BahanPenyusun::where('ID_Penyusun', $newId)->exists());
+                    $lastNum++;
+                    $newId = 'BP' . str_pad($lastNum, 3, '0', STR_PAD_LEFT);
 
                     BahanPenyusun::create([
                         'ID_Penyusun' => $newId,

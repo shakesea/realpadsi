@@ -18,9 +18,9 @@ class KasirController extends Controller
         $menus = Menu::when($kategori, function ($query, $kategori) {
             return $query->where('Kategori', $kategori);
         })
-        ->orderBy('Kategori')
-        ->get()
-        ->makeHidden(['Foto']);
+            ->orderBy('Kategori')
+            ->get()
+            ->makeHidden(['Foto']);
 
         $stok = Stok::all();
         $categories = \App\Helpers\MenuHelper::getCategories();

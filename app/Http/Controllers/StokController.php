@@ -141,16 +141,23 @@ class StokController extends Controller
 
     public function exportPDF(Request $request)
     {
-        $filter = $request->query('status');
+        try {
+            $filter = $request->query('status');
 
-        $stokData = Stok::when($filter, function ($query) use ($filter) {
-            return $query->where('Status', $filter);
-        })->orderBy('ID_Barang')->get();
+            $stokData = Stok::when($filter, function ($query) use ($filter) {
+                return $query->where('Status', $filter);
+            })->orderBy('ID_Barang')->get();
 
-        $pdf = Pdf::loadView('pdf.stok_report', compact('stokData', 'filter'))
-            ->setPaper('a4', 'portrait');
+            $pdf = Pdf::loadView('pdf.stok_report', compact('stokData', 'filter'))
+                ->setPaper('a4', 'portrait');
 
-        return $pdf->download('laporan_stok.pdf');
+            return $pdf->download('laporan_stok.pdf');
+        } catch (\Exception $e) {
+            \Log::error('PDF Export Error: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->with('error', 'Gagal menghasilkan PDF. Error: ' . $e->getMessage());
+        }
     }
 
 

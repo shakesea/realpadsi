@@ -4,9 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator; 
+use Illuminate\Support\Facades\Validator;
 use App\Models\Pegawai;
-use App\Models\Finance;
 use App\Models\InformasiPegawai;
 use Carbon\Carbon;
 
@@ -44,8 +43,8 @@ class PegawaiController extends Controller
     {
         // Validasi manual
         $validator = Validator::make($request->all(), [
-            'nama' => ['required', 'max:30', 'regex:/^[a-zA-Z0-9\s]+$/'],
-            'email' => 'required|email|max:50',
+            'nama' => ['required', 'max:100', 'regex:/^[a-zA-Z0-9\s]+$/'],
+            'email' => 'required|email|max:100',
             'telp' => 'required|max:15',
             'tanggal_lahir' => 'required|date',
             'alamat' => 'required|max:100',
@@ -60,26 +59,31 @@ class PegawaiController extends Controller
         // ==========================================
         // 🔍 CEK DUPLIKASI DATA
         // ==========================================
-        $cekNama = Pegawai::where('Username', $request->nama)->exists();
+        $cekUsername = Pegawai::where('Username', $request->nama)->exists();
         $cekEmail = InformasiPegawai::where('Email', $request->email)->exists();
         $cekTelp = InformasiPegawai::where('No_Telepon', $request->telp)->exists();
 
-        if ($cekNama || $cekEmail || $cekTelp) {
+        if ($cekUsername || $cekEmail || $cekTelp) {
             return back()
                 ->with('error', 'Data sudah ada, silakan periksa kembali.')
                 ->withInput();
         }
         // ==========================================
 
-
-        // Generate ID Pegawai
-        $lastPegawai = Pegawai::orderBy('ID_Pegawai', 'desc')->first();
-        $lastPegawaiNumber = $lastPegawai ? intval(substr($lastPegawai->ID_Pegawai, 3)) : 0;
+        // Generate ID Pegawai dengan cara yang lebih reliable
+        $lastPegawai = DB::table('Pegawai')
+            ->selectRaw("CAST(SUBSTRING(ID_Pegawai, 4) AS UNSIGNED) as num")
+            ->orderByDesc('num')
+            ->first();
+        $lastPegawaiNumber = $lastPegawai ? $lastPegawai->num : 0;
         $newId = 'EMP' . str_pad($lastPegawaiNumber + 1, 3, '0', STR_PAD_LEFT);
 
-        // Generate ID Informasi Pegawai
-        $lastInfo = InformasiPegawai::orderBy('ID_InfoPegawai', 'desc')->first();
-        $lastInfoNumber = $lastInfo ? intval(substr($lastInfo->ID_InfoPegawai, 3)) : 0;
+        // Generate ID Informasi Pegawai dengan cara yang lebih reliable
+        $lastInfo = DB::table('Informasi_Pegawai')
+            ->selectRaw("CAST(SUBSTRING(ID_InfoPegawai, 4) AS UNSIGNED) as num")
+            ->orderByDesc('num')
+            ->first();
+        $lastInfoNumber = $lastInfo ? $lastInfo->num : 0;
         $newInfoId = 'INF' . str_pad($lastInfoNumber + 1, 3, '0', STR_PAD_LEFT);
 
         DB::beginTransaction();
@@ -89,7 +93,7 @@ class PegawaiController extends Controller
                 'ID_Pegawai' => $newId,
                 'ID_Role' => 'ROL002',
                 'Username' => $request->nama,
-                'Password' => 'default123',
+                'Password' => bcrypt('default123'),
             ]);
 
             InformasiPegawai::create([
@@ -110,27 +114,20 @@ class PegawaiController extends Controller
                 ->with('success', 'Pegawai baru berhasil ditambahkan!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Terjadi kesalahan pada server.');
+            return back()->with('error', 'Pegawai gagal ditambahkan. Error: ' . $e->getMessage());
         }
     }
     public function destroy($id)
-{
-    // Ambil username (jika ingin hapus juga data Finance berdasarkan username)
-    $username = Pegawai::where('ID_Pegawai', $id)->value('Username');
+    {
+        // Ambil username (jika ingin hapus juga data Finance berdasarkan username)
+        $username = Pegawai::where('ID_Pegawai', $id)->value('Username');
 
-    // Hapus data di tabel Pegawai dan Finance (ID)
-    Pegawai::where('ID_Pegawai', $id)->delete();
-    Finance::where('ID_Finance', $id)->delete();
+        // Hapus data di tabel Pegawai
+        Pegawai::where('ID_Pegawai', $id)->delete();
 
-    // Jika ada finance dengan username yang sama, hapus juga
-    if ($username) {
-        Finance::where('Username', $username)->delete();
+        // Hapus informasi pegawai (tabel Informasi_Pegawai)
+        InformasiPegawai::where('ID_Pegawai', $id)->delete();
+
+        return back()->with('success', 'Pegawai berhasil dihapus!');
     }
-
-    // Hapus informasi pegawai (tabel Informasi_Pegawai)
-    InformasiPegawai::where('ID_Pegawai', $id)->delete();
-
-    return back()->with('success', 'Pegawai berhasil dihapus!');
-}
-
 }

@@ -46,7 +46,7 @@
 
             <div class="form-group">
                 <label for="alamat">Alamat</label>
-                <input id="alamat" name="alamat" value="{{ old('alamat') }}" required>
+                <textarea id="alamat" name="alamat" required>{{ old('alamat') }}</textarea>
             </div>
 
             <div class="form-footer">
