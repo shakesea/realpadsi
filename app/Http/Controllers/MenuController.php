@@ -45,17 +45,27 @@ class MenuController extends Controller
                 ->with('flash_error', '❌ Menu sudah ada, silakan gunakan nama lain.');
         }
 
-        // ================= GENERATE ID MENU =================
-        $lastMenu = DB::table('Menu')
-            ->selectRaw("CAST(SUBSTRING(ID_Menu, 3) AS UNSIGNED) as num")
-            ->orderByDesc('num')
-            ->first();
-        $lastNum = $lastMenu ? $lastMenu->num : 0;
-        $newId = 'MN' . str_pad($lastNum + 1, 3, '0', STR_PAD_LEFT);
+        // ================= TENTUKAN ID MENU =================
+        // Jika datang dari modal import, kita pakai ID_Menu dari form (harus sama dengan CSV)
+        // Jika tidak ada, baru generate otomatis MNxxx
+        $menuId = $request->input('ID_Menu');
+        if (empty($menuId)) {
+            $lastMenu = DB::table('Menu')
+                ->selectRaw("CAST(SUBSTRING(ID_Menu, 3) AS UNSIGNED) as num")
+                ->orderByDesc('num')
+                ->first();
+            $lastNum = $lastMenu ? $lastMenu->num : 0;
+            $menuId = 'MN' . str_pad($lastNum + 1, 3, '0', STR_PAD_LEFT);
+        } else {
+            // Pastikan ID_Menu belum terpakai
+            if (Menu::where('ID_Menu', $menuId)->exists()) {
+                return redirect()->back()->with('flash_error', '❌ ID Menu sudah digunakan.');
+            }
+        }
 
         // ================= SIMPAN MENU =================
         $menu = new Menu();
-        $menu->ID_Menu = $newId;
+        $menu->ID_Menu = $menuId;
         $menu->Nama = $request->Nama;
         $menu->Harga = $request->Harga;
         $menu->Kategori = $request->Kategori;
@@ -98,8 +108,16 @@ class MenuController extends Controller
             }
         }
 
-        return redirect()->back()
-            ->with('flash_success', '✅ Menu berhasil ditambahkan!');
+        // Jika datang dari proses import, lanjutkan import
+        if ($request->boolean('continue_import')) {
+            // Bersihkan autofill agar tidak muncul lagi
+            session()->forget('autoFillMenu');
+
+            return redirect()->route('laporan.continue-import')
+                ->with('flash_success', '✅ Menu berhasil dibuat. Import dilanjutkan.');
+        }
+
+        return redirect()->back()->with('flash_success', '✅ Menu berhasil ditambahkan!');
     }
 
     public function update(Request $request, $id)

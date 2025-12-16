@@ -148,10 +148,17 @@ class StokController extends Controller
                 return $query->where('Status', $filter);
             })->orderBy('ID_Barang')->get();
 
-            $pdf = Pdf::loadView('pdf.stok_report', compact('stokData', 'filter'))
-                ->setPaper('a4', 'portrait');
+            // Bypass facade to avoid public path resolution issues on shared hosting
+            $dompdf = new \Dompdf\Dompdf();
+            $dompdf->loadHtml(view('pdf.stok_report', compact('stokData', 'filter'))->render());
+            $dompdf->setPaper('a4', 'portrait');
+            $dompdf->render();
 
-            return $pdf->download('laporan_stok.pdf');
+            return response()->streamDownload(function () use ($dompdf) {
+                echo $dompdf->output();
+            }, 'laporan_stok.pdf', [
+                'Content-Type' => 'application/pdf',
+            ]);
         } catch (\Exception $e) {
             \Log::error('PDF Export Error: ' . $e->getMessage());
 

@@ -89,7 +89,7 @@ class LaporanController extends Controller
 
     public function index(Request $request)
     {
-        $entries = $request->get('entries', 10); 
+        $entries = $request->get('entries', 10);
 
         $start = $request->get('start') ?? Carbon::now()->subDays(7)->format('Y-m-d');
         $end   = $request->get('end') ?? Carbon::now()->format('Y-m-d');
@@ -103,8 +103,11 @@ class LaporanController extends Controller
         // Jika user minta export PDF
         if ($request->get('export') === 'pdf') {
             try {
-                $pdf = PDF::loadView('exports.penjualan-pdf', compact('laporan', 'start', 'end', 'totalMember'));
-                $pdf->setPaper('a4');
+                // Bypass facade to avoid public path resolution issues on shared hosting
+                $dompdf = new \Dompdf\Dompdf();
+                $dompdf->loadHtml(view('exports.penjualan-pdf', compact('laporan', 'start', 'end', 'totalMember'))->render());
+                $dompdf->setPaper('a4', 'portrait');
+                $dompdf->render();
 
                 $filename = 'laporan-penjualan-' .
                     Carbon::parse($start)->format('d-m-Y') .
@@ -112,11 +115,14 @@ class LaporanController extends Controller
                     Carbon::parse($end)->format('d-m-Y') .
                     '.pdf';
 
-                //  Berhasil export PDF
-                session()->flash('success', ' Laporan berhasil diekspor ke PDF!');
-                return $pdf->download($filename);
+                return response()->streamDownload(function () use ($dompdf) {
+                    echo $dompdf->output();
+                }, $filename, [
+                    'Content-Type' => 'application/pdf',
+                ]);
             } catch (\Exception $e) {
-                return back()->withErrors('error', ' Gagal export PDF. Silakan coba lagi.');
+                \Log::error('PDF Export Error (Penjualan): ' . $e->getMessage());
+                return back()->withErrors('error', '❌ Gagal export PDF. Error: ' . $e->getMessage());
             }
         }
 
@@ -231,7 +237,7 @@ class LaporanController extends Controller
                 session()->flash('error', ' Error pada baris ' . $rowNo . 'di Excel : ' . $e->getMessage());
                 return back();
             }
-        } 
+        }
 
         // CLEAR SESSION SETELAH IMPORT SELESAI
         session()->forget(['pending_import_rows', 'pending_import_current_index', 'autoFillMenu']);

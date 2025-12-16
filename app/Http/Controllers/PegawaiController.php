@@ -119,15 +119,35 @@ class PegawaiController extends Controller
     }
     public function destroy($id)
     {
-        // Ambil username (jika ingin hapus juga data Finance berdasarkan username)
-        $username = Pegawai::where('ID_Pegawai', $id)->value('Username');
+        DB::beginTransaction();
 
-        // Hapus data di tabel Pegawai
-        Pegawai::where('ID_Pegawai', $id)->delete();
+        try {
+            // Cek apakah pegawai ada
+            $pegawai = Pegawai::where('ID_Pegawai', $id)->first();
 
-        // Hapus informasi pegawai (tabel Informasi_Pegawai)
-        InformasiPegawai::where('ID_Pegawai', $id)->delete();
+            if (!$pegawai) {
+                return back()->with('error', 'Pegawai tidak ditemukan!');
+            }
 
-        return back()->with('success', 'Pegawai berhasil dihapus!');
+            // Hapus informasi pegawai terlebih dahulu (child record)
+            InformasiPegawai::where('ID_Pegawai', $id)->delete();
+
+            // Set null untuk foreign key di TransaksiPenjualan agar tidak error
+            DB::table('TransaksiPenjualan')
+                ->where('ID_Pegawai', $id)
+                ->update(['ID_Pegawai' => null]);
+
+            // Hapus data di tabel Pegawai (parent record)
+            $pegawai->delete();
+
+            DB::commit();
+
+            return back()->with('success', 'Pegawai berhasil dihapus!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Delete Pegawai Error: ' . $e->getMessage());
+
+            return back()->with('error', 'Gagal menghapus pegawai. Error: ' . $e->getMessage());
+        }
     }
 }
