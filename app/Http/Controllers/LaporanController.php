@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use App\Models\TransaksiPenjualan;
 use App\Models\Manager;
 use App\Models\Pegawai;
@@ -91,7 +92,8 @@ class LaporanController extends Controller
     {
         $entries = $request->get('entries', 10);
 
-        $start = $request->get('start') ?? Carbon::now()->subDays(7)->format('Y-m-d');
+        // Default 30 hari terakhir (bukan 7 hari)
+        $start = $request->get('start') ?? Carbon::now()->subDays(30)->format('Y-m-d');
         $end   = $request->get('end') ?? Carbon::now()->format('Y-m-d');
 
         $laporan = $this->getLaporanData($start, $end, $entries);
@@ -121,14 +123,17 @@ class LaporanController extends Controller
                     'Content-Type' => 'application/pdf',
                 ]);
             } catch (\Exception $e) {
-                \Log::error('PDF Export Error (Penjualan): ' . $e->getMessage());
+                Log::error('PDF Export Error (Penjualan): ' . $e->getMessage());
                 return back()->withErrors('error', '❌ Gagal export PDF. Error: ' . $e->getMessage());
             }
         }
 
         // ✅ Berhasil menampilkan laporan di halaman
-        return view('penjualan', compact('laporan', 'start', 'end', 'entries'))
-            ->with('success', '✅ Laporan berhasil ditampilkan!');
+        $totalTransaksi = TransaksiPenjualan::whereDate('Tgl_Penjualan', '>=', $start)
+            ->whereDate('Tgl_Penjualan', '<=', $end)
+            ->count();
+
+        return view('penjualan', compact('laporan', 'start', 'end', 'entries', 'totalTransaksi'));
     }
 
     public function showImport(Request $request)
@@ -205,8 +210,9 @@ class LaporanController extends Controller
             if (!empty($mapped['id_menu']) && !Menu::where('ID_Menu', $mapped['id_menu'])->exists()) {
                 Log::info("⚠️ Menu {$mapped['id_menu']} tidak ditemukan di baris {$rowNo}, tampilkan modal create");
 
-                // SIMPAN INDEX ROW INI DIKURANGI 1 (supaya row ini diproses ulang di continueImport)
-                session(['pending_import_current_index' => $rowNo - 1]);
+                // SIMPAN ROW NUMBER SAAT INI (row ini belum diproses)
+                // Saat continueImport dipanggil, akan mulai dari rowNo ini lagi
+                session(['pending_import_current_index' => $rowNo]);
 
                 // SIAPKAN DATA AUTOFILL UNTUK POPUP CREATE MENU
                 $autoFill = [
@@ -242,8 +248,9 @@ class LaporanController extends Controller
         // CLEAR SESSION SETELAH IMPORT SELESAI
         session()->forget(['pending_import_rows', 'pending_import_current_index', 'autoFillMenu']);
 
-        Log::info("✅ Import selesai: {$successCount} transaksi berhasil disimpan ke database");
-        return back()->with('success', "Import berhasil dengan jumlah {$successCount} transaksi");
+        Log::info("✅ Import selesai: {$successCount} baris berhasil diproses");
+        return redirect()->route('penjualan.index')
+            ->with('success', "✅ Import selesai! {$successCount} baris data berhasil diproses.");
     }
 
     /**
@@ -251,25 +258,36 @@ class LaporanController extends Controller
      */
     public function continueImport(Request $request)
     {
+        // Clear autoFillMenu dari sesi sebelumnya untuk menghindari loop
+        session()->forget('autoFillMenu');
+
         $rows = session('pending_import_rows');
-        $currentIndex = session('pending_import_current_index', 0);
+        $processedCount = session('pending_import_current_index', 0);
 
         if (!$rows) {
-            return back()->withErrors(['error' => '❌ Tidak ada data import yang pending.']);
+            session()->forget(['pending_import_rows', 'pending_import_current_index']);
+            return redirect()->route('penjualan.index')
+                ->with('error', '❌ Tidak ada data import yang pending.');
         }
 
         $importer = new PenjualanImport();
         $rowNo = 0;
         $successCount = 0;
 
-        Log::info("🔄 Continue import, total rows: " . count($rows) . ", currentIndex: {$currentIndex}");
+        Log::info("🔄 Continue import, total rows: " . count($rows) . ", start from row: {$processedCount}");
 
         foreach ($rows as $row) {
             $rowNo++;
 
-            // Skip header dan rows yang sudah diproses
-            if ($rowNo == 1 || $rowNo <= $currentIndex) {
-                Log::info("⏭️ Skip baris {$rowNo} (header atau sudah diproses, currentIndex={$currentIndex})");
+            // Skip header
+            if ($rowNo == 1) {
+                Log::info("⏭️ Skip header row");
+                continue;
+            }
+
+            // Skip rows yang sudah berhasil diproses sebelumnya (berdasarkan row number)
+            if ($rowNo < $processedCount) {
+                Log::info("⏭️ Skip baris {$rowNo} (sudah diproses sebelumnya)");
                 continue;
             }
 
@@ -296,6 +314,7 @@ class LaporanController extends Controller
             // CEK APAKAH MENU SUDAH ADA DI DATABASE
             if (!empty($mapped['id_menu']) && !Menu::where('ID_Menu', $mapped['id_menu'])->exists()) {
 
+                // Simpan row number saat ini (row ini belum diproses)
                 session(['pending_import_current_index' => $rowNo]);
 
                 $autoFill = [
@@ -329,7 +348,35 @@ class LaporanController extends Controller
         // CLEAR SESSION SETELAH SELESAI
         session()->forget(['pending_import_rows', 'pending_import_current_index', 'autoFillMenu']);
 
-        Log::info("✅ Import dilanjutkan selesai: {$successCount} transaksi berhasil disimpan ke database");
-        return back()->with('success', "✅ Import dilanjutkan berhasil! {$successCount} transaksi telah disimpan ke database dan akan muncul di riwayat penjualan.");
+        $totalProcessed = $processedCount + $successCount;
+        Log::info("✅ Import selesai: Total {$totalProcessed} baris berhasil diproses");
+        return redirect()->route('penjualan.index')
+            ->with('success', "✅ Import selesai! Total {$totalProcessed} baris data berhasil diproses.");
+    }
+
+    /**
+     * Hapus satu transaksi penjualan berdasarkan ID_Penjualan
+     */
+    public function destroy($id)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Hapus detail terlebih dahulu untuk menjaga integritas FK
+            DB::table('Detail_Penjualan')->where('ID_Penjualan', $id)->delete();
+            // Hapus transaksi utama
+            $deleted = DB::table('TransaksiPenjualan')->where('ID_Penjualan', $id)->delete();
+
+            DB::commit();
+
+            if ($deleted) {
+                return back()->with('success', "✅ Transaksi $id berhasil dihapus.");
+            }
+            return back()->with('error', "❌ Transaksi $id tidak ditemukan.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Hapus transaksi gagal: ' . $e->getMessage());
+            return back()->with('error', '❌ Gagal menghapus transaksi: ' . $e->getMessage());
+        }
     }
 }

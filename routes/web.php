@@ -87,6 +87,7 @@ Route::middleware('App\Http\Middleware\CheckLogin')->group(function () {
 
         // Penjualan
         Route::get('/penjualan', [LaporanController::class, 'index'])->name('penjualan.index');
+        Route::delete('/penjualan/{id}', [LaporanController::class, 'destroy'])->name('penjualan.destroy');
 
         // Transaksi Penjualan
         Route::post('/transaksi/store', [TransaksiPenjualanController::class, 'store'])

@@ -91,11 +91,31 @@
 }
 
 .dropdown-btn {
-    background: none;
+    background: #f0f0f0;
     border: none;
-    font-size: 18px;
-    color: #666;
+    font-size: 16px;
+    color: #444;
     cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dropdown-btn:hover {
+    background: #e0e0e0;
+    color: #1DB954;
+}
+
+.dropdown-btn.collapsed {
+    background: #1DB954;
+    color: #fff;
+}
+
+.dropdown-btn #dropdownIcon {
+    transition: transform 0.3s ease;
 }
 
 /* Filter kategori */
@@ -103,6 +123,11 @@
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    max-height: 500px;
+    opacity: 1;
 }
 
 .filter-btn {
@@ -613,6 +638,8 @@ body.sidebar-hidden .menu-container {
   padding: 10px 12px;
   border-bottom: 1px solid #eee;
   vertical-align: middle;
+  color: #000 !important;
+  font-weight: 500;
 }
 
 #memberModal tbody tr:nth-child(even) {
@@ -636,7 +663,7 @@ body.sidebar-hidden .menu-container {
 #memberModal tbody td:first-child {
   width: 60px;
   text-align: center;
-  color: #333 !important;
+  color: #000 !important;
   font-weight: 600;
 }
 
@@ -652,7 +679,7 @@ body.sidebar-hidden .menu-container {
 #memberModal tbody td:nth-child(5) {
   width: 130px;
   text-align: right;
-  color: #333 !important;
+  color: #000 !important;
   font-weight: 600;
 }
 
@@ -785,5 +812,40 @@ body.sidebar-hidden .menu-container {
   height: 60px;
   z-index: 1200;
   background: #fff;
+}
+
+/* ===============================
+   FLASH NOTIFICATION STYLING
+   =============================== */
+.flash-alert {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 20px;
+  animation: fadeDown 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.flash-error {
+  background: #FF4D4D;
+  color: white;
+}
+
+.flash-success {
+  background: #4CAF50;
+  color: white;
+}
+
+@keyframes fadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 

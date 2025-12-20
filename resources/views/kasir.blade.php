@@ -34,11 +34,13 @@
     <div class="menu-right">
       <div class="menu-search">
         <input type="text" placeholder="Cari Produk" id="searchProduk" onkeyup="filterProduk()">
-        <button class="dropdown-btn">⌄</button>
+        <button class="dropdown-btn" id="categoryDropdownBtn" onclick="toggleCategoryFilter()" title="Toggle Filter Kategori">
+          <span id="dropdownIcon">▼</span>
+        </button>
       </div>
 
       <!-- Filter kategori -->
-      <div class="menu-filter">
+      <div class="menu-filter" id="categoryFilterContainer">
         <button class="filter-btn active" data-category="all">Semua</button>
         @foreach($categories as $category)
         <button class="filter-btn" data-category="{{ $category }}">{{ $category }}</button>
@@ -72,62 +74,71 @@
 
 <!-- Modal Tambah Produk -->
 <div id="addModal" class="modal-overlay" style="display:none">
-  <div class="modal-card">
-    <h2 class="modal-title">Tambah Produk Baru</h2>
+  <div class="modal-card" style="max-width:700px; width:min(95%,700px); display:flex; flex-direction:column; height:auto; max-height:85vh; background:white; border-radius:12px;">
+    <h2 class="modal-title" style="flex-shrink:0; padding:16px; margin:0;">Tambah Produk Baru</h2>
     <form action="{{ route('menu.store') }}" method="POST" enctype="multipart/form-data">
       @csrf
-      <div class="modal-body">
-        <div class="form-left">
-          <label for="foto-upload" class="foto-box" id="add-preview-box">
-            <span id="add-preview-text">Pilih Foto</span>
-            <img id="add-preview-img" style="display:none;width:100%;border-radius:10px;">
-          </label>
-          <input type="file" name="Foto" id="foto-upload" accept="image/*" style="display:none"
-            onchange="preview('add-preview-img','add-preview-text',event)">
-        </div>
 
-        <div class="form-right">
-          <div class="form-group"><label>Nama</label><input type="text" name="Nama" required></div>
-          <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" required></div>
-          <div class="form-group">
-            <label>Kategori</label>
-            <select id="add-kategori-select" onchange="toggleAddKategoriCustom()" style="width:100%;">
-              <option value="">-- Pilih Kategori --</option>
-              @foreach($categories as $category)
-              <option value="{{ $category }}">{{ $category }}</option>
-              @endforeach
-              <option value="__custom__">+ Tambah Kategori Baru</option>
-            </select>
-            <div id="add-kategori-custom-container" style="display:none;margin-top:8px;">
-              <input type="text" id="add-kategori-custom-input" placeholder="Masukkan kategori baru..."
-                style="width:100%;padding:8px;border:1px solid #ffc107;border-radius:6px;background:#fffbf0;">
-              <small style="color:#856404;display:block;margin-top:4px;">💡 Contoh: Dessert, Combo Menu, dll.</small>
-            </div>
-            <input type="hidden" name="Kategori" id="add-kategori-final" required>
+      <!-- SCROLLABLE SECTION -->
+      <div class="modal-scroll" style="max-height:calc(85vh - 170px); overflow-y:auto; padding:0 16px 16px 16px;">
+        <div class="modal-body">
+          <div class="form-left">
+            <label for="foto-upload" class="foto-box" id="add-preview-box">
+              <span id="add-preview-text">Pilih Foto</span>
+              <img id="add-preview-img" style="display:none;width:100%;border-radius:10px;">
+            </label>
+            <input type="file" name="Foto" id="foto-upload" accept="image/*" style="display:none"
+              onchange="preview('add-preview-img','add-preview-text',event)">
           </div>
 
-          <div class="form-group"><label>Deskripsi</label><textarea name="Deskripsi" rows="3"></textarea></div>
-
-          <!-- Tambahan: Bahan penyusun -->
-          <div class="form-group">
-            <label>Bahan Penyusun</label>
-            <div id="bahan-container">
-              <div class="bahan-row" style="display:flex;gap:10px;margin-bottom:8px;">
-                <select name="bahan[]" class="bahan-select" style="flex:1;">
-                  <option value="">-- Pilih Bahan --</option>
-                  @foreach ($stok as $item)
-                  <option value="{{ $item->ID_Barang }}">{{ $item->Nama }} ({{ $item->Jumlah_Item }})</option>
-                  @endforeach
-                </select>
-                <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" min="1" style="width:100px;">
+          <div class="form-right">
+            <div class="form-group"><label>Nama</label><input type="text" name="Nama" required></div>
+            <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" required></div>
+            <div class="form-group">
+              <label>Kategori</label>
+              <select id="add-kategori-select" onchange="toggleAddKategoriCustom()" style="width:100%;">
+                <option value="">-- Pilih Kategori --</option>
+                @foreach($categories as $category)
+                <option value="{{ $category }}">{{ $category }}</option>
+                @endforeach
+                <option value="__custom__">+ Tambah Kategori Baru</option>
+              </select>
+              <div id="add-kategori-custom-container" style="display:none;margin-top:8px;">
+                <input type="text" id="add-kategori-custom-input" placeholder="Masukkan kategori baru..."
+                  style="width:100%;padding:8px;border:1px solid #ffc107;border-radius:6px;background:#fffbf0;">
+                <small style="color:#856404;display:block;margin-top:4px;">💡 Contoh: Dessert, Combo Menu, dll.</small>
               </div>
+              <input type="hidden" name="Kategori" id="add-kategori-final" required>
             </div>
-            <button type="button" onclick="addBahanRow()" class="btn-yellow" style="margin-top:5px;">+ Tambah Bahan</button>
+
+            <div class="form-group"><label>Deskripsi</label><textarea name="Deskripsi" rows="3"></textarea></div>
+
+            <!-- Tambahan: Bahan penyusun (WAJIB) -->
+            <div class="form-group">
+              <label>Bahan Penyusun <span style="color:#e74c3c;font-weight:bold;">*</span></label>
+              <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:8px;margin-bottom:8px;font-size:0.85em;">
+                ⚠️ <strong>Wajib:</strong> Menu harus memiliki minimal 1 bahan penyusun
+              </div>
+              <div id="bahan-container">
+                <div class="bahan-row" style="display:flex;gap:10px;margin-bottom:8px;">
+                  <select name="bahan[]" class="bahan-select" required style="flex:1;">
+                    <option value="">-- Pilih Bahan --</option>
+                    @foreach ($stok as $item)
+                    <option value="{{ $item->ID_Barang }}">{{ $item->Nama }} ({{ $item->Jumlah_Item }})</option>
+                    @endforeach
+                  </select>
+                  <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" min="1" required style="width:100px;">
+                  <button type="button" onclick="removeBahanRow(this)" class="btn-red-small" style="display:none;padding:6px 10px;">✕</button>
+                </div>
+              </div>
+              <button type="button" onclick="addBahanRow()" class="btn-yellow" style="margin-top:5px;">+ Tambah Bahan</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="modal-footer">
+      <!-- FOOTER (outside scroll, inside form) -->
+      <div class="modal-footer" style="flex-shrink:0; display:flex; justify-content:flex-end; gap:10px; padding:12px 16px; border-top:1px solid #eee; background:#fff;">
         <a href="#" class="modal-cancel" onclick="closeModal('addModal')">Kembali</a>
         <button type="submit" class="btn-green">Tambah</button>
       </div>
@@ -137,54 +148,63 @@
 
 <!-- Modal Edit Produk -->
 <div id="editModal" class="modal-overlay" style="display:none;">
-  <div class="modal-card">
-    <h2 class="modal-title">Edit Produk</h2>
+  <div class="modal-card" style="max-width:700px; width:min(95%,700px); display:flex; flex-direction:column; height:auto; max-height:85vh; background:white; border-radius:12px;">
+    <h2 class="modal-title" style="flex-shrink:0; padding:16px; margin:0;">Edit Produk</h2>
     <form id="editForm" method="POST" enctype="multipart/form-data">
       @csrf
       @method('PUT')
-      <div class="modal-body">
-        <div class="form-left">
-          <label for="edit-foto" class="foto-box">
-            <img id="edit-foto-img" src="{{ asset('img/sample-product.png') }}" style="width:100%;border-radius:10px;">
-          </label>
-          <input type="file" name="Foto" id="edit-foto" accept="image/*" style="display:none"
-            onchange="preview('edit-foto-img', null, event)">
-        </div>
-        <div class="form-right">
-          <div class="form-group"><label>Nama</label><input type="text" name="Nama" id="editNama" required></div>
-          <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" id="editHarga" required></div>
-          <div class="form-group">
-            <label>Kategori</label>
-            <select id="edit-kategori-select" onchange="toggleEditKategoriCustom()" style="width:100%;">
-              <option value="">-- Pilih Kategori --</option>
-              @foreach($categories as $category)
-              <option value="{{ $category }}">{{ $category }}</option>
-              @endforeach
-              <option value="__custom__">+ Tambah Kategori Baru</option>
-            </select>
-            <div id="edit-kategori-custom-container" style="display:none;margin-top:8px;">
-              <input type="text" id="edit-kategori-custom-input" placeholder="Masukkan kategori baru..."
-                style="width:100%;padding:8px;border:1px solid #ffc107;border-radius:6px;background:#fffbf0;">
-              <small style="color:#856404;display:block;margin-top:4px;">💡 Contoh: Dessert, Combo Menu, dll.</small>
-            </div>
-            <input type="hidden" name="Kategori" id="edit-kategori-final" required>
-          </div>
 
-          <div class="form-group">
-            <label>Deskripsi</label>
-            <textarea name="Deskripsi" id="editDeskripsi" rows="3"></textarea>
+      <!-- SCROLLABLE SECTION -->
+      <div class="modal-scroll" style="max-height:calc(85vh - 170px); overflow-y:auto; padding:0 16px 16px 16px;">
+        <div class="modal-body">
+          <div class="form-left">
+            <label for="edit-foto" class="foto-box">
+              <img id="edit-foto-img" src="{{ asset('img/sample-product.png') }}" style="width:100%;border-radius:10px;">
+            </label>
+            <input type="file" name="Foto" id="edit-foto" accept="image/*" style="display:none"
+              onchange="preview('edit-foto-img', null, event)">
           </div>
-
-          <div class="form-group">
-            <label>Bahan Penyusun</label>
-            <div id="edit-bahan-container">
-              <!-- Will be filled dynamically -->
+          <div class="form-right">
+            <div class="form-group"><label>Nama</label><input type="text" name="Nama" id="editNama" required></div>
+            <div class="form-group"><label>Harga (Rp)</label><input type="number" name="Harga" id="editHarga" required></div>
+            <div class="form-group">
+              <label>Kategori</label>
+              <select id="edit-kategori-select" onchange="toggleEditKategoriCustom()" style="width:100%;">
+                <option value="">-- Pilih Kategori --</option>
+                @foreach($categories as $category)
+                <option value="{{ $category }}">{{ $category }}</option>
+                @endforeach
+                <option value="__custom__">+ Tambah Kategori Baru</option>
+              </select>
+              <div id="edit-kategori-custom-container" style="display:none;margin-top:8px;">
+                <input type="text" id="edit-kategori-custom-input" placeholder="Masukkan kategori baru..."
+                  style="width:100%;padding:8px;border:1px solid #ffc107;border-radius:6px;background:#fffbf0;">
+                <small style="color:#856404;display:block;margin-top:4px;">💡 Contoh: Dessert, Combo Menu, dll.</small>
+              </div>
+              <input type="hidden" name="Kategori" id="edit-kategori-final" required>
             </div>
-            <button type="button" onclick="addEditBahanRow()" class="btn-yellow">+ Tambah Bahan</button>
+
+            <div class="form-group">
+              <label>Deskripsi</label>
+              <textarea name="Deskripsi" id="editDeskripsi" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Bahan Penyusun <span style="color:#e74c3c;font-weight:bold;">*</span></label>
+              <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:8px;margin-bottom:8px;font-size:0.85em;">
+                ⚠️ <strong>Wajib:</strong> Menu harus memiliki minimal 1 bahan penyusun
+              </div>
+              <div id="edit-bahan-container">
+                <!-- Will be filled dynamically -->
+              </div>
+              <button type="button" onclick="addEditBahanRow()" class="btn-yellow">+ Tambah Bahan</button>
+            </div>
           </div>
         </div>
       </div>
-      <div class="modal-footer">
+
+      <!-- FOOTER (outside scroll, inside form) -->
+      <div class="modal-footer" style="flex-shrink:0; display:flex; justify-content:flex-end; gap:10px; padding:12px 16px; border-top:1px solid #eee; background:#fff;">
         <a href="#" class="modal-cancel" onclick="closeModal('editModal')">Kembali</a>
         <button type="submit" class="btn-green">Simpan</button>
       </div>
@@ -235,7 +255,7 @@
       <div>
         <h3>Tunai</h3>
         <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;">
-          <button class="pay-btn" onclick="setPayment(0)">Uang Pas</button>
+          <button class="pay-btn" onclick="setPaymentExact()">Uang Pas</button>
           <button class="pay-btn" onclick="setPayment(25000)">Rp 25.000</button>
           <button class="pay-btn" onclick="setPayment(50000)">Rp 50.000</button>
           <button class="pay-btn" onclick="setPayment(100000)">Rp 100.000</button>
@@ -267,85 +287,142 @@
 </div>
 
 {{-- ============= MODAL PILIH MEMBER (BARU) ============= --}}
+<style>
+  #memberModal tbody td {
+    color: #000 !important;
+    font-weight: 500 !important;
+  }
+
+  #memberModal tbody td:first-child {
+    color: #000 !important;
+    font-weight: 600 !important;
+  }
+
+  #memberModal tbody td:nth-child(5) {
+    color: #000 !important;
+    font-weight: 600 !important;
+  }
+
+  /* Scrollable modal styling */
+  .modal-scroll {
+    max-height: calc(85vh - 170px);
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+
+  /* Nice scrollbar for modal scroll container */
+  .modal-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .modal-scroll::-webkit-scrollbar-thumb {
+    background: #bbb;
+    border-radius: 10px;
+  }
+
+  .modal-scroll::-webkit-scrollbar-track {
+    background: #f5f5f5;
+  }
+
+  /* Fallback for Firefox */
+  .modal-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #bbb #f5f5f5;
+  }
+</style>
+
 <div id="memberModal" class="modal-overlay" style="display:none;">
-  <div class="modal-card" style="max-width:1100px;">
-    <h2 class="modal-title">Daftar Member</h2>
+  <div class="modal-card" style="max-width:1100px; width:min(95%,1100px); display:flex; flex-direction:column; height:auto; max-height:85vh; background:white; border-radius:12px;">
+    <h2 class="modal-title" style="flex-shrink:0; padding:16px; margin:0;">Daftar Member</h2>
 
-    <div class="modal-body" style="grid-template-columns:1fr;">
-      <div class="table-responsive" style="max-height:360px; overflow:auto;">
-        <table class="table" id="tblMembers">
-          <thead>
-            <tr>
-              <th style="width:50px;">NO</th>
-              <th>NAMA</th>
-              <th>EMAIL</th>
-              <th>NO. TELEPON</th>
-              <th style="width:120px;">TOTAL POIN</th>
-              <th style="width:80px; text-align:center;">PILIH</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colspan="6">Memuat data...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <hr style="margin:6px 0 12px">
-
-      <form onsubmit="return false;">
-        <div class="mmx-formgrid">
-          <!-- Nama -->
-          <div class="mmx-field">
-            <label for="m_nama">Nama</label>
-            <div class="mmx-inputwrap">
-              <i class="fa-solid fa-user"></i>
-              <input class="mmx-input" id="m_nama" type="text" readonly>
-            </div>
+    <!-- SCROLLABLE SECTION -->
+    <div class="modal-scroll" style="max-height:calc(85vh - 170px); overflow-y:auto; flex:1;">
+      <div style="padding:0 16px; display:flex; flex-direction:column; gap:16px;">
+        <!-- Search bar -->
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding-top:4px;">
+          <div class="mmx-inputwrap" style="flex:1; min-width:260px;">
+            <i class="fa-solid fa-search"></i>
+            <input class="mmx-input" id="memberSearch" type="text" placeholder="Cari nama, email, atau telepon">
           </div>
-
-          <!-- Email -->
-          <div class="mmx-field">
-            <label for="m_email">Email</label>
-            <div class="mmx-inputwrap">
-              <i class="fa-solid fa-envelope"></i>
-              <input class="mmx-input" id="m_email" type="text" readonly>
-            </div>
-          </div>
-
-          <!-- Telepon -->
-          <div class="mmx-field">
-            <label for="m_telp">No. Telepon</label>
-            <div class="mmx-inputwrap">
-              <i class="fa-solid fa-phone"></i>
-              <input class="mmx-input" id="m_telp" type="text" readonly>
-            </div>
-          </div>
-
-          <!-- Total Poin -->
-          <div class="mmx-field">
-            <label for="m_poin_total">Total Poin</label>
-            <div class="mmx-inputwrap">
-              <i class="fa-solid fa-star"></i>
-              <input class="mmx-input" id="m_poin_total" type="number" readonly>
-            </div>
-          </div>
-
-          <!-- Poin yang akan digunakan (span 2 kolom) -->
-          <div class="mmx-field mmx-field--span2">
-            <label for="m_poin_pakai">Poin yang akan digunakan</label>
-            <div class="mmx-inputwrap">
-              <i class="fa-solid fa-wallet"></i>
-              <input class="mmx-input" id="m_poin_pakai" type="number" min="0" value="0">
-            </div>
-            <small id="m_poin_help" class="mmx-muted">Maksimal sesuai total poin.</small>
-          </div>
+          <button type="button" class="btn-yellow" id="memberSearchReset" style="height:42px;">Reset</button>
         </div>
-      </form>
+
+        <!-- Table -->
+        <div class="table-responsive" style="max-height:220px; overflow-y:auto; border:1px solid #e0e0e0; border-radius:6px;">
+          <table class="table" id="tblMembers" style="font-size:0.9em;">
+            <thead>
+              <tr style="font-size:0.85em;">
+                <th style="width:45px; padding:8px;">NO</th>
+                <th style="padding:8px;">NAMA</th>
+                <th style="padding:8px;">EMAIL</th>
+                <th style="padding:8px;">NO. TELEPON</th>
+                <th style="width:100px; padding:8px;">TOTAL POIN</th>
+                <th style="width:70px; text-align:center; padding:8px;">PILIH</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="6" style="padding:10px;">Memuat data...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Form -->
+        <form onsubmit="return false;" style="padding-bottom:16px;">
+          <div class="mmx-formgrid">
+            <!-- Nama -->
+            <div class="mmx-field">
+              <label for="m_nama">Nama</label>
+              <div class="mmx-inputwrap">
+                <i class="fa-solid fa-user"></i>
+                <input class="mmx-input" id="m_nama" type="text" readonly>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="mmx-field">
+              <label for="m_email">Email</label>
+              <div class="mmx-inputwrap">
+                <i class="fa-solid fa-envelope"></i>
+                <input class="mmx-input" id="m_email" type="text" readonly>
+              </div>
+            </div>
+
+            <!-- Telepon -->
+            <div class="mmx-field">
+              <label for="m_telp">No. Telepon</label>
+              <div class="mmx-inputwrap">
+                <i class="fa-solid fa-phone"></i>
+                <input class="mmx-input" id="m_telp" type="text" readonly>
+              </div>
+            </div>
+
+            <!-- Total Poin -->
+            <div class="mmx-field">
+              <label for="m_poin_total">Total Poin</label>
+              <div class="mmx-inputwrap">
+                <i class="fa-solid fa-star"></i>
+                <input class="mmx-input" id="m_poin_total" type="number" readonly>
+              </div>
+            </div>
+
+            <!-- Poin yang akan digunakan (span 2 kolom) -->
+            <div class="mmx-field mmx-field--span2">
+              <label for="m_poin_pakai">Poin yang akan digunakan</label>
+              <div class="mmx-inputwrap">
+                <i class="fa-solid fa-wallet"></i>
+                <input class="mmx-input" id="m_poin_pakai" type="number" min="0" value="0">
+              </div>
+              <small id="m_poin_help" class="mmx-muted">Maksimal sesuai total poin.</small>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
 
-    <div class="modal-footer">
+    <!-- FOOTER (outside scroll, inside modal) -->
+    <div class="modal-footer" style="flex-shrink:0; display:flex; justify-content:space-between; gap:10px; padding:12px 16px; border-top:1px solid #eee; background:#fff;">
       <a href="#" class="modal-cancel" onclick="closeModal('memberModal')">Kembali</a>
       <button class="btn-green" id="btnMemberApply">Lanjutkan</button>
     </div>
@@ -388,6 +465,30 @@
         div.style.transform = 'translateY(-6px)';
         setTimeout(() => div.remove(), 350);
       }, timeout);
+    }
+
+    // Alias untuk showNotification
+    window.showNotification = window.showFlash;
+
+    // Debug form edit submit
+    const editForm = document.getElementById('editForm');
+    if (editForm) {
+      editForm.addEventListener('submit', function(e) {
+        const formData = new FormData(this);
+        console.log('📝 Form Edit Submit - Data yang dikirim:');
+        console.log('  Nama:', formData.get('Nama'));
+        console.log('  Harga:', formData.get('Harga'));
+        console.log('  Kategori:', formData.get('Kategori'));
+
+        const bahanArray = formData.getAll('bahan[]');
+        const jumlahArray = formData.getAll('jumlah_digunakan[]');
+        console.log('  Bahan[]:', bahanArray);
+        console.log('  Jumlah[]:', jumlahArray);
+
+        if (bahanArray.length === 0) {
+          console.error('❌ TIDAK ADA BAHAN! Form akan ditolak oleh server.');
+        }
+      });
     }
 
     // Toggle kategori custom untuk form ADD
@@ -565,19 +666,36 @@
     });
 
     function openContextMenu(x, y) {
-      const padding = 8;
-      const menuRect = {
-        width: 200,
-        height: 120
-      };
+      const padding = 12;
+      const menuRect = { width: 200, height: 120 };
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      let left = x,
-        top = y;
-      if (x + menuRect.width + padding > vw) left = vw - menuRect.width - padding;
-      if (y + menuRect.height + padding > vh) top = vh - menuRect.height - padding;
-      contextMenu.style.left = `${left}px`;
-      contextMenu.style.top = `${top}px`;
+      
+      // Posisikan di sebelah card (kanan dari card)
+      const card = document.querySelector(`.produk-card[data-id="${currentCardId}"]`);
+      if (card) {
+        const rect = card.getBoundingClientRect();
+        let left = rect.right + padding;  // Sebelah kanan card
+        let top = rect.top;                 // Selaras dengan card
+        
+        // Cek apakah menu melebihi viewport
+        if (left + menuRect.width + padding > vw) {
+          left = rect.left - menuRect.width - padding;  // Posisi di sebelah kiri card
+        }
+        if (top + menuRect.height + padding > vh) {
+          top = vh - menuRect.height - padding;  // Posisi di bawah jika melebihi
+        }
+        
+        contextMenu.style.left = `${left}px`;
+        contextMenu.style.top = `${top}px`;
+      } else {
+        // Fallback ke posisi cursor jika card tidak ditemukan
+        let left = x, top = y;
+        if (x + menuRect.width + padding > vw) left = vw - menuRect.width - padding;
+        if (y + menuRect.height + padding > vh) top = vh - menuRect.height - padding;
+        contextMenu.style.left = `${left}px`;
+        contextMenu.style.top = `${top}px`;
+      }
       contextMenu.style.display = 'block';
       contextMenu.setAttribute('aria-hidden', 'false');
     }
@@ -662,19 +780,25 @@
       try {
         const response = await fetch(`/menu/${currentCardId}/bahan`);
         const bahan = await response.json();
+        console.log('📦 Bahan data from API:', bahan);
+
         const container = document.getElementById('edit-bahan-container');
         container.innerHTML = '';
 
         if (bahan.length === 0) {
+          console.warn('⚠️ No bahan found, adding empty row');
           addEditBahanRow();
         } else {
+          console.log(`✅ Loading ${bahan.length} bahan items`);
           bahan.forEach(b => {
-            const row = createBahanRow(b.ID_Barang, b.Jumlah_Digunakan);
+            console.log(`  → ID_Barang: ${b.ID_Barang}, Jumlah: ${b.Jumlah_Digunakan}`);
+            const row = createBahanRowForEdit(b.ID_Barang, b.Jumlah_Digunakan);
             container.appendChild(row);
           });
+          updateEditBahanDeleteButtons();
         }
       } catch (error) {
-        console.error('Error fetching bahan:', error);
+        console.error('❌ Error fetching bahan:', error);
         addEditBahanRow();
       }
 
@@ -697,27 +821,17 @@
       }
     }
 
+    window.setPaymentExact = function() {
+      const totalText = totalHargaEl.textContent.replace(/[^\d]/g, '');
+      const total = parseInt(totalText) || 0;
+      document.getElementById('customPay').value = total;
+      window.paymentMethod = 'tunai';
+    }
+
     window.processPayment = function() {
       const totalText = totalHargaEl.textContent.replace(/[^\d]/g, '');
       const total = parseInt(totalText) || 0;
       const customPay = parseInt(document.getElementById('customPay').value) || 0;
-
-      // Helper to show flash-like notifications (mimic stok view)
-      window.showNotification = function(type, message, timeout = 5000) {
-        const container = document.getElementById('flash-container');
-        if (!container) return;
-        const div = document.createElement('div');
-        div.className = `flash-alert ${type === 'success' ? 'flash-success' : 'flash-error'}`;
-        div.style.pointerEvents = 'auto';
-        div.textContent = message;
-        container.appendChild(div);
-        setTimeout(() => {
-          div.style.transition = 'opacity 0.3s, transform 0.3s';
-          div.style.opacity = '0';
-          div.style.transform = 'translateY(-6px)';
-          setTimeout(() => div.remove(), 350);
-        }, timeout);
-      }
 
       // Validasi item keranjang
       if (cart.length === 0) {
@@ -777,20 +891,31 @@
 
     async function saveTransaksiKeDatabase(cart, total, metode) {
       try {
+        // Siapkan payload dengan data member jika ada
+        const payload = {
+          items: cart.map(c => ({
+            id: c.id,
+            qty: c.qty
+          })),
+          total: total,
+          metode: metode
+        };
+
+        // Tambahkan data member jika ada yang dipilih
+        if (window.selectedMember) {
+          payload.member = {
+            id: window.selectedMember.id,
+            poin_pakai: window.selectedMember.poin_pakai
+          };
+        }
+
         const res = await fetch('{{ route("transaksi.store") }}', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
           },
-          body: JSON.stringify({
-            items: cart.map(c => ({
-              id: c.id,
-              qty: c.qty
-            })),
-            total: total,
-            metode: metode
-          })
+          body: JSON.stringify(payload)
         });
 
         let data = null;
@@ -812,6 +937,31 @@
       }
     }
 
+    // ========== TOGGLE CATEGORY FILTER ==========
+    window.toggleCategoryFilter = function() {
+      const filterContainer = document.getElementById('categoryFilterContainer');
+      const dropdownIcon = document.getElementById('dropdownIcon');
+      const dropdownBtn = document.getElementById('categoryDropdownBtn');
+
+      if (filterContainer.style.display === 'none' || !filterContainer.style.display) {
+        // Show filter
+        filterContainer.style.display = 'flex';
+        filterContainer.style.maxHeight = '500px';
+        filterContainer.style.opacity = '1';
+        dropdownIcon.textContent = '▼';
+        dropdownBtn.classList.remove('collapsed');
+      } else {
+        // Hide filter
+        filterContainer.style.maxHeight = '0';
+        filterContainer.style.opacity = '0';
+        setTimeout(() => {
+          filterContainer.style.display = 'none';
+        }, 300);
+        dropdownIcon.textContent = '▶';
+        dropdownBtn.classList.add('collapsed');
+      }
+    }
+
     window.filterProduk = function() {
       const keyword = document.getElementById("searchProduk").value.toLowerCase().trim();
       document.querySelectorAll(".produk-card").forEach(card => {
@@ -826,7 +976,7 @@
       row.classList.add('bahan-row');
       row.style.cssText = 'display:flex;gap:10px;margin-bottom:8px;';
       row.innerHTML = `
-        <select name="bahan[]" class="bahan-select" style="flex:1;">
+        <select name="bahan[]" class="bahan-select" required style="flex:1;">
           <option value="">-- Pilih Bahan --</option>
           @foreach ($stok as $item)
             <option value="{{ $item->ID_Barang }}" ${String(selectedId) === '{{ $item->ID_Barang }}' ? 'selected' : ''}>
@@ -834,21 +984,99 @@
             </option>
           @endforeach
         </select>
-        <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" value="${jumlah}" min="1" style="width:100px;">
-        <button type="button" class="btn-remove-bahan" onclick="this.parentElement.remove()">&times;</button>
+        <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" value="${jumlah}" min="1" required style="width:100px;">
+        <button type="button" class="btn-remove-bahan" onclick="removeBahanRow(this)" style="padding:6px 10px;background:#e74c3c;color:#fff;border:none;border-radius:4px;cursor:pointer;">&times;</button>
+      `;
+      return row;
+    }
+
+    function createBahanRowForEdit(selectedId = '', jumlah = '') {
+      const row = document.createElement('div');
+      row.classList.add('bahan-row');
+      row.style.cssText = 'display:flex;gap:10px;margin-bottom:8px;';
+      row.innerHTML = `
+        <select name="bahan[]" class="bahan-select" required style="flex:1;">
+          <option value="">-- Pilih Bahan --</option>
+          @foreach ($stok as $item)
+            <option value="{{ $item->ID_Barang }}" ${String(selectedId) === '{{ $item->ID_Barang }}' ? 'selected' : ''}>
+              {{ $item->Nama }} ({{ $item->Jumlah_Item }})
+            </option>
+          @endforeach
+        </select>
+        <input type="number" name="jumlah_digunakan[]" placeholder="Jumlah" value="${jumlah}" min="1" required style="width:100px;">
+        <button type="button" class="btn-remove-bahan" onclick="removeEditBahanRow(this)" style="padding:6px 10px;background:#e74c3c;color:#fff;border:none;border-radius:4px;cursor:pointer;">&times;</button>
       `;
       return row;
     }
 
     window.addBahanRow = function() {
       const container = document.getElementById('bahan-container');
-      container.appendChild(createBahanRow());
+      const newRow = createBahanRow();
+      container.appendChild(newRow);
+      updateBahanDeleteButtons();
     }
 
     window.addEditBahanRow = function() {
       const container = document.getElementById('edit-bahan-container');
-      container.appendChild(createBahanRow());
+      const newRow = createBahanRow();
+      container.appendChild(newRow);
+      updateEditBahanDeleteButtons();
     }
+
+    window.removeBahanRow = function(btn) {
+      const container = document.getElementById('bahan-container');
+      const rows = container.querySelectorAll('.bahan-row');
+
+      // Cegah hapus jika hanya ada 1 bahan (wajib minimal 1)
+      if (rows.length <= 1) {
+        alert('⚠️ Menu harus memiliki minimal 1 bahan penyusun!');
+        return;
+      }
+
+      btn.closest('.bahan-row').remove();
+      updateBahanDeleteButtons();
+    }
+
+    window.removeEditBahanRow = function(btn) {
+      const container = document.getElementById('edit-bahan-container');
+      const rows = container.querySelectorAll('.bahan-row');
+
+      if (rows.length <= 1) {
+        alert('⚠️ Menu harus memiliki minimal 1 bahan penyusun!');
+        return;
+      }
+
+      btn.closest('.bahan-row').remove();
+      updateEditBahanDeleteButtons();
+    }
+
+    // Update visibility tombol hapus (sembunyikan jika hanya 1 bahan)
+    function updateBahanDeleteButtons() {
+      const container = document.getElementById('bahan-container');
+      const rows = container.querySelectorAll('.bahan-row');
+      rows.forEach((row, index) => {
+        const deleteBtn = row.querySelector('.btn-red-small, .btn-remove-bahan');
+        if (deleteBtn) {
+          deleteBtn.style.display = rows.length > 1 ? 'block' : 'none';
+        }
+      });
+    }
+
+    function updateEditBahanDeleteButtons() {
+      const container = document.getElementById('edit-bahan-container');
+      const rows = container.querySelectorAll('.bahan-row');
+      rows.forEach((row, index) => {
+        const deleteBtn = row.querySelector('.btn-red-small, .btn-remove-bahan');
+        if (deleteBtn) {
+          deleteBtn.style.display = rows.length > 1 ? 'block' : 'none';
+        }
+      });
+    }
+
+    // Initialize delete button visibility on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      updateBahanDeleteButtons();
+    });
 
     window.openModal = openModal;
     window.closeModal = closeModal;
@@ -857,26 +1085,45 @@
 
   // ============ SCRIPT KHUSUS MODAL MEMBER ============
   window.selectedMember = null;
+  window.membersCache = [];
 
-  async function loadMembers() {
+  function handleMemberRadioChange(e) {
+    const R = e.target;
+    const nm = decodeURIComponent(R.dataset.nama || '');
+    const em = decodeURIComponent(R.dataset.email || '');
+    const tl = decodeURIComponent(R.dataset.telp || '');
+    const pt = Number(R.dataset.poin || 0);
+    document.getElementById('m_nama').value = nm;
+    document.getElementById('m_email').value = em;
+    document.getElementById('m_telp').value = tl;
+    document.getElementById('m_poin_total').value = pt;
+    const poinP = document.getElementById('m_poin_pakai');
+    poinP.max = pt;
+    if (Number(poinP.value) > pt) poinP.value = pt;
+    document.getElementById('m_poin_help').textContent = `Maksimal ${pt} poin.`;
+    poinP.dataset.memberId = R.value;
+  }
+
+  function renderMemberRows(list, opts = {}) {
+    const {
+      isFiltered = false
+    } = opts;
     const tbody = document.querySelector('#tblMembers tbody');
     if (!tbody) return;
-    tbody.innerHTML = `<tr><td colspan="6">Memuat data...</td></tr>`;
-    try {
-      const res = await fetch(`{{ route('kasir.members.json') }}`);
-      const data = await res.json();
-      if (!Array.isArray(data) || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6">Belum ada data member.</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = data.map((m, i) => `
-      <tr>
-        <td>${String(i+1).padStart(2,'0')}</td>
-        <td>${esc(m.nama||'')}</td>
-        <td>${esc(m.email||'')}</td>
-        <td>${esc(m.no_telp||'')}</td>
-        <td>${Number(m.poin||0)}</td>
-        <td style="text-align:center;">
+    if (!Array.isArray(list) || list.length === 0) {
+      const emptyMsg = isFiltered && (window.membersCache || []).length ? 'Tidak ada hasil yang cocok.' : 'Belum ada data member.';
+      tbody.innerHTML = `<tr><td colspan="6" style="padding:10px;">${emptyMsg}</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = list.map((m, i) => `
+      <tr style="color: #000000; font-weight: 500;">
+        <td style="padding:8px;">${String(i+1).padStart(2,'0')}</td>
+        <td style="padding:8px;">${esc(m.nama||'')}</td>
+        <td style="padding:8px;">${esc(m.email||'')}</td>
+        <td style="padding:8px;">${esc(m.no_telp||'')}</td>
+        <td style="padding:8px;">${Number(m.poin||0)}</td>
+        <td style="text-align:center; padding:8px;">
           <input type="radio" name="pick_member" value="${m.id}"
             data-nama="${encodeURIComponent(m.nama||'')}"
             data-email="${encodeURIComponent(m.email||'')}"
@@ -886,28 +1133,43 @@
       </tr>
     `).join('');
 
-      document.querySelectorAll('input[name="pick_member"]').forEach(r => {
-        r.addEventListener('change', e => {
-          const R = e.target;
-          const nm = decodeURIComponent(R.dataset.nama || '');
-          const em = decodeURIComponent(R.dataset.email || '');
-          const tl = decodeURIComponent(R.dataset.telp || '');
-          const pt = Number(R.dataset.poin || 0);
-          document.getElementById('m_nama').value = nm;
-          document.getElementById('m_email').value = em;
-          document.getElementById('m_telp').value = tl;
-          document.getElementById('m_poin_total').value = pt;
-          const poinP = document.getElementById('m_poin_pakai');
-          poinP.max = pt;
-          if (Number(poinP.value) > pt) poinP.value = pt;
-          document.getElementById('m_poin_help').textContent = `Maksimal ${pt} poin.`;
-          poinP.dataset.memberId = R.value;
-        });
-      });
+    document.querySelectorAll('input[name="pick_member"]').forEach(r => {
+      r.addEventListener('change', handleMemberRadioChange);
+    });
+  }
+
+  function filterMembers(term) {
+    const q = (term || '').trim().toLowerCase();
+    if (!q) {
+      renderMemberRows(window.membersCache || []);
+      return;
+    }
+    const filtered = (window.membersCache || []).filter(m =>
+      String(m.nama || '').toLowerCase().includes(q) ||
+      String(m.email || '').toLowerCase().includes(q) ||
+      String(m.no_telp || '').toLowerCase().includes(q)
+    );
+    renderMemberRows(filtered, {
+      isFiltered: true
+    });
+  }
+
+  async function loadMembers() {
+    const tbody = document.querySelector('#tblMembers tbody');
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="6">Memuat data...</td></tr>`;
+    try {
+      const res = await fetch(`{{ route('kasir.members.json') }}`);
+      const data = await res.json();
+      window.membersCache = Array.isArray(data) ? data : [];
+      const searchBox = document.getElementById('memberSearch');
+      const term = searchBox ? searchBox.value : '';
+      filterMembers(term);
 
     } catch (e) {
       console.error(e);
       tbody.innerHTML = `<tr><td colspan="6">Gagal memuat data.</td></tr>`;
+      window.membersCache = [];
     }
   }
 
@@ -921,20 +1183,45 @@
     poinP.removeAttribute('max');
     poinP.dataset.memberId = '';
     document.getElementById('m_poin_help').textContent = 'Maksimal sesuai total poin.';
+    const searchInput = document.getElementById('memberSearch');
+    if (searchInput) searchInput.value = '';
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    const memberSearch = document.getElementById('memberSearch');
+    const memberSearchReset = document.getElementById('memberSearchReset');
+
+    if (memberSearch) {
+      memberSearch.addEventListener('input', e => filterMembers(e.target.value));
+      memberSearch.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          memberSearch.value = '';
+          filterMembers('');
+        }
+      });
+    }
+
+    if (memberSearchReset) {
+      memberSearchReset.addEventListener('click', () => {
+        if (memberSearch) {
+          memberSearch.value = '';
+          memberSearch.focus();
+        }
+        filterMembers('');
+      });
+    }
+
     document.getElementById('btnMemberApply').addEventListener('click', () => {
       const poinP = document.getElementById('m_poin_pakai');
       const id = poinP.dataset.memberId || '';
       const pt = Number(document.getElementById('m_poin_total').value || 0);
       const pp = Number(poinP.value || 0);
       if (!id) {
-        alert('Silakan pilih member terlebih dahulu.');
+        window.showNotification('error', '⚠️ Silakan pilih member terlebih dahulu.');
         return;
       }
       if (pp < 0 || pp > pt) {
-        alert('Poin yang dipakai tidak valid.');
+        window.showNotification('error', '❌ Poin yang dipakai tidak valid.');
         return;
       }
 
@@ -984,7 +1271,7 @@
 </script>
 <script>
   // =============================
-  // 🔴 MODAL HAPUS MENU (FINAL)
+  // � MODAL HAPUS MENU (FINAL)
   // =============================
 
   let menuIdToDelete = null;
@@ -1025,26 +1312,26 @@
 
 {{-- ================= FLASH SESSION HANDLER (FINAL & AMAN) ================= --}}
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener('DOMContentLoaded', function() {
 
-    @if (session('flash_success'))
-      if (typeof window.showFlash === 'function') {
-        window.showFlash(
-          'success',
-          @json(session('flash_success')),
-          6000
-        );
-      }
+    @if(session('flash_success'))
+    if (typeof window.showFlash === 'function') {
+      window.showFlash(
+        'success',
+        @json(session('flash_success')),
+        6000
+      );
+    }
     @endif
 
-    @if (session('flash_error'))
-      if (typeof window.showFlash === 'function') {
-        window.showFlash(
-          'error',
-          @json(session('flash_error')),
-          7000
-        );
-      }
+    @if(session('flash_error'))
+    if (typeof window.showFlash === 'function') {
+      window.showFlash(
+        'error',
+        @json(session('flash_error')),
+        7000
+      );
+    }
     @endif
 
   });
@@ -1052,4 +1339,3 @@
 {{-- ====================================================================== --}}
 
 @endsection
-

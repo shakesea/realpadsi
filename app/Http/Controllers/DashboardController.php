@@ -76,14 +76,19 @@ class DashboardController extends Controller
         $topMemberNames = $topMembers->pluck('Nama');
         $topMemberPoints = $topMembers->pluck('Poin');
 
-        // === TOP STOK ===
-        $topStok = Stok::select('Nama', 'Jumlah_Item')
-            ->orderBy('Jumlah_Item', 'asc')
+        // === TOP STOK (Paling Sering Digunakan dalam Transaksi) ===
+        $topStok = DB::table('Bahan_Penyusun')
+            ->join('Stok', 'Bahan_Penyusun.ID_Barang', '=', 'Stok.ID_Barang')
+            ->join('Menu', 'Bahan_Penyusun.ID_Menu', '=', 'Menu.ID_Menu')
+            ->join('Detail_Penjualan', 'Menu.ID_Menu', '=', 'Detail_Penjualan.ID_Menu')
+            ->select('Stok.Nama', DB::raw('SUM(Detail_Penjualan.Quantity * Bahan_Penyusun.Jumlah_Digunakan) as total_digunakan'))
+            ->groupBy('Stok.ID_Barang', 'Stok.Nama')
+            ->orderByDesc('total_digunakan')
             ->limit(10)
             ->get();
 
         $topStokNames = $topStok->pluck('Nama');
-        $topStokCounts = $topStok->pluck('Jumlah_Item');
+        $topStokCounts = $topStok->pluck('total_digunakan');
 
         return view('dashboard', compact(
             'totalPenjualan',
@@ -167,13 +172,21 @@ class DashboardController extends Controller
         $topMemberNames = $topMembers->pluck('Nama');
         $topMemberPoints = $topMembers->pluck('Poin');
 
-        $topStok = Stok::select('Nama', 'Jumlah_Item')
-            ->orderBy('Jumlah_Item', 'asc')
+        // Top Stok (filtered by date range)
+        $topStok = DB::table('Bahan_Penyusun')
+            ->join('Stok', 'Bahan_Penyusun.ID_Barang', '=', 'Stok.ID_Barang')
+            ->join('Menu', 'Bahan_Penyusun.ID_Menu', '=', 'Menu.ID_Menu')
+            ->join('Detail_Penjualan', 'Menu.ID_Menu', '=', 'Detail_Penjualan.ID_Menu')
+            ->join('TransaksiPenjualan', 'Detail_Penjualan.ID_Penjualan', '=', 'TransaksiPenjualan.ID_Penjualan')
+            ->whereBetween('TransaksiPenjualan.Tgl_Penjualan', [$start_date, $end_date])
+            ->select('Stok.Nama', DB::raw('SUM(Detail_Penjualan.Quantity * Bahan_Penyusun.Jumlah_Digunakan) as total_digunakan'))
+            ->groupBy('Stok.ID_Barang', 'Stok.Nama')
+            ->orderByDesc('total_digunakan')
             ->limit(10)
             ->get();
 
         $topStokNames = $topStok->pluck('Nama');
-        $topStokCounts = $topStok->pluck('Jumlah_Item');
+        $topStokCounts = $topStok->pluck('total_digunakan');
 
         // === RETURN JSON KE DASHBOARD (AJAX) ===
         return response()->json([

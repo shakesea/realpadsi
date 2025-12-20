@@ -72,28 +72,42 @@ class PenjualanImport
         // Cek apakah ID_Penjualan sudah ada
         $existing = TransaksiPenjualan::where('ID_Penjualan', $row['id_penjualan'])->first();
 
-        if ($existing) {
-           throw new \Exception("Transaksi dengan ID tersebut sudah ada. Import dibatalkan.");
+        // Jika belum ada → buat transaksi baru, kalau sudah ada → pakai yang ada
+        if (!$existing) {
+            // Normalisasi tanggal dari Excel/CSV
+            $tgl = $row['tgl_penjualan'];
+            try {
+                if (is_numeric($tgl)) {
+                    // Nilai serial Excel
+                    $dt = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($tgl);
+                    $tglParsed = Carbon::instance($dt);
+                } else {
+                    // String tanggal (contoh: 12/16/2025 8:30)
+                    $tglParsed = Carbon::parse($tgl);
+                }
+            } catch (\Throwable $e) {
+                $tglParsed = now();
+            }
+            $penjualan = TransaksiPenjualan::create([
+                'ID_Penjualan'     => $row['id_penjualan'],
+                'Tgl_Penjualan'     => $tglParsed,
+                'ID_Pegawai'        => $idPegawai,
+                'ID_Manager'        => $idManager,
+                'ID_Member'         => $idMember,
+                'Metode_Pembayaran' => $row['metode_pembayaran'] ?? 'Tunai',
+                'TotalHarga'        => $row['totalharga'] ?? 0,
+                'Jumlah_Item'       => $row['jumlah_item'] ?? 0,
+                'Status'            => $row['status'] ?? 'Selesai',
+                'Poin_Digunakan'    => $row['poin_digunakan'] ?? 0,
+                'Poin_Didapat'      => $row['poin_didapat'] ?? 0,
+            ]);
+        } else {
+            $penjualan = $existing;
         }
 
-        // Jika belum ada → buat baru
-        $penjualan = TransaksiPenjualan::create([
-            'ID_Penjualan'     => $row['id_penjualan'],
-            'Tgl_Penjualan'     => Carbon::parse($row['tgl_penjualan']),
-            'ID_Pegawai'        => $idPegawai,
-            'ID_Manager'        => $idManager,
-            'ID_Member'         => $idMember,
-            'Metode_Pembayaran' => $row['metode_pembayaran'] ?? 'Tunai',
-            'TotalHarga'        => $row['totalharga'] ?? 0,
-            'Jumlah_Item'       => $row['jumlah_item'] ?? 0,
-            'Status'            => $row['status'] ?? 'Selesai',
-            'Poin_Digunakan'    => $row['poin_digunakan'] ?? 0,
-            'Poin_Didapat'      => $row['poin_didapat'] ?? 0,
-        ]);
 
-
-        // 6️⃣ Update poin member
-        if (!empty($row['id_member'])) {
+        // 6️⃣ Update poin member hanya saat transaksi baru dibuat
+        if (!$existing && !empty($row['id_member'])) {
             $member = Member::where('ID_Member', $row['id_member'])->first();
 
             if ($member) {
@@ -119,13 +133,24 @@ class PenjualanImport
         // Hitung quantity
         $quantity = $row['quantity'] ?? $row['qty'] ?? 1;
 
+        // ✅ Cek apakah detail untuk menu ini sudah ada di transaksi ini
+        $existingDetail = DetailPenjualan::where('ID_Penjualan', $penjualan->ID_Penjualan)
+            ->where('ID_Menu', $menu->ID_Menu)
+            ->first();
+
+        if ($existingDetail) {
+            Log::warning("⚠️ Detail untuk Menu {$menu->ID_Menu} sudah ada di transaksi {$penjualan->ID_Penjualan}, skip");
+            return $penjualan;
+        }
+
         // 8️⃣ Buat detail
+        $unitPrice = $row['harga_menu'] ?? ($row['harga'] ?? ($menu->Harga ?? 0));
         $detail = new DetailPenjualan([
             'ID_Detail_Penjualan' => $newDetailId,
             'ID_Menu'      => $menu->ID_Menu,
             'ID_Penjualan' => $penjualan->ID_Penjualan,
             'Quantity'     => $quantity,
-            'Subtotal'     => $row['subtotal'] ?? ($row['harga'] ?? 0) * $quantity,
+            'Subtotal'     => $row['subtotal'] ?? ($unitPrice * $quantity),
         ]);
 
         $detail->save();
@@ -137,13 +162,19 @@ class PenjualanImport
             $stok = Stok::where('ID_Barang', $bahan->ID_Barang)->first();
 
             if ($stok) {
+                $stokAwal = $stok->Jumlah_Item;
                 $stok->Jumlah_Item -= ($bahan->Jumlah_Digunakan * $quantity);
 
                 if ($stok->Jumlah_Item < 0) {
                     $stok->Jumlah_Item = 0;
                 }
 
+                // Update status stok berdasarkan jumlah
+                $statusLama = $stok->Status;
+                $stok->updateStatus();
                 $stok->save();
+
+                Log::info("📦 Import: Stok {$stok->Nama} (ID: {$bahan->ID_Barang}): {$stokAwal} → {$stok->Jumlah_Item}, Status: {$statusLama} → {$stok->Status}");
             }
         }
         return $penjualan;

@@ -22,20 +22,20 @@
         <div class="pilih-pelayan">
             <h1 class="pegawai-title">Pilih Pelayan</h1>
 
-            <!-- Form pencarian -->
-            <form method="GET" action="{{ route('pegawai.index') }}" class="pegawai-search">
+            <!-- Form pencarian (Auto search tanpa submit) -->
+            <div class="pegawai-search">
                 <svg xmlns="http://www.w3.org/2000/svg" class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1116.65 6.65a7.5 7.5 0 010 10.6z" />
                 </svg>
-                <input type="text" name="q" value="{{ $q ?? '' }}" placeholder="Cari Pelayan...">
-            </form>
+                <input type="text" id="searchPegawai" placeholder="Cari Pelayan..." onkeyup="filterPegawai()">
+            </div>
         </div>
 
         <!-- Form Pegawai -->
         <div class="pegawai-list">
             @forelse ($pegawai as $p)
-            <div class="pegawai-item">
+            <div class="pegawai-item" data-username="{{ strtolower($p->Username) }}" data-role="{{ strtolower($p->ID_Role) }}">
                 <div class="pegawai-left">
                     <div class="pegawai-avatar">{{ strtoupper(substr($p->Username, 0, 2)) }}</div>
                     <span class="pegawai-name">{{ $p->Username }}</span>
@@ -157,6 +157,23 @@
             }, 3000);
         });
     });
+
+    // Auto search/filter pegawai
+    window.filterPegawai = function() {
+        const keyword = document.getElementById("searchPegawai").value.toLowerCase().trim();
+        const items = document.querySelectorAll(".pegawai-item");
+
+        items.forEach(item => {
+            const username = item.dataset.username || '';
+            const role = item.dataset.role || '';
+
+            if (!keyword || username.includes(keyword) || role.includes(keyword)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
 </script>
 <!-- SCRIPT untuk modal hapus -->
 <script>

@@ -21,4 +21,16 @@ class BahanPenyusun extends Model
         'Created_At',
         'Updated_At',
     ];
+
+    // Relasi ke Stok
+    public function stok()
+    {
+        return $this->belongsTo(Stok::class, 'ID_Barang', 'ID_Barang');
+    }
+
+    // Relasi ke Menu
+    public function menu()
+    {
+        return $this->belongsTo(Menu::class, 'ID_Menu', 'ID_Menu');
+    }
 }

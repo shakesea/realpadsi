@@ -82,6 +82,10 @@ class KasirController extends Controller
             }
 
             DB::commit();
+
+            // Clear cache kategori agar filter kategori baru langsung muncul
+            \Illuminate\Support\Facades\Cache::forget('menu_categories');
+
             return redirect()->back()->with('success', '✅ Produk & bahan penyusun berhasil ditambahkan!');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -141,6 +145,10 @@ class KasirController extends Controller
             }
 
             DB::commit();
+
+            // Clear cache kategori agar perubahan langsung terlihat
+            \Illuminate\Support\Facades\Cache::forget('menu_categories');
+
             return redirect()->back()->with('success', '✅ Produk berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -156,6 +164,10 @@ class KasirController extends Controller
             BahanPenyusun::where('ID_Menu', $id)->delete();
             Menu::where('ID_Menu', $id)->delete();
             DB::commit();
+
+            // Clear cache kategori agar perubahan langsung terlihat
+            \Illuminate\Support\Facades\Cache::forget('menu_categories');
+
             return redirect()->back()->with('success', '🗑️ Produk berhasil dihapus!');
         } catch (\Exception $e) {
             DB::rollBack();

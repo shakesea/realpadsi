@@ -258,10 +258,13 @@ class TransaksiPenjualanController extends Controller
 
                         $stok->Jumlah_Item = $stokSebelum - $pakai; // tidak akan < 0
                         $stokSesudah = $stok->Jumlah_Item;
+
+                        // Update status stok berdasarkan jumlah
+                        $stok->updateStatus();
                         $stok->Updated_At = now();
                         $stok->save();
 
-                        Log::info("[{$trackId}] ✓ Mengurangi stok {$stok->Nama} (ID: {$idBarang}): {$stokSebelum} - {$pakai} = {$stokSesudah}");
+                        Log::info("[{$trackId}] ✓ Mengurangi stok {$stok->Nama} (ID: {$idBarang}): {$stokSebelum} - {$pakai} = {$stokSesudah}, Status: {$stok->Status}");
                     } else {
                         Log::warning("[{$trackId}] ✗ Stok dengan ID {$idBarang} tidak ditemukan!");
                     }

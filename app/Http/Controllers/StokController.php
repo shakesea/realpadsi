@@ -56,24 +56,33 @@ class StokController extends Controller
                 ->withInput();
         }
 
+        // Cek duplikasi nama stok (case-insensitive)
+        $namaInput = trim($request->nama);
+        $isDuplicate = Stok::whereRaw('LOWER(`Nama`) = LOWER(?)', [$namaInput])->exists();
+        if ($isDuplicate) {
+            return redirect()->back()
+                ->with('error', '❌ Stok dengan nama ini sudah ada, silakan gunakan nama lain.')
+                ->withInput();
+        }
+
         // Generate ID STOK
         $last = Stok::orderBy('ID_Barang', 'desc')->first();
         $lastNumber = $last ? intval(substr($last->ID_Barang, 4)) : 0;
         $newId = 'STOK' . str_pad($lastNumber + 1, 2, '0', STR_PAD_LEFT);
 
-        // Hitung status otomatis
-        $status = $this->getStatus($request->jumlah);
-
         // Insert data
-        Stok::create([
+        $stok = new Stok([
             'ID_Barang'   => $newId,
             'Nama'        => $request->nama,
             'Jumlah_Item' => $request->jumlah,
             'Kategori'    => $request->kategori,
-            'Status'      => $status,
             'Created_At'  => now(),
             'Updated_At'  => now(),
         ]);
+
+        // Update status otomatis berdasarkan jumlah
+        $stok->updateStatus();
+        $stok->save();
 
         return redirect()->route('stok.index')
             ->with('success', 'Stok baru berhasil ditambahkan!');
@@ -102,18 +111,29 @@ class StokController extends Controller
                 ->withInput();
         }
 
-        // 2. Hitung Status
-        $status = $this->getStatus($request->jumlah);
+        // 1.5. Cek duplikasi nama stok selain ID yang sedang diedit (case-insensitive)
+        $namaInput = trim($request->nama);
+        $isDuplicate = Stok::whereRaw('LOWER(`Nama`) = LOWER(?)', [$namaInput])
+            ->where('ID_Barang', '!=', $id)
+            ->exists();
+        if ($isDuplicate) {
+            return redirect()->back()
+                ->with('error', '❌ Stok dengan nama ini sudah ada, silakan gunakan nama lain.')
+                ->withInput();
+        }
 
-        // 3. EKSEKUSI UPDATE LANGSUNG (Bypass Eloquent Model Magic)
-        // Kita menggunakan 'where' string secara eksplisit agar ID 'STOK35' terbaca benar.
-        $affectedRows = Stok::where('ID_Barang', $id)->update([
-            'Nama'        => $request->nama,
-            'Jumlah_Item' => $request->jumlah,
-            'Kategori'    => $request->kategori,
-            'Status'      => $status,
-            'Updated_At'  => now(), // Kita paksa update timestamp
-        ]);
+        // 2. Ambil data stok
+        $stok = Stok::where('ID_Barang', $id)->firstOrFail();
+
+        // 3. Update data
+        $stok->Nama = $request->nama;
+        $stok->Jumlah_Item = $request->jumlah;
+        $stok->Kategori = $request->kategori;
+        $stok->Updated_At = now();
+
+        // Update status otomatis berdasarkan jumlah
+        $stok->updateStatus();
+        $affectedRows = $stok->save() ? 1 : 0;
 
         // 4. VERIFIKASI KEBENARAN
         // Jika $affectedRows bernilai 0, berarti database TIDAK menyentuh data apapun.
@@ -143,10 +163,21 @@ class StokController extends Controller
     {
         try {
             $filter = $request->query('status');
+            $sortBy = $request->query('sortBy', 'ID_Barang'); // Default sort by ID
+            $sortDir = $request->query('sortDir', 'asc'); // Default ascending
+
+            // Validasi kolom sorting untuk keamanan
+            $allowedColumns = ['Nama', 'Jumlah_Item', 'Kategori', 'Status', 'ID_Barang'];
+            if (!in_array($sortBy, $allowedColumns)) {
+                $sortBy = 'ID_Barang';
+            }
+
+            // Validasi direction
+            $sortDir = strtolower($sortDir) === 'desc' ? 'desc' : 'asc';
 
             $stokData = Stok::when($filter, function ($query) use ($filter) {
                 return $query->where('Status', $filter);
-            })->orderBy('ID_Barang')->get();
+            })->orderBy($sortBy, $sortDir)->get();
 
             // Bypass facade to avoid public path resolution issues on shared hosting
             $dompdf = new \Dompdf\Dompdf();

@@ -4,9 +4,59 @@
 
 @section('content')
 
+{{-- Flash Messages --}}
+@if(session('flash_success'))
+<div class="flash-alert flash-success">{{ session('flash_success') }}</div>
+@endif
+
+@if(session('flash_error'))
+<div class="flash-alert flash-error">{{ session('flash_error') }}</div>
+@endif
+
+@if($errors->any())
+<div class="flash-alert flash-error">
+    @foreach($errors->all() as $error)
+    {{ $error }}<br>
+    @endforeach
+</div>
+@endif
+
 <div class="modal-overlay" style="display:flex;">
 
     <style>
+        /* Flash alerts */
+        .flash-alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 500;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .flash-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flash-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Scroll container: only the form body should scroll */
         .modal-scroll {
             max-height: calc(85vh - 170px);
@@ -149,7 +199,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Bahan Penyusun <span style="color:#888;font-weight:normal;">(Opsional)</span></label>
+                            <label>Bahan Penyusun <span style="color:#888;font-weight:normal;">(Wajib)</span></label>
                             <div id="bahan-container">
                                 <div class="bahan-row" style="display:flex;gap:10px;margin-bottom:8px;">
                                     <select name="bahan[]" class="bahan-select" style="flex:1;">

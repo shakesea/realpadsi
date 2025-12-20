@@ -25,7 +25,7 @@ class MemberController extends Controller
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('Nama', 'like', "%{$search}%")
-                  ->orWhere('Email', 'like', "%{$search}%");
+                    ->orWhere('Email', 'like', "%{$search}%");
             });
         }
 
@@ -52,18 +52,71 @@ class MemberController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi manual
-        $validator = Validator::make($request->all(), [
-            'nama'    => ['required', 'regex:/^[A-Za-z\s]+$/'],
-            'email'   => ['required', 'email'],
-            'no_telp' => ['required', 'regex:/^[0-9]+$/'],
-            'alamat'  => ['nullable', 'string', 'max:255'],
-        ]);
+        // Normalisasi input
+        $namaInput = trim(preg_replace('/\s+/', ' ', (string)$request->nama));
+        $telpInputRaw = (string)$request->no_telp;
+        $telpNormalized = preg_replace('/[^0-9\+]/', '', $telpInputRaw);
+        if (strpos($telpNormalized, '+62') === 0) {
+            $telpNormalized = '0' . substr($telpNormalized, 3);
+        }
 
-        // Jika gagal → kembalikan flash message umum
+        // Validasi dengan aturan yang lebih ketat + pesan khusus
+        $validator = Validator::make(
+            [
+                'nama'    => $namaInput,
+                'email'   => $request->email,
+                'no_telp' => $telpNormalized,
+                'alamat'  => $request->alamat,
+            ],
+            [
+                'nama'    => ['required', 'min:3', 'max:100', "regex:/^[A-Za-zÀ-ÖØ-öø-ÿ\s'\-\.]+$/", 'unique:Member,Nama'],
+                'email'   => ['required', 'email', 'max:150'],
+                // Format nomor HP Indonesia: 08xxxxxxxx atau +62/62 di-normalisasi jadi 0
+                'no_telp' => ["required", "regex:/^(0)8[0-9]{7,}$/"],
+                'alamat'  => ['nullable', 'string', 'max:255'],
+            ],
+            [
+                'nama.required'   => 'Nama wajib diisi.',
+                'nama.min'        => 'Nama minimal 3 karakter.',
+                'nama.max'        => 'Nama maksimal 100 karakter.',
+                'nama.regex'      => "Nama hanya boleh huruf, spasi, tanda - . ' ",
+                'nama.unique'     => 'Nama member sudah ada.',
+                'email.required'  => 'Email wajib diisi.',
+                'email.email'     => 'Format email tidak valid.',
+                'email.max'       => 'Email terlalu panjang.',
+                'no_telp.required' => 'Nomor telepon wajib diisi.',
+                'no_telp.regex'   => 'Nomor telepon Indonesia tidak valid (contoh: 08xxxxxxxx).',
+                'alamat.max'      => 'Alamat maksimal 255 karakter.',
+            ]
+        );
+
+        // Cek duplikasi nama secara case-insensitive pada tahap validator
+        $validator->after(function ($v) use ($namaInput) {
+            if (!empty($namaInput)) {
+                $exists = Member::whereRaw('LOWER(Nama) = ?', [strtolower($namaInput)])
+                    ->exists();
+                if ($exists) {
+                    $v->errors()->add('nama', 'Member sudah ada, silakan gunakan nama lain.');
+                }
+            }
+        });
+
+        // Jika gagal → kembalikan flash message + errors
         if ($validator->fails()) {
+            $errors = $validator->errors();
+            $flash = null;
+            if ($errors->has('nama')) {
+                foreach ($errors->get('nama') as $msg) {
+                    if (stripos($msg, 'Nama member sudah ada') !== false) {
+                        $flash = 'Nama member sudah ada.';
+                        break;
+                    }
+                }
+            }
+
             return back()
-                ->with('error', 'Perubahan gagal disimpan. Data tidak valid.')
+                ->withErrors($validator)
+                ->with('error', $flash)
                 ->withInput();
         }
 
@@ -78,8 +131,8 @@ class MemberController extends Controller
                 'ID_Member'  => $newId,
                 'ID_Manager' => 'MGR001',
                 'ID_Pegawai' => null,
-                'Nama'       => $request->nama,
-                'No_Telepon' => $request->no_telp,
+                'Nama'       => $namaInput,
+                'No_Telepon' => $telpNormalized,
                 'Email'      => $request->email,
                 'Alamat'     => $request->alamat,
                 'Poin'       => 0,
@@ -108,8 +161,8 @@ class MemberController extends Controller
             'No_Telepon as no_telp',
             'Poin as poin'
         )
-        ->orderBy('Nama')
-        ->get();
+            ->orderBy('Nama')
+            ->get();
 
         return response()->json($members);
     }

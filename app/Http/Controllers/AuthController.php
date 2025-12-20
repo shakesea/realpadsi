@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Manager;
 use App\Models\Pegawai;
 use App\Models\Finance;
-
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 
 class AuthController extends Controller
@@ -24,54 +24,70 @@ class AuthController extends Controller
         ]);
 
         // Cek apakah user adalah Manager
-        $manager = Manager::where('Username', $request->username)
-            ->where('Password', $request->password)
-            ->first();
+        $manager = Manager::where('Username', $request->username)->first();
 
         if ($manager) {
-            // Simpan data Manager ke session
-            Session::put('user', [
-                'id' => $manager->ID_Manager,
-                'username' => $manager->Username,
-                'role' => 'manager',
-                'type' => 'manager'
-            ]);
-            
+            // Check if password is bcrypt or plain text
+            $passwordMatches = (strpos($manager->Password, '$2') === 0)
+                ? Hash::check($request->password, $manager->Password)
+                : $manager->Password === $request->password;
 
-            return redirect('/dashboard')->with('success', 'Selamat datang kembali, ' . ucfirst(explode('.', $manager->Username)[0]) . '!');
+            if ($passwordMatches) {
+                // Simpan data Manager ke session
+                Session::put('user', [
+                    'id' => $manager->ID_Manager,
+                    'username' => $manager->Username,
+                    'role' => 'manager',
+                    'type' => 'manager'
+                ]);
+
+
+                return redirect('/dashboard')->with('success', 'Selamat datang kembali, ' . ucfirst(explode('.', $manager->Username)[0]) . '!');
+            }
         }
 
         // Jika bukan Manager, cek apakah user adalah Pegawai
-        $pegawai = Pegawai::where('Username', $request->username)
-            ->where('Password', $request->password)
-            ->first();
+        $pegawai = Pegawai::where('Username', $request->username)->first();
 
         if ($pegawai) {
-            // Simpan data Pegawai ke session
-            Session::put('user', [
-                'id' => $pegawai->ID_Pegawai,
-                'username' => $pegawai->Username,
-                'role' => 'pegawai', // Bisa digunakan untuk cek role pegawai
-                'type' => 'pegawai'
-            ]);
+            // Check if password is bcrypt or plain text
+            $passwordMatches = (strpos($pegawai->Password, '$2') === 0)
+                ? Hash::check($request->password, $pegawai->Password)
+                : $pegawai->Password === $request->password;
 
-            return redirect('/dashboard')->with('success', 'Selamat datang kembali, ' . ucfirst(explode('.', $pegawai->Username)[0]) . '!');
+            if ($passwordMatches) {
+                // Simpan data Pegawai ke session
+                Session::put('user', [
+                    'id' => $pegawai->ID_Pegawai,
+                    'username' => $pegawai->Username,
+                    'role' => 'pegawai',
+                    'type' => 'pegawai'
+                ]);
+
+                return redirect('/dashboard')->with('success', 'Selamat datang kembali, ' . ucfirst(explode('.', $pegawai->Username)[0]) . '!');
+            }
         }
 
-        $finance = Finance::where('Username', $request->username)
-            ->where('Password', $request->password)
-            ->first();
+        // Jika bukan Pegawai, cek apakah user adalah Finance
+        $finance = Finance::where('Username', $request->username)->first();
 
         if ($finance) {
-            // Simpan data Finance ke session
-            Session::put('user', [
-                'id' => $finance->ID_Finance,
-                'username' => $finance->Username,
-                'role' => 'finance',
-                'type' => 'finance'
-            ]);
+            // Check if password is bcrypt or plain text
+            $passwordMatches = (strpos($finance->Password, '$2') === 0)
+                ? Hash::check($request->password, $finance->Password)
+                : $finance->Password === $request->password;
 
-            return redirect('/dashboard')->with('success', 'Selamat datang kembali, ' . ucfirst(explode('.', $finance->Username)[0]) . '!');
+            if ($passwordMatches) {
+                // Simpan data Finance ke session
+                Session::put('user', [
+                    'id' => $finance->ID_Finance,
+                    'username' => $finance->Username,
+                    'role' => 'finance',
+                    'type' => 'finance'
+                ]);
+
+                return redirect('/dashboard')->with('success', 'Selamat datang kembali, ' . ucfirst(explode('.', $finance->Username)[0]) . '!');
+            }
         }
 
         return back()->with('error', 'Username atau password salah!');

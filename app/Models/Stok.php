@@ -21,4 +21,22 @@ class Stok extends Model
         'Created_At',
         'Updated_At',
     ];
+
+    /**
+     * Update status stok berdasarkan jumlah item
+     */
+    public function updateStatus()
+    {
+        $jumlah = (int) $this->Jumlah_Item;
+
+        if ($jumlah == 0) {
+            $this->Status = 'Habis';
+        } elseif ($jumlah <= 200) {
+            $this->Status = 'Menipis';
+        } else {
+            $this->Status = 'Aman';
+        }
+
+        return $this;
+    }
 }

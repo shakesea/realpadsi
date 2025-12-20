@@ -45,6 +45,24 @@
             </div>
 
             <div class="form-group">
+                <label for="jenis_kelamin">Jenis Kelamin</label>
+                <select id="jenis_kelamin" name="jenis_kelamin" required>
+                    <option value="">-- Pilih Jenis Kelamin --</option>
+                    <option value="Laki-laki" {{ old('jenis_kelamin') === 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                    <option value="Perempuan" {{ old('jenis_kelamin') === 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Role</label>
+                <select id="role" name="role" required>
+                    <option value="">-- Pilih Role --</option>
+                    <option value="ROL002" {{ old('role') === 'ROL002' ? 'selected' : '' }}>Kasir</option>
+                    <option value="ROL003" {{ old('role') === 'ROL003' ? 'selected' : '' }}>Finance</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label for="alamat">Alamat</label>
                 <textarea id="alamat" name="alamat" required>{{ old('alamat') }}</textarea>
             </div>

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Pegawai;
+use App\Models\Finance;
 use App\Models\InformasiPegawai;
 use Carbon\Carbon;
 
@@ -48,6 +49,8 @@ class PegawaiController extends Controller
             'telp' => 'required|max:15',
             'tanggal_lahir' => 'required|date',
             'alamat' => 'required|max:100',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+            'role' => 'required|in:ROL002,ROL003',
         ]);
 
         if ($validator->fails()) {
@@ -59,7 +62,8 @@ class PegawaiController extends Controller
         // ==========================================
         // 🔍 CEK DUPLIKASI DATA
         // ==========================================
-        $cekUsername = Pegawai::where('Username', $request->nama)->exists();
+        $cekUsername = Pegawai::where('Username', $request->nama)->exists() ||
+            Finance::where('Username', $request->nama)->exists();
         $cekEmail = InformasiPegawai::where('Email', $request->email)->exists();
         $cekTelp = InformasiPegawai::where('No_Telepon', $request->telp)->exists();
 
@@ -70,32 +74,61 @@ class PegawaiController extends Controller
         }
         // ==========================================
 
-        // Generate ID Pegawai dengan cara yang lebih reliable
-        $lastPegawai = DB::table('Pegawai')
-            ->selectRaw("CAST(SUBSTRING(ID_Pegawai, 4) AS UNSIGNED) as num")
-            ->orderByDesc('num')
-            ->first();
-        $lastPegawaiNumber = $lastPegawai ? $lastPegawai->num : 0;
-        $newId = 'EMP' . str_pad($lastPegawaiNumber + 1, 3, '0', STR_PAD_LEFT);
-
-        // Generate ID Informasi Pegawai dengan cara yang lebih reliable
-        $lastInfo = DB::table('Informasi_Pegawai')
-            ->selectRaw("CAST(SUBSTRING(ID_InfoPegawai, 4) AS UNSIGNED) as num")
-            ->orderByDesc('num')
-            ->first();
-        $lastInfoNumber = $lastInfo ? $lastInfo->num : 0;
-        $newInfoId = 'INF' . str_pad($lastInfoNumber + 1, 3, '0', STR_PAD_LEFT);
-
         DB::beginTransaction();
 
         try {
-            Pegawai::create([
-                'ID_Pegawai' => $newId,
-                'ID_Role' => 'ROL002',
-                'Username' => $request->nama,
-                'Password' => bcrypt('default123'),
-            ]);
+            // Convert jenis_kelamin ke single character
+            $jenisKelamin = $request->jenis_kelamin === 'Laki-laki' ? 'L' : 'P';
 
+            // Jika role Finance (ROL003), simpan ke tabel Finance
+            if ($request->role === 'ROL003') {
+                // Generate ID Finance
+                $lastFinance = DB::table('Finance')
+                    ->selectRaw("CAST(SUBSTRING(ID_Finance, 4) AS UNSIGNED) as num")
+                    ->orderByDesc('num')
+                    ->first();
+                $lastFinanceNumber = $lastFinance ? $lastFinance->num : 0;
+                $newId = 'FIN' . str_pad($lastFinanceNumber + 1, 3, '0', STR_PAD_LEFT);
+
+                Finance::create([
+                    'ID_Finance' => $newId,
+                    'ID_Role' => $request->role,
+                    'Username' => $request->nama,
+                    'Password' => bcrypt('default123'),
+                ]);
+            }
+            // Jika role Kasir (ROL002), simpan ke tabel Pegawai
+            else {
+                // Generate ID Pegawai
+                $lastPegawai = DB::table('Pegawai')
+                    ->selectRaw("CAST(SUBSTRING(ID_Pegawai, 4) AS UNSIGNED) as num")
+                    ->orderByDesc('num')
+                    ->first();
+                $lastPegawaiNumber = $lastPegawai ? $lastPegawai->num : 0;
+                $newId = 'EMP' . str_pad($lastPegawaiNumber + 1, 3, '0', STR_PAD_LEFT);
+
+                Pegawai::create([
+                    'ID_Pegawai' => $newId,
+                    'ID_Role' => $request->role,
+                    'Username' => $request->nama,
+                    'Password' => bcrypt('default123'),
+                ]);
+            }
+
+            // Generate ID Informasi Pegawai
+            $lastInfo = DB::table('Informasi_Pegawai')
+                ->selectRaw("CAST(SUBSTRING(ID_InfoPegawai, 4) AS UNSIGNED) as num")
+                ->orderByDesc('num')
+                ->first();
+            $lastInfoNumber = $lastInfo ? $lastInfo->num : 0;
+            $newInfoId = 'INF' . str_pad($lastInfoNumber + 1, 3, '0', STR_PAD_LEFT);
+
+            // Jika Finance, nonaktifkan foreign key check sementara
+            if ($request->role === 'ROL003') {
+                DB::statement('SET FOREIGN_KEY_CHECKS=0');
+            }
+
+            // Simpan informasi pegawai dengan ID yang sesuai (ID_Pegawai atau ID_Finance)
             InformasiPegawai::create([
                 'ID_InfoPegawai' => $newInfoId,
                 'ID_Pegawai' => $newId,
@@ -104,14 +137,20 @@ class PegawaiController extends Controller
                 'No_Telepon' => $request->telp,
                 'Tgl_Lahir' => $request->tanggal_lahir,
                 'Umur' => Carbon::parse($request->tanggal_lahir)->age,
-                'Jenis_Kelamin' => 'L',
+                'Jenis_Kelamin' => $jenisKelamin,
                 'Created_At' => now(),
             ]);
 
+            // Aktifkan kembali foreign key check
+            if ($request->role === 'ROL003') {
+                DB::statement('SET FOREIGN_KEY_CHECKS=1');
+            }
+
             DB::commit();
 
+            $roleText = ($request->role === 'ROL003') ? 'Finance' : 'Pegawai';
             return redirect()->route('pegawai.index')
-                ->with('success', 'Pegawai baru berhasil ditambahkan!');
+                ->with('success', $roleText . ' baru berhasil ditambahkan!');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Pegawai gagal ditambahkan. Error: ' . $e->getMessage());
@@ -122,11 +161,12 @@ class PegawaiController extends Controller
         DB::beginTransaction();
 
         try {
-            // Cek apakah pegawai ada
+            // Cek apakah pegawai ada di tabel Pegawai atau Finance
             $pegawai = Pegawai::where('ID_Pegawai', $id)->first();
+            $finance = Finance::where('ID_Finance', $id)->first();
 
-            if (!$pegawai) {
-                return back()->with('error', 'Pegawai tidak ditemukan!');
+            if (!$pegawai && !$finance) {
+                return back()->with('error', 'Data tidak ditemukan!');
             }
 
             // Hapus informasi pegawai terlebih dahulu (child record)
@@ -137,17 +177,21 @@ class PegawaiController extends Controller
                 ->where('ID_Pegawai', $id)
                 ->update(['ID_Pegawai' => null]);
 
-            // Hapus data di tabel Pegawai (parent record)
-            $pegawai->delete();
+            // Hapus data di tabel yang sesuai (Pegawai atau Finance)
+            if ($pegawai) {
+                $pegawai->delete();
+            } else {
+                $finance->delete();
+            }
 
             DB::commit();
 
-            return back()->with('success', 'Pegawai berhasil dihapus!');
+            return back()->with('success', 'Data berhasil dihapus!');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Delete Pegawai Error: ' . $e->getMessage());
+            \Log::error('Delete Pegawai/Finance Error: ' . $e->getMessage());
 
-            return back()->with('error', 'Gagal menghapus pegawai. Error: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menghapus data. Error: ' . $e->getMessage());
         }
     }
 }
