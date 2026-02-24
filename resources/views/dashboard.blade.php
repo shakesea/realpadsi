@@ -13,7 +13,7 @@
         <!-- Filter bar -->
         <div class="filter-bar">
             <button class="filter-btn">🏪 Semua Outlet</button>
-            <button class="filter-btn">📅 16 Apr 2025 - 20 Mei 2025</button>
+            <button class="filter-btn">📅 16 Apr 2025 - 20 Mei 2025 </button>
         </div>
 
         <!-- Cards -->
